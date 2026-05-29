@@ -1,0 +1,16 @@
+import type { NextConfig } from "next";
+
+const nextConfig: NextConfig = {
+  compress: true,
+  images: {
+    formats: ["image/avif", "image/webp"],
+    minimumCacheTTL: 60 * 60 * 24,
+  },
+  experimental: {
+    optimizePackageImports: ["lucide-react", "recharts"],
+  },
+  poweredByHeader: false,
+  reactStrictMode: true,
+};
+
+export default nextConfig;
