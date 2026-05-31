@@ -3,7 +3,6 @@
 import {
   Clapperboard,
   Loader2,
-  Sparkles,
   UploadCloud,
   WandSparkles,
 } from "lucide-react";
