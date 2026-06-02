@@ -1,14 +1,6 @@
 "use client";
 
-import {
-  Download,
-  Film,
-  Loader2,
-  Play,
-  RefreshCw,
-  Sparkles,
-  UploadCloud,
-} from "lucide-react";
+import { Download, Film, Loader2, Play, RefreshCw, Sparkles, UploadCloud } from "lucide-react";
 import { useMemo, useState } from "react";
 
 import { PageShell } from "@/components/layout/page-shell";
@@ -18,36 +10,15 @@ import { useVideoRender } from "@/features/video-generator/hooks";
 import type { VideoRecord } from "@/features/video-generator/types";
 import { cn } from "@/lib/utils";
 
-const stylePresets = [
-  "Luxury Commercial",
-  "Cinematic",
-  "Cyberpunk",
-  "Minimal Studio",
-  "Dark Luxury",
-  "Tech Showcase",
-  "Futuristic Ad",
-];
+const stylePresets = ["Luxury Commercial", "Cinematic", "Cyberpunk", "Minimal Studio", "Dark Luxury", "Tech Showcase", "Futuristic Ad"];
 
 export function VideoGeneratorView() {
-  const {
-    downloadExport,
-    downloadVideo,
-    error,
-    history,
-    isHistoryLoading,
-    isRendering,
-    setVideo,
-    startRender,
-    video,
-  } = useVideoRender();
+  const { downloadExport, downloadVideo, error, history, isHistoryLoading, isRendering, setVideo, startRender, video } = useVideoRender();
   const [productFile, setProductFile] = useState<File | null>(null);
   const [prompt, setPrompt] = useState("");
   const [selectedStyle, setSelectedStyle] = useState(stylePresets[0]);
   const [formError, setFormError] = useState("");
-  const productPreview = useMemo(
-    () => (productFile ? URL.createObjectURL(productFile) : ""),
-    [productFile],
-  );
+  const productPreview = useMemo(() => productFile ? URL.createObjectURL(productFile) : "", [productFile]);
   const canGenerate = Boolean(productFile && prompt.trim() && !isRendering);
 
   async function submitGeneration() {
@@ -67,15 +38,10 @@ export function VideoGeneratorView() {
   return (
     <PageShell
       title="AI Product Video Generator"
-      description="Upload a product image and generate a short product video"
+      description="Upload a product image and generate a short cinematic product video with Wan 2.2 I2V on Hugging Face Spaces."
       className="max-w-[1480px]"
       actions={
-        <Button
-          variant="secondary"
-          type="button"
-          onClick={downloadExport}
-          disabled={!video?.videoUrl}
-        >
+        <Button variant="secondary" type="button" onClick={downloadExport} disabled={!video?.videoUrl}>
           <Download className="size-4" />
           Download Video
         </Button>
@@ -84,9 +50,8 @@ export function VideoGeneratorView() {
       <div className="grid gap-6 xl:grid-cols-[420px_minmax(0,1fr)]">
         <aside className="glass-panel self-start rounded-lg p-5 sm:p-6">
           <div className="mb-6">
-            <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-primary">
-              Product Image Upload
-            </p>
+            <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-primary">Product Image Upload</p>
+            <h2 className="mt-2 font-display text-2xl font-semibold text-white">Cinematic Inputs</h2>
           </div>
 
           <label className="group relative grid aspect-square cursor-pointer place-items-center overflow-hidden rounded-lg border border-dashed border-primary/50 bg-black/30 transition hover:border-primary hover:shadow-glow">
@@ -94,26 +59,16 @@ export function VideoGeneratorView() {
               className="sr-only"
               type="file"
               accept="image/png,image/jpeg,image/webp"
-              onChange={(event) =>
-                setProductFile(event.target.files?.[0] ?? null)
-              }
+              onChange={(event) => setProductFile(event.target.files?.[0] ?? null)}
             />
             {productPreview ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={productPreview}
-                alt="Product preview"
-                className="size-full object-cover opacity-90"
-              />
+              <img src={productPreview} alt="Product preview" className="size-full object-cover opacity-90" />
             ) : (
               <div className="text-center">
                 <UploadCloud className="mx-auto mb-5 size-12 text-primary" />
-                <p className="text-base font-semibold text-white">
-                  Upload Product Image
-                </p>
-                <p className="mt-2 text-sm text-muted">
-                  PNG, JPG, WEBP - drag and drop or click
-                </p>
+                <p className="text-base font-semibold text-white">Upload Product Image</p>
+                <p className="mt-2 text-sm text-muted">PNG, JPG, WEBP - drag and drop or click</p>
               </div>
             )}
           </label>
@@ -132,9 +87,7 @@ export function VideoGeneratorView() {
           </label>
 
           <section className="mt-6">
-            <p className="mb-3 font-mono text-[10px] font-bold uppercase tracking-[0.18em] text-muted">
-              Quick Style Presets
-            </p>
+            <p className="mb-3 font-mono text-[10px] font-bold uppercase tracking-[0.18em] text-muted">Quick Style Presets</p>
             <div className="flex flex-wrap gap-2">
               {stylePresets.map((style) => (
                 <button
@@ -143,8 +96,7 @@ export function VideoGeneratorView() {
                   onClick={() => setSelectedStyle(style)}
                   className={cn(
                     "rounded-full border border-primary/10 bg-black/25 px-4 py-2 text-xs font-bold text-muted transition hover:border-primary/45 hover:text-white hover:shadow-[0_0_24px_rgba(114,255,95,0.12)]",
-                    selectedStyle === style &&
-                      "border-primary bg-primary text-[#021003] shadow-glow",
+                    selectedStyle === style && "border-primary bg-primary text-[#021003] shadow-glow",
                   )}
                 >
                   {style}
@@ -153,25 +105,12 @@ export function VideoGeneratorView() {
             </div>
           </section>
 
-          <Button
-            className="mt-7 h-13 w-full"
-            type="button"
-            onClick={() => void submitGeneration()}
-            disabled={!canGenerate}
-          >
-            {isRendering ? (
-              <Loader2 className="size-4 animate-spin" />
-            ) : (
-              <Sparkles className="size-4" />
-            )}
+          <Button className="mt-7 h-13 w-full" type="button" onClick={() => void submitGeneration()} disabled={!canGenerate}>
+            {isRendering ? <Loader2 className="size-4 animate-spin" /> : <Sparkles className="size-4" />}
             {isRendering ? "Generating Video" : "Generate Video"}
           </Button>
 
-          {formError || error ? (
-            <p className="mt-4 rounded-lg border border-red-300/20 bg-red-400/10 p-3 text-sm leading-6 text-red-100">
-              {formError || error}
-            </p>
-          ) : null}
+          {formError || error ? <p className="mt-4 rounded-lg border border-red-300/20 bg-red-400/10 p-3 text-sm leading-6 text-red-100">{formError || error}</p> : null}
         </aside>
 
         <main className="space-y-6">
@@ -181,54 +120,31 @@ export function VideoGeneratorView() {
                 <div className="grid size-full place-items-center bg-gradient-to-br from-surface via-black to-surface-container">
                   <div className="text-center">
                     <Loader2 className="mx-auto mb-4 size-12 animate-spin text-primary" />
-                    <p className="font-display text-2xl font-semibold text-white">
-                      Generating video
-                    </p>
+                    <p className="font-display text-2xl font-semibold text-white">Generating cinematic motion</p>
+                    <p className="mt-2 text-sm text-muted">The Hugging Face Space may take a few minutes.</p>
                   </div>
                   <div className="absolute inset-0 shimmer opacity-20" />
                 </div>
               ) : video?.videoUrl ? (
-                <video
-                  className="size-full object-contain"
-                  controls
-                  playsInline
-                  poster={video.thumbnailUrl}
-                  src={video.videoUrl}
-                />
+                <video className="size-full object-contain" controls playsInline poster={video.thumbnailUrl} src={video.videoUrl} />
               ) : (
                 <div className="grid size-full place-items-center bg-[radial-gradient(circle_at_50%_35%,rgba(114,255,95,0.18),transparent_18rem),linear-gradient(135deg,#020902,#061208_48%,#010501)]">
                   <div className="text-center">
                     <div className="mx-auto mb-5 grid size-20 place-items-center rounded-full border border-primary/25 bg-primary/10 text-primary shadow-glow">
                       <Play className="ml-1 size-9" />
                     </div>
-                    <h2 className="font-display text-3xl font-semibold text-white">
-                      Video preview
-                    </h2>
-                    <p className="mt-3 max-w-md text-sm leading-6 text-muted">
-                      Upload a product image, write a prompt, and generate a
-                      short product video.
-                    </p>
+                    <h2 className="font-display text-3xl font-semibold text-white">Video preview</h2>
+                    <p className="mt-3 max-w-md text-sm leading-6 text-muted">Upload a product image, write a cinematic prompt, and generate a short product video.</p>
                   </div>
                 </div>
               )}
             </div>
             <div className="flex flex-wrap items-center justify-between gap-3 border-t border-white/10 p-4">
               <div>
-                <p className="text-sm font-semibold text-white">
-                  {video?.title}
-                </p>
-                <p className="mt-1 text-xs text-muted">
-                  {video
-                    ? `${video.selectedStyle} - ${formatDate(video.createdAt)}`
-                    : ""}
-                </p>
+                <p className="text-sm font-semibold text-white">{video?.title ?? "Ready for generation"}</p>
+                <p className="mt-1 text-xs text-muted">{video ? `${video.selectedStyle} - ${formatDate(video.createdAt)}` : "Wan 2.2 I2V with Lightning LoRA"}</p>
               </div>
-              <Button
-                variant="secondary"
-                type="button"
-                onClick={downloadExport}
-                disabled={!video?.videoUrl}
-              >
+              <Button variant="secondary" type="button" onClick={downloadExport} disabled={!video?.videoUrl}>
                 <Download className="size-4" />
                 Download
               </Button>
@@ -238,34 +154,20 @@ export function VideoGeneratorView() {
           <section>
             <div className="mb-4 flex items-center justify-between">
               <div>
-                <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-primary">
-                  Generated Results Grid
-                </p>
-                <h2 className="mt-1 font-display text-2xl font-semibold text-white">
-                  Saved Renders
-                </h2>
+                <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-primary">Generated Results Grid</p>
+                <h2 className="mt-1 font-display text-2xl font-semibold text-white">Saved Renders</h2>
               </div>
             </div>
 
             <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-              {isHistoryLoading
-                ? Array.from({ length: 3 }).map((_, index) => (
-                    <Skeleton key={index} className="h-64 rounded-lg" />
-                  ))
-                : null}
+              {isHistoryLoading ? Array.from({ length: 3 }).map((_, index) => <Skeleton key={index} className="h-64 rounded-lg" />) : null}
               {!isHistoryLoading && history.length === 0 ? (
                 <div className="col-span-full grid min-h-44 place-items-center rounded-lg border border-dashed border-primary/20 bg-primary/[0.025] text-center text-sm text-muted">
                   Generated videos will appear here.
                 </div>
               ) : null}
               {history.map((item) => (
-                <VideoResultCard
-                  key={item.id}
-                  video={item}
-                  onOpen={() => setVideo(item)}
-                  onDownload={() => downloadVideo(item)}
-                  onRegenerate={() => setVideo(item)}
-                />
+                <VideoResultCard key={item.id} video={item} onOpen={() => setVideo(item)} onDownload={() => downloadVideo(item)} onRegenerate={() => setVideo(item)} />
               ))}
             </div>
           </section>
@@ -275,32 +177,12 @@ export function VideoGeneratorView() {
   );
 }
 
-function VideoResultCard({
-  onDownload,
-  onOpen,
-  onRegenerate,
-  video,
-}: {
-  onDownload: () => void;
-  onOpen: () => void;
-  onRegenerate: () => void;
-  video: VideoRecord;
-}) {
+function VideoResultCard({ onDownload, onOpen, onRegenerate, video }: { onDownload: () => void; onOpen: () => void; onRegenerate: () => void; video: VideoRecord }) {
   return (
     <article className="group overflow-hidden rounded-lg border border-primary/15 bg-primary/[0.035] transition hover:border-primary/45 hover:shadow-glow">
-      <button
-        type="button"
-        onClick={onOpen}
-        className="relative block aspect-video w-full bg-black text-left"
-      >
+      <button type="button" onClick={onOpen} className="relative block aspect-video w-full bg-black text-left">
         {video.videoUrl ? (
-          <video
-            className="size-full object-cover opacity-85 transition group-hover:opacity-100"
-            muted
-            playsInline
-            preload="metadata"
-            src={video.videoUrl}
-          />
+          <video className="size-full object-cover opacity-85 transition group-hover:opacity-100" muted playsInline preload="metadata" src={video.videoUrl} />
         ) : (
           <div className="grid size-full place-items-center bg-gradient-to-br from-surface to-surface-container">
             <Film className="size-8 text-primary" />
@@ -308,35 +190,18 @@ function VideoResultCard({
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-transparent to-black/10" />
         <div className="absolute bottom-3 left-3 right-3">
-          <p className="line-clamp-1 text-sm font-semibold text-white">
-            {video.title}
-          </p>
-          <p className="mt-1 text-xs text-muted">
-            {formatDate(video.createdAt)}
-          </p>
+          <p className="line-clamp-1 text-sm font-semibold text-white">{video.title}</p>
+          <p className="mt-1 text-xs text-muted">{formatDate(video.createdAt)}</p>
         </div>
       </button>
       <div className="space-y-3 p-4">
-        <p className="line-clamp-2 text-sm leading-6 text-muted">
-          {video.prompt}
-        </p>
+        <p className="line-clamp-2 text-sm leading-6 text-muted">{video.prompt}</p>
         <div className="flex gap-2">
-          <Button
-            variant="secondary"
-            size="sm"
-            type="button"
-            onClick={onDownload}
-            disabled={!video.videoUrl}
-          >
+          <Button variant="secondary" size="sm" type="button" onClick={onDownload} disabled={!video.videoUrl}>
             <Download className="size-3" />
             Download
           </Button>
-          <Button
-            variant="secondary"
-            size="sm"
-            type="button"
-            onClick={onRegenerate}
-          >
+          <Button variant="secondary" size="sm" type="button" onClick={onRegenerate}>
             <RefreshCw className="size-3" />
             View
           </Button>
@@ -350,8 +215,5 @@ function formatDate(value?: string) {
   if (!value) return "Just now";
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "Just now";
-  return new Intl.DateTimeFormat("en", {
-    dateStyle: "medium",
-    timeStyle: "short",
-  }).format(date);
+  return new Intl.DateTimeFormat("en", { dateStyle: "medium", timeStyle: "short" }).format(date);
 }
