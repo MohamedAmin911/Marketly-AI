@@ -1,6 +1,7 @@
 "use client";
 
 import { Bell, HelpCircle, Menu, Search, UserRound } from "lucide-react";
+import { Menu, UserRound } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
