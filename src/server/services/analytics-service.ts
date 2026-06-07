@@ -70,31 +70,6 @@ type AnalyticsReport = {
   }[];
 };
 
-type StoredAnalyticsRecord = {
-  _id: unknown;
-  campaignId?: unknown;
-  clicks?: number;
-  conversions?: number;
-  cpc?: number;
-  createdAt?: unknown;
-  engagementRate?: number;
-  impressions?: number;
-  roi?: number;
-};
-
-type StoredCampaignRecord = {
-  _id: unknown;
-  clicks?: number;
-  conversions?: number;
-  createdAt?: unknown;
-  engagementRate?: number;
-  impressions?: number;
-  name?: string;
-  platforms?: string[];
-  roi?: number;
-  status?: string;
-};
-
 const demoSourceRecords: AnalyticsSourceRecord[] = [
   { campaignId: "holiday-push", campaignName: "Q4 Holiday Push", channel: "Google Ads", clicks: 8420, conversions: 1320, date: daysAgo(3), engagements: 18100, impressions: 192000, revenue: 184200, spend: 45200, status: "active" },
   { campaignId: "creator-retargeting", campaignName: "Creator Retargeting", channel: "Instagram", clicks: 5120, conversions: 810, date: daysAgo(7), engagements: 22900, impressions: 118500, revenue: 96750, spend: 27100, status: "active" },
@@ -109,7 +84,7 @@ const demoSourceRecords: AnalyticsSourceRecord[] = [
 export async function ingestAnalyticsEvents(input: AnalyticsEventsRequest, auth: AuthContext) {
   return {
     accepted: input.events.length,
-    events: input.events.map((event: AnalyticsEventsRequest["events"][number]) => ({
+    events: input.events.map((event) => ({
       event: event.event,
       occurredAt: event.occurredAt,
       validation: "accepted",
@@ -180,29 +155,29 @@ async function getSourceRecords(auth?: AuthContext): Promise<AnalyticsSourceReco
   ]);
 
   return [
-    ...(analytics as StoredAnalyticsRecord[]).map((record: StoredAnalyticsRecord): AnalyticsSourceRecord => ({
+    ...analytics.map((record): AnalyticsSourceRecord => ({
       campaignId: String(record.campaignId ?? record._id),
       campaignName: `Analytics ${String(record._id).slice(-6)}`,
       channel: "Google Ads",
       clicks: record.clicks,
       conversions: record.conversions,
       date: toIsoDate(record.createdAt),
-      engagements: Math.round((safeMetric(record.engagementRate) / 100) * safeMetric(record.impressions)),
+      engagements: Math.round((record.engagementRate / 100) * record.impressions),
       impressions: record.impressions,
-      revenue: safeMetric(record.roi) > 0 ? safeMetric(record.cpc) * safeMetric(record.clicks) * (1 + safeMetric(record.roi) / 100) : 0,
-      spend: safeMetric(record.cpc) * safeMetric(record.clicks),
+      revenue: record.roi > 0 ? record.cpc * record.clicks * (1 + record.roi / 100) : 0,
+      spend: record.cpc * record.clicks,
       status: "active",
     })),
-    ...(campaigns as StoredCampaignRecord[]).map((campaign: StoredCampaignRecord): AnalyticsSourceRecord => ({
+    ...campaigns.map((campaign): AnalyticsSourceRecord => ({
       campaignId: String(campaign._id),
-      campaignName: campaign.name ?? "Campaign",
-      channel: normalizeChannel(campaign.platforms?.[0]),
+      campaignName: campaign.name,
+      channel: normalizeChannel(campaign.platforms[0]),
       clicks: campaign.clicks,
       conversions: campaign.conversions,
       date: toIsoDate(campaign.createdAt),
-      engagements: Math.round((safeMetric(campaign.engagementRate) / 100) * safeMetric(campaign.impressions)),
+      engagements: Math.round((campaign.engagementRate / 100) * campaign.impressions),
       impressions: campaign.impressions,
-      revenue: safeMetric(campaign.roi) > 0 ? safeMetric(campaign.clicks) * (1 + safeMetric(campaign.roi) / 100) : 0,
+      revenue: campaign.roi > 0 ? campaign.clicks * (1 + campaign.roi / 100) : 0,
       spend: campaign.clicks,
       status: campaign.status === "paused" ? "paused" : campaign.status === "draft" ? "draft" : "active",
     })),
@@ -493,8 +468,7 @@ function matchesFilter(filter: string, value: string) {
 }
 
 function rangeToMs(range: AnalyticsQuery["range"]) {
-  const daysByRange: Record<string, number> = { "24h": 1, "7d": 7, "30d": 30, "90d": 90, all: 3650 };
-  const days = daysByRange[range] ?? daysByRange["30d"];
+  const days = { "24h": 1, "7d": 7, "30d": 30, "90d": 90, all: 3650 }[range];
 
   return days * 24 * 60 * 60 * 1000;
 }

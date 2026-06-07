@@ -26,13 +26,13 @@ export function buildMarketingContext(input: BuildMarketingContextInput): Market
 
 export function buildMemoryInjection(memory: MarketingMemory): string[] {
   return [
-    ...memory.preferredStyles.map((style: string) => `Style preference: ${style}`),
-    ...memory.preferredHooks.map((hook: string) => `Hook preference: ${hook}`),
-    ...memory.preferredCaptions.map((caption: string) => `Caption preference: ${caption}`),
-    ...memory.successfulCampaigns.map((campaign: string) => `Successful campaign pattern: ${campaign}`),
-    ...memory.successfulPrompts.map((prompt: string) => `Successful prompt pattern: ${prompt}`),
-    ...memory.successfulCreatives.map((creative: { performanceNote?: string; title: string }) => `Successful creative: ${creative.title}${creative.performanceNote ? ` (${creative.performanceNote})` : ""}`),
-    ...memory.previousRecommendations.map((recommendation: string) => `Avoid repeating recommendation: ${recommendation}`),
+    ...memory.preferredStyles.map((style) => `Style preference: ${style}`),
+    ...memory.preferredHooks.map((hook) => `Hook preference: ${hook}`),
+    ...memory.preferredCaptions.map((caption) => `Caption preference: ${caption}`),
+    ...memory.successfulCampaigns.map((campaign) => `Successful campaign pattern: ${campaign}`),
+    ...memory.successfulPrompts.map((prompt) => `Successful prompt pattern: ${prompt}`),
+    ...memory.successfulCreatives.map((creative) => `Successful creative: ${creative.title}${creative.performanceNote ? ` (${creative.performanceNote})` : ""}`),
+    ...memory.previousRecommendations.map((recommendation) => `Avoid repeating recommendation: ${recommendation}`),
     ...Object.entries(memory.userPatterns).map(([key, value]) => `User pattern ${key}: ${String(value)}`),
   ].slice(0, 12);
 }
@@ -71,7 +71,7 @@ function normalizeAnalytics(records: MarketingAnalyticsPoint[]): {
 
     if (record.clicks > record.impressions && record.impressions > 0) conflicts.push(`${record.campaignName}: clicks exceed impressions`);
     if (record.conversions > record.clicks && record.clicks > 0) conflicts.push(`${record.campaignName}: conversions exceed clicks`);
-    record.anomaliesDetected.forEach((anomaly: string) => anomaliesDetected.add(`${record.campaignName}: ${anomaly}`));
+    record.anomaliesDetected.forEach((anomaly) => anomaliesDetected.add(`${record.campaignName}: ${anomaly}`));
 
     const derivedCtr = record.impressions > 0 ? (record.clicks / record.impressions) * 100 : 0;
     if (record.ctr !== undefined && Math.abs(record.ctr - derivedCtr) > 0.75) {
@@ -87,8 +87,8 @@ function normalizeAnalytics(records: MarketingAnalyticsPoint[]): {
     }
 
     if (record.roi !== undefined) roiValues.push(record.roi);
-    record.trends.forEach((trend: string) => trends.add(trend));
-    record.recommendations.forEach((recommendation: string) => recommendations.add(recommendation));
+    record.trends.forEach((trend) => trends.add(trend));
+    record.recommendations.forEach((recommendation) => recommendations.add(recommendation));
   });
 
   const ctr = impressions > 0 ? round((clicks / impressions) * 100) : 0;
