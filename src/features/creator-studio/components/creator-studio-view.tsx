@@ -1,7 +1,7 @@
 "use client";
 
 import { useQueryClient } from "@tanstack/react-query";
-import { Clapperboard, Monitor, Smartphone } from "lucide-react";
+import { Clapperboard, Monitor, Smartphone, WandSparkles } from "lucide-react";
 import { useMemo, useState } from "react";
 
 import { PageShell } from "@/components/layout/page-shell";

@@ -41,12 +41,6 @@ type GenerationItemSources = {
   recentVideos: Array<{ _id: unknown; createdAt?: unknown; prompt?: unknown; selectedStyle?: unknown; thumbnailUrl?: unknown; title: string; videoUrl?: unknown }>;
 };
 
-type DashboardAnalyticsRecord = {
-  clicks?: number;
-  conversions?: number;
-  impressions?: number;
-};
-
 export async function getDashboardSummary(auth: AuthContext) {
   const userId = toObjectId(auth.user.sub);
 
@@ -69,10 +63,9 @@ export async function getDashboardSummary(auth: AuthContext) {
     VideoModel.find({ userId }).sort({ createdAt: -1 }).limit(4).lean(),
   ]);
 
-  const analyticsRecords = analytics as DashboardAnalyticsRecord[];
-  const clicks = analyticsRecords.reduce((total: number, item: DashboardAnalyticsRecord) => total + (item.clicks ?? 0), 0);
-  const impressions = analyticsRecords.reduce((total: number, item: DashboardAnalyticsRecord) => total + (item.impressions ?? 0), 0);
-  const conversions = analyticsRecords.reduce((total: number, item: DashboardAnalyticsRecord) => total + (item.conversions ?? 0), 0);
+  const clicks = analytics.reduce((total, item) => total + (item.clicks ?? 0), 0);
+  const impressions = analytics.reduce((total, item) => total + (item.impressions ?? 0), 0);
+  const conversions = analytics.reduce((total, item) => total + (item.conversions ?? 0), 0);
   const ctr = impressions > 0 ? (clicks / impressions) * 100 : 0;
   const recentGenerations = buildGenerationItems({ recentCampaigns, recentContent, recentStoryboards, recentVideos }).slice(0, 5);
   const growthTrend = buildGrowthTrend([...recentContent, ...recentCampaigns, ...recentStoryboards, ...recentVideos]);

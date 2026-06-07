@@ -10,20 +10,7 @@ export class MockProvider implements AIProvider {
 
   async generate(request: AIModelRequest): Promise<AIModelResponse> {
     const prompt = stringifyMessages(request);
-    const text = JSON.stringify(prompt.includes("Workflow: ai-assistant") ? {
-      actions: [
-        "Audit the latest campaign performance signals",
-        "Prioritize the highest-confidence budget or creative adjustment",
-        "Store the winning recommendation in AI memory",
-      ],
-      answer: "Based on the current Marketly AI context, prioritize the clearest performance signal, explain the evidence, and turn it into one measurable next action before scaling.",
-      citationsNeeded: false,
-      followUps: [
-        "Which campaign should I audit first?",
-        "Do you want this turned into a 30-day execution plan?",
-        "Should I generate ad concepts from this recommendation?",
-      ],
-    } : {
+    const text = JSON.stringify({
       items: [
         {
           caption: "A precise, premium Marketly AI concept shaped for conversion.",
