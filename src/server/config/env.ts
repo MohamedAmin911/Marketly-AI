@@ -14,6 +14,7 @@ const envSchema = z.object({
   JWT_ACCESS_SECRET: z.string().min(32).default("dev-access-secret-change-me-32-bytes"),
   JWT_REFRESH_SECRET: z.string().min(32).default("dev-refresh-secret-change-me-32-byte"),
   MONGODB_URI: z.string().trim().regex(/^mongodb(?:\+srv)?:\/\//, "MONGODB_URI must be a MongoDB connection string.").optional(),
+  N8N_GROWTH_ENGINE_WEBHOOK_URL: z.string().url().optional(),
   NODE_ENV: z.enum(["development", "production", "test"]).default("development"),
   OPENAI_API_KEY: z.string().optional(),
   OPENROUTER_API_KEY: z.string().optional(),
