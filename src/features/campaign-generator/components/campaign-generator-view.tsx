@@ -95,9 +95,10 @@ export function CampaignGeneratorView() {
                 className="sr-only"
                 type="file"
                 accept="image/png,image/jpeg,image/webp"
-                onChange={(event) =>
-                  setProductFile(event.target.files?.[0] ?? null)
-                }
+                onChange={(event) => {
+                  setProductFile(event.target.files?.[0] ?? null);
+                  event.target.value = "";
+                }}
               />
               {productFile ? (
                 // eslint-disable-next-line @next/next/no-img-element

@@ -72,7 +72,7 @@ export function ImageUploadCard({ eyebrow, hint, image, onImageChange }: ImageUp
           isDragging && "border-cyan-glow/80 bg-cyan-glow/10 shadow-[0_0_40px_rgba(114,255,95,0.18)]",
         )}
       >
-        <input id={inputId} type="file" accept="image/*" className="sr-only" onChange={(event) => selectFile(event.target.files?.[0])} />
+        <input id={inputId} type="file" accept="image/*" className="sr-only" onChange={(event) => { selectFile(event.target.files?.[0]); event.target.value = ""; }} />
 
         {previewUrl ? (
           <>

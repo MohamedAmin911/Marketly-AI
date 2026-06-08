@@ -6,9 +6,9 @@ export const WAN_I2V_VIDEO_DURATION_SECONDS = 5;
 
 type GenerateFluxAdvertisementInput = {
   hfToken?: string;
-  productImage: File;
+  productImage: File | Blob | string;
   prompt: string;
-  referenceImage?: File;
+  referenceImage?: File | Blob | string;
   timeoutMs: number;
 };
 
