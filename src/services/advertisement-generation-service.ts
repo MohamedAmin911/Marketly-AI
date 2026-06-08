@@ -4,7 +4,7 @@ import { generateFluxAdvertisement } from "@/lib/api/gradio";
 import { updateAIMemory } from "@/server/ai/memory/update-service";
 import { env } from "@/server/config/env";
 import { connectToDatabase, GeneratedContentModel } from "@/server/database";
-import { uploadRemoteImageToImageKit } from "@/server/services/imagekit-service";
+import { uploadFileToImageKit, uploadRemoteImageToImageKit } from "@/server/services/imagekit-service";
 
 const GENERATION_TIMEOUT_MS = 240_000;
 const MODEL_ID = "prithivMLmods/FLUX.2-Klein-LoRA-Studio";
@@ -25,11 +25,29 @@ export async function generateProductAdvertisement({
   userId,
 }: GenerateAdvertisementInput) {
   const startedAt = Date.now();
+  const uploadedProduct = await uploadFileToImageKit({
+    alt: "Product image for ad",
+    file: productImage,
+    fileName: `product-${crypto.randomUUID()}.png`,
+    folder: "/marketly-ai/advertisements",
+  });
+
+  let uploadedReferenceUrl: string | undefined = undefined;
+  if (referenceImage && referenceImage.size > 0) {
+    const uploadedReference = await uploadFileToImageKit({
+      alt: "Reference image for ad",
+      file: referenceImage,
+      fileName: `reference-${crypto.randomUUID()}.png`,
+      folder: "/marketly-ai/advertisements",
+    });
+    uploadedReferenceUrl = uploadedReference.url;
+  }
+
   const fluxResult = await generateFluxAdvertisement({
     hfToken: env.HF_TOKEN ?? env.HUGGINGFACE_API_KEY,
-    productImage,
+    productImage: uploadedProduct.url,
     prompt,
-    referenceImage,
+    referenceImage: uploadedReferenceUrl,
     timeoutMs: GENERATION_TIMEOUT_MS,
   });
 

@@ -2,6 +2,8 @@ import { apiErrors } from "@/server/errors/api-error";
 import { validateUploadFile } from "@/server/security/uploads";
 import type { CreatorAsset } from "@/server/creator-studio/types";
 import type { CreatorGenerationInput, CreatorUploadInput } from "@/server/creator-studio/schemas";
+import { generateFluxAdvertisement } from "@/lib/api/gradio";
+import { uploadFileToImageKit, uploadRemoteImageToImageKit } from "@/server/services/imagekit-service";
 
 const nsfwTerms = ["nsfw", "nude", "explicit", "violent"];
 
@@ -10,16 +12,22 @@ export async function processCreatorUpload(input: CreatorUploadInput): Promise<C
   await assertImageReadable(input.file);
 
   const optimized = await optimizeImage(input.file);
+  const uploaded = await uploadFileToImageKit({
+    alt: input.file.name,
+    file: input.file,
+    fileName: optimized.name,
+    folder: "/marketly-ai/creator-studio",
+  });
 
   return {
     color: input.purpose === "reference" ? "from-violet-400/45 to-cyan-500/30" : "from-cyan-400/45 to-fuchsia-500/35",
     id: crypto.randomUUID(),
-    mimeType: optimized.mimeType,
+    mimeType: uploaded.mimeType ?? optimized.mimeType,
     name: optimized.name,
-    size: optimized.size,
+    size: uploaded.size ?? optimized.size,
     tag: input.purpose === "reference" ? "Reference" : "Product",
     title: optimized.name.replace(/\.[^.]+$/, ""),
-    url: `memory://${optimized.storageKey}`,
+    url: uploaded.url,
   };
 }
 
@@ -35,16 +43,48 @@ export async function runCreatorImagePipeline(input: CreatorGenerationInput) {
     removeBackground: input.mode === "background" || input.mode === "studio",
   };
 
-  const generatedImages = Array.from({ length: input.variations }, (_, index) => optimizeOutputAsset({
-    color: colors[index % colors.length],
-    id: crypto.randomUUID(),
-    mimeType: "image/webp",
-    name: `creator-output-${index + 1}.webp`,
-    size: 420_000 + index * 18_000,
-    tag: `${input.quality} ${index + 1}`,
-    title: `${productImage.title} Variation ${index + 1}`,
-    url: `memory://generated/${crypto.randomUUID()}.webp`,
-  }));
+  const generatedImages: CreatorAsset[] = [];
+
+  const generationPromises = Array.from({ length: input.variations }, async (_, index) => {
+    const rawImage = await generateFluxAdvertisement({
+      hfToken: process.env.HF_TOKEN,
+      productImage: productImage.url,
+      prompt,
+      referenceImage: referenceImage?.url,
+      timeoutMs: 120_000,
+    });
+
+    const uploaded = await uploadRemoteImageToImageKit({
+      alt: `${productImage.title} Variation ${index + 1}`,
+      fileName: `creator-output-${index + 1}-${crypto.randomUUID()}.png`,
+      folder: "/marketly-ai/creator-studio/generated",
+      sourceUrl: rawImage.imageUrl,
+    });
+
+    return optimizeOutputAsset({
+      color: colors[index % colors.length],
+      id: crypto.randomUUID(),
+      mimeType: uploaded.mimeType ?? "image/png",
+      name: uploaded.storageKey.split('/').pop() ?? `creator-output-${index + 1}.png`,
+      size: uploaded.size ?? 500_000,
+      tag: `${input.quality} ${index + 1}`,
+      title: `${productImage.title} Variation ${index + 1}`,
+      url: uploaded.url,
+    });
+  });
+
+  const results = await Promise.allSettled(generationPromises);
+  for (const result of results) {
+    if (result.status === "fulfilled") {
+      generatedImages.push(result.value);
+    } else {
+      console.error("Ad Studio Generation Failed:", result.reason);
+    }
+  }
+
+  if (generatedImages.length === 0) {
+    throw apiErrors.internal("Failed to generate any images.");
+  }
 
   return {
     adapters,

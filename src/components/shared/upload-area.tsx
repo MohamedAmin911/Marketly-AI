@@ -43,7 +43,10 @@ export function UploadArea({
         className="sr-only"
         type="file"
         accept="image/png,image/jpeg,image/webp"
-        onChange={(event) => selectFile(event.target.files?.[0])}
+        onChange={(event) => {
+          selectFile(event.target.files?.[0]);
+          event.target.value = "";
+        }}
       />
       <UploadCloud className="mb-3 size-7 text-primary" />
       <span className="text-sm font-medium text-foreground">{fileName ?? label}</span>

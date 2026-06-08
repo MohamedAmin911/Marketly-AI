@@ -6,7 +6,7 @@ import { connectToDatabase, GeneratedContentModel } from "@/server/database";
 import { apiErrors } from "@/server/errors/api-error";
 import { uploadRemoteImageToImageKit } from "@/server/services/imagekit-service";
 
-const OPENROUTER_MODEL = "google/gemini-2.0-flash-001";
+const OPENROUTER_MODEL = "openrouter/owl-alpha";
 const SCENE_COUNT = 3;
 const GRADIO_TIMEOUT_MS = 240_000;
 

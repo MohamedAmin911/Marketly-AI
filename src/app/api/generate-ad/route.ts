@@ -39,7 +39,7 @@ export async function POST(req: NextRequest) {
     });
   } catch (error) {
     logger.error("Product advertisement generation failed.", {
-      error: error instanceof Error ? error.message : String(error),
+      error: error instanceof Error ? error.message : JSON.stringify(error),
     });
     const isTimeout = error instanceof Error && error.message === "Generation timed out";
     const status = error instanceof ApiError ? error.status : isTimeout ? 504 : 500;
