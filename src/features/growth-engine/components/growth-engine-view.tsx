@@ -221,7 +221,6 @@ export function GrowthEngineView() {
   return (
     <PageShell
       title="AI Growth Engine"
-      description="End-to-end pipeline: strategy → campaigns → storyboards → images → videos. Submit your brand brief and let AI handle the rest."
     >
       {/* ---- status tracker ---- */}
       <StatusTracker activeStage={activeStage} completedStages={completedStages} />
