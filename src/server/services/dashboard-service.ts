@@ -194,7 +194,13 @@ function buildGenerationItems({
 function buildGrowthTrend(items: Array<{ createdAt?: unknown }>) {
   const buckets = new Map<string, { conversions: number; name: string; value: number }>();
 
-  items.forEach((item) => {
+  const sortedItems = [...items].sort((a, b) => {
+    const dateA = a.createdAt instanceof Date ? a.createdAt.getTime() : new Date().getTime();
+    const dateB = b.createdAt instanceof Date ? b.createdAt.getTime() : new Date().getTime();
+    return dateA - dateB;
+  });
+
+  sortedItems.forEach((item) => {
     const date = item.createdAt instanceof Date ? item.createdAt : new Date();
     const name = new Intl.DateTimeFormat("en", { month: "short", day: "2-digit" }).format(date);
     const current = buckets.get(name) ?? { conversions: 0, name, value: 0 };

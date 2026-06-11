@@ -83,7 +83,7 @@ export async function generateWanProductVideo({
   timeoutMs,
 }: {
   hfToken?: string;
-  productImage: File;
+  productImage: File | Blob | string;
   prompt: string;
   timeoutMs: number;
 }): Promise<WanVideoResult> {

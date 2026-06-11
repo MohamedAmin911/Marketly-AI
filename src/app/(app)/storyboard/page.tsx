@@ -1,11 +1,5 @@
-import type { Metadata } from "next";
-
-import { StoryboardView } from "@/features/storyboard/components/storyboard-view";
-
-export const metadata: Metadata = {
-  title: "Storyboard Generator",
-};
+import { redirect } from "next/navigation";
 
 export default function StoryboardPage() {
-  return <StoryboardView />;
+  redirect("/growth-engine");
 }
