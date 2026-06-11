@@ -1,9 +1,16 @@
 import mongoose from "mongoose";
-
 import { AIMemoryModel, connectToDatabase, type IAIMemory } from "@/server/database";
-import type { AIMemoryRecord, BrandIdentityMemory, ConversationMemory, CreativeMemory } from "@/server/ai/memory/types";
+import { generateEmbedding, retrieveTopK } from "@/server/ai/rag";
+import type { AIMemoryRecord, AssistantMemoryDocument, BrandIdentityMemory, ConversationMemory, CreativeMemory } from "@/server/ai/memory/types";
 import { createEmptyMemory, normalizeMemory } from "@/server/ai/memory/memory-utils";
-
+export type SaveMemoryInput = {
+  brandId?: string;
+  content: string;
+  metadata?: Record<string, unknown>;
+  source?: AssistantMemoryDocument["source"];
+  title?: string;
+  userId: string;
+};
 const globalForMemory = globalThis as typeof globalThis & {
   marketlyAIMemoryStore?: Map<string, AIMemoryRecord>;
 };
@@ -16,7 +23,7 @@ export async function readMemoryRecord(userId: string, brandId?: string): Promis
     return normalizeMemory(memoryStore.get(memoryKey(userId, brandId)) ?? createSeedMemory(userId, brandId));
   }
 
-  if (!mongoose.Types.ObjectId.isValid(userId)) return createEmptyMemory(userId, brandId);
+  if (!mongoose.Types.ObjectId.isValid(userId)) return createSeedMemory(userId, brandId);
 
   await connectToDatabase();
   const query: Record<string, unknown> = { userId: new mongoose.Types.ObjectId(userId) };
@@ -47,6 +54,7 @@ export async function writeMemoryRecord(memory: AIMemoryRecord): Promise<AIMemor
       $set: {
         averageGenerationType: normalized.averageGenerationType,
         brandIdentity: normalized.brandIdentity,
+        documents: normalized.documents,
         mostUsedFeatures: normalized.mostUsedFeatures,
         preferredCaptions: normalized.preferredCaptions,
         preferredHooks: normalized.preferredHooks,
@@ -70,12 +78,64 @@ export async function writeMemoryRecord(memory: AIMemoryRecord): Promise<AIMemor
   return normalized;
 }
 
+export async function saveMemory(input: SaveMemoryInput): Promise<AssistantMemoryDocument> {
+  const content = input.content.trim();
+  let embedding: number[] = [];
+  try { embedding = await generateEmbedding(content); } catch { /* embeddings unavailable */ }
+  const now = new Date().toISOString();
+  const document: AssistantMemoryDocument = {
+    content,
+    createdAt: now,
+    embedding,
+    id: crypto.randomUUID(),
+    metadata: input.metadata ?? {},
+    source: input.source ?? "assistant",
+    title: input.title,
+    updatedAt: now,
+  };
+  const existing = await readMemoryRecord(input.userId, input.brandId);
+
+  await writeMemoryRecord({
+    ...existing,
+    documents: [document, ...existing.documents].slice(0, 80),
+    isMissing: false,
+    lastUpdatedAt: now,
+  });
+
+  return document;
+}
+
+export async function searchRelevantMemory(input: {
+  brandId?: string;
+  query: string;
+  topK?: number;
+  userId: string;
+}): Promise<AssistantMemoryDocument[]> {
+  const memory = await readMemoryRecord(input.userId, input.brandId);
+  if (memory.documents.length === 0) return [];
+
+  let queryEmbedding: number[] = [];
+  try { queryEmbedding = await generateEmbedding(input.query); } catch { /* embeddings unavailable */ }
+  if (queryEmbedding.length === 0) return [];
+  return retrieveTopK(memory.documents, queryEmbedding, input.topK ?? 5);
+}
+
+export async function getConversationMemory(input: {
+  brandId?: string;
+  limit?: number;
+  userId: string;
+}): Promise<ConversationMemory[]> {
+  const memory = await readMemoryRecord(input.userId, input.brandId);
+  return memory.previousConversations.slice(0, input.limit ?? 8);
+}
+
 function fromDbMemory(document: IAIMemory & { updatedAt?: Date }, userId: string, brandId?: string): AIMemoryRecord {
   return {
     averageGenerationType: document.averageGenerationType,
     brandId,
     brandIdentity: normalizeBrandIdentity(document.brandIdentity),
     conflicts: [],
+    documents: normalizeDocuments(document.documents ?? []),
     freshness: "fresh",
     isMissing: false,
     lastUpdatedAt: document.updatedAt?.toISOString(),
@@ -107,6 +167,7 @@ function createSeedMemory(userId: string, brandId?: string): AIMemoryRecord {
       visualStyle: "dark premium SaaS, clean contrast, precise layouts",
       voice: "strategic, specific, direct",
     },
+    documents: [],
     freshness: "fresh",
     isMissing: false,
     lastUpdatedAt: new Date().toISOString(),
@@ -175,6 +236,26 @@ function normalizeCreatives(values: Record<string, unknown>[]): CreativeMemory[]
       url: typeof value.url === "string" ? value.url : undefined,
     }))
     .filter((creative) => creative.title);
+}
+
+function normalizeDocuments(values: Array<Record<string, unknown>>): AssistantMemoryDocument[] {
+  return values
+    .map((value) => ({
+      content: typeof value.content === "string" ? value.content : "",
+      createdAt: value.createdAt instanceof Date ? value.createdAt.toISOString() : undefined,
+      embedding: Array.isArray(value.embedding) ? value.embedding.filter((item): item is number => typeof item === "number") : [],
+      id: typeof value._id === "object" && value._id !== null && "toString" in value._id ? String(value._id) : typeof value.id === "string" ? value.id : undefined,
+      metadata: normalizeMap(value.metadata),
+      source: parseMemorySource(value.source),
+      title: typeof value.title === "string" ? value.title : undefined,
+      updatedAt: value.updatedAt instanceof Date ? value.updatedAt.toISOString() : undefined,
+    }))
+    .filter((document) => document.content && document.embedding.length > 0);
+}
+
+function parseMemorySource(value: unknown): AssistantMemoryDocument["source"] {
+  if (value === "document" || value === "import" || value === "system") return value;
+  return "assistant";
 }
 
 function normalizeMap(value: unknown): Record<string, unknown> {
