@@ -14,18 +14,19 @@ export async function submitGrowthEngineWorkflow(input: GrowthEngineSubmitReques
   formData.set("brief", input.brief);
   formData.set("goal", input.goal);
   formData.set("industry", input.industry);
-  formData.set("productImage", input.productImage);
+  if (input.productImage) formData.set("productImage", input.productImage);
 
   return apiJson<GrowthEngineApiResponse>("/api/growth-engine", {
     body: formData,
     headers: { "Idempotency-Key": crypto.randomUUID() },
     method: "POST",
-    timeoutMs: 180_000,
+    timeoutMs: 360_000,
   });
 }
 
 export async function generateGrowthVisualAssets(projectId: string): Promise<GrowthGenerationJobResponse> {
-  return apiJson<GrowthGenerationJobResponse>(`/api/growth-engine/${projectId}/visual-assets`, {
+  return apiJson<GrowthGenerationJobResponse>("/api/growth-engine/generate-images", {
+    body: { projectId },
     headers: { "Idempotency-Key": crypto.randomUUID() },
     method: "POST",
     timeoutMs: 30_000,
@@ -33,10 +34,18 @@ export async function generateGrowthVisualAssets(projectId: string): Promise<Gro
 }
 
 export async function generateGrowthVideos(projectId: string): Promise<GrowthGenerationJobResponse> {
-  return apiJson<GrowthGenerationJobResponse>(`/api/growth-engine/${projectId}/videos`, {
+  return apiJson<GrowthGenerationJobResponse>("/api/growth-engine/generate-videos", {
+    body: { projectId },
     headers: { "Idempotency-Key": crypto.randomUUID() },
     method: "POST",
     timeoutMs: 30_000,
+  });
+}
+
+export async function getGrowthProject(projectId: string): Promise<GrowthEngineApiResponse> {
+  return apiJson<GrowthEngineApiResponse>(`/api/growth-engine/project/${projectId}`, {
+    method: "GET",
+    timeoutMs: 20_000,
   });
 }
 

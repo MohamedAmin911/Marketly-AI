@@ -5,8 +5,12 @@ export const GROWTH_PROJECT_STATUSES = [
   "strategy_ready",
   "campaigns_ready",
   "storyboards_ready",
+  "images_generating",
   "images_ready",
+  "videos_generating",
   "videos_ready",
+  "completed",
+  "failed",
 ] as const;
 
 export type GrowthProjectStatus = (typeof GROWTH_PROJECT_STATUSES)[number];
@@ -17,7 +21,7 @@ export type GrowthEngineRequest = {
   brief: string;
   goal: string;
   industry: string;
-  productImage: File;
+  productImage?: File;
 };
 
 export type GrowthEngineAsset = UploadedImageKitAsset;
@@ -34,6 +38,11 @@ export type N8nGrowthEngineResponse = {
   videoAssets: Record<string, unknown>[];
 };
 
+export type N8nGrowthProjectResponse = {
+  projectId: string;
+  success: boolean;
+};
+
 export type GrowthProjectRecord = {
   audience: string;
   brandName: string;
@@ -46,6 +55,7 @@ export type GrowthProjectRecord = {
   imageAssets: Record<string, unknown>[];
   industry: string;
   generationJobs: Record<string, unknown>[];
+  lastError?: string;
   marketingAngles: Array<Record<string, unknown> | string>;
   personas: Record<string, unknown>[];
   productImage: GrowthEngineAsset | null;

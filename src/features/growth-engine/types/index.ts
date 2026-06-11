@@ -44,8 +44,12 @@ export type GrowthProjectBackendStatus =
   | "strategy_ready"
   | "campaigns_ready"
   | "storyboards_ready"
+  | "images_generating"
   | "images_ready"
-  | "videos_ready";
+  | "videos_generating"
+  | "videos_ready"
+  | "completed"
+  | "failed";
 
 export type GrowthEngineAsset = {
   alt: string;
@@ -73,12 +77,13 @@ export type GrowthProjectRecord = {
   imageAssets: Record<string, unknown>[];
   industry: string;
   generationJobs: Record<string, unknown>[];
+  lastError?: string;
   marketingAngles: Array<Record<string, unknown> | string>;
   personas: Record<string, unknown>[];
   productImage: GrowthEngineAsset | null;
   status: GrowthProjectBackendStatus;
-  storyboards: Record<string, unknown>[];
-  strategy: Record<string, unknown> | string | null;
+  storyboards: Array<Record<string, unknown> | Array<Record<string, unknown>>>;
+  strategy: Array<unknown> | Record<string, unknown> | string | null;
   updatedAt: string;
   userId: string;
   videoAssets: Record<string, unknown>[];
@@ -94,7 +99,7 @@ export type GrowthEngineSubmitRequest = {
   brief: string;
   goal: string;
   industry: string;
-  productImage: File;
+  productImage?: File;
 };
 
 export type GrowthGenerationKind = "visual_assets" | "video_assets";

@@ -40,6 +40,13 @@ type ImageAsset = {
 };
 
 export async function enqueueVisualAssetGeneration(projectId: string, auth: AuthContext): Promise<GrowthGenerationJobResponse> {
+  await updateGrowthProjectGeneration({
+    lastError: "",
+    projectId,
+    status: "images_generating",
+    userId: auth.user.sub,
+  });
+
   return enqueueGrowthGenerationJob({
     kind: "visual_assets",
     projectId,
@@ -49,6 +56,13 @@ export async function enqueueVisualAssetGeneration(projectId: string, auth: Auth
 }
 
 export async function enqueueVideoAssetGeneration(projectId: string, auth: AuthContext): Promise<GrowthGenerationJobResponse> {
+  await updateGrowthProjectGeneration({
+    lastError: "",
+    projectId,
+    status: "videos_generating",
+    userId: auth.user.sub,
+  });
+
   return enqueueGrowthGenerationJob({
     kind: "video_assets",
     projectId,
@@ -114,7 +128,7 @@ async function runVisualAssetJob(job: GrowthGenerationJob) {
           "Growth Engine visual upload timed out.",
         );
 
-        generatedAssets.push({
+        const savedAsset = {
           ...uploaded,
           jobId: job.id,
           prompt,
@@ -124,6 +138,15 @@ async function runVisualAssetJob(job: GrowthGenerationJob) {
           seed: generated.seed,
           sourceSpace: FLUX_ADVERTISEMENT_SPACE,
           status: "completed",
+        };
+
+        generatedAssets.push(savedAsset);
+
+        await updateGrowthProjectGeneration({
+          imageAssets: [savedAsset],
+          projectId: job.projectId,
+          status: "images_generating",
+          userId: job.userId,
         });
 
         updateJobProgress(job.id, { completed: generatedAssets.length });
@@ -136,14 +159,16 @@ async function runVisualAssetJob(job: GrowthGenerationJob) {
       }
     }
 
-    updateJobProgress(job.id, { status: generatedAssets.length && job.errors.length ? "partial_success" : generatedAssets.length ? "completed" : "failed" });
+    const finalStatus = generatedAssets.length && job.errors.length ? "partial_success" : generatedAssets.length ? "completed" : "failed";
+    const projectStatus = job.errors.length ? "failed" : "images_ready";
+    updateJobProgress(job.id, { status: finalStatus });
     addJobLog(job.id, `Visual generation finished with ${generatedAssets.length}/${pendingScenes.length} successful assets.`);
 
     await updateGrowthProjectGeneration({
       appendJob: toPersistedJob(job),
-      imageAssets: generatedAssets,
+      lastError: job.errors.at(-1),
       projectId: job.projectId,
-      status: generatedAssets.length ? "images_ready" : undefined,
+      status: projectStatus,
       userId: job.userId,
     });
 
@@ -210,7 +235,7 @@ async function runVideoAssetJob(job: GrowthGenerationJob) {
           "Growth Engine video upload timed out.",
         );
 
-        generatedVideos.push({
+        const savedVideo = {
           ...uploaded,
           imageAssetId: asset.id,
           jobId: job.id,
@@ -221,6 +246,15 @@ async function runVideoAssetJob(job: GrowthGenerationJob) {
           seed: generated.seed,
           sourceSpace: WAN_I2V_VIDEO_SPACE,
           status: "completed",
+        };
+
+        generatedVideos.push(savedVideo);
+
+        await updateGrowthProjectGeneration({
+          projectId: job.projectId,
+          status: "videos_generating",
+          userId: job.userId,
+          videoAssets: [savedVideo],
         });
 
         updateJobProgress(job.id, { completed: generatedVideos.length });
@@ -233,15 +267,17 @@ async function runVideoAssetJob(job: GrowthGenerationJob) {
       }
     }
 
-    updateJobProgress(job.id, { status: generatedVideos.length && job.errors.length ? "partial_success" : generatedVideos.length ? "completed" : "failed" });
+    const finalStatus = generatedVideos.length && job.errors.length ? "partial_success" : generatedVideos.length ? "completed" : "failed";
+    const projectStatus = job.errors.length ? "failed" : "completed";
+    updateJobProgress(job.id, { status: finalStatus });
     addJobLog(job.id, `Video generation finished with ${generatedVideos.length}/${pendingAssets.length} successful videos.`);
 
     await updateGrowthProjectGeneration({
       appendJob: toPersistedJob(job),
+      lastError: job.errors.at(-1),
       projectId: job.projectId,
-      status: generatedVideos.length ? "videos_ready" : undefined,
+      status: projectStatus,
       userId: job.userId,
-      videoAssets: generatedVideos,
     });
 
     logger.info("growth_engine.video_assets.completed", { jobId: job.id, projectId: job.projectId, successCount: generatedVideos.length, total: pendingAssets.length });

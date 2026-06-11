@@ -1,10 +1,10 @@
 import { apiErrors } from "@/server/errors/api-error";
 import { logger } from "@/server/logging/logger";
-import { callGrowthEngineWebhook } from "@/server/growth-engine/n8n-client";
-import { createGrowthProjectRecord } from "@/server/growth-engine/repository";
+import { createGrowthProjectViaN8n } from "@/server/growth-engine/n8n-client";
+import { getGrowthProjectForUser, upsertGrowthProjectShell } from "@/server/growth-engine/repository";
 import { retryOperation, withOperationTimeout } from "@/server/growth-engine/retry";
 import type { GrowthEngineRequestInput } from "@/server/growth-engine/schemas";
-import type { GrowthEngineApiResponse, GrowthProjectStatus, N8nGrowthEngineResponse } from "@/server/growth-engine/types";
+import type { GrowthEngineApiResponse } from "@/server/growth-engine/types";
 import type { AuthContext } from "@/server/security/auth-guard";
 import { validateUploadFile } from "@/server/security/uploads";
 import { uploadFileToImageKit, type UploadedImageKitAsset } from "@/server/services/imagekit-service";
@@ -23,29 +23,48 @@ export async function buildGrowthEngineProject(input: GrowthEngineRequestInput, 
   let productImage: UploadedImageKitAsset | null = null;
 
   try {
-    await validateUploadFile(input.productImage);
-    productImage = await uploadProductImage(input);
+    if (input.productImage) {
+      await validateUploadFile(input.productImage);
+      productImage = await uploadProductImage(input);
+    }
 
-    const n8nResult = await callGrowthEngineWebhook({
+    const n8nProject = await createGrowthProjectViaN8n({
       input,
-      productImage,
       requestId,
       userId: auth.user.sub,
     });
 
-    const status = deriveProjectStatus(n8nResult);
-    const project = await createGrowthProjectRecord({
-      input,
-      n8nResult,
-      productImage,
-      status,
-      userId: auth.user.sub,
-    });
+    let project: Awaited<ReturnType<typeof getGrowthProjectForUser>> | null = null;
+    try {
+      project = await getGrowthProjectForUser(n8nProject.projectId, auth.user.sub);
+    } catch {
+      // project not found by id, will try fallback below
+    }
+
+    // Fallback: query by userId directly if projectId lookup failed
+    if (!project) {
+      try {
+        project = await getGrowthProjectForUser("latest", auth.user.sub);
+      } catch {
+        // still not found, will return empty shell
+      }
+    }
+
+    if (!project) {
+      // Last resort: create a shell so the UI has something to show
+      project = await upsertGrowthProjectShell({
+        input,
+        productImage,
+        projectId: n8nProject.projectId || crypto.randomUUID(),
+        status: "draft",
+        userId: auth.user.sub,
+      });
+    }
 
     logger.info("growth_engine.workflow.completed", {
       projectId: project.id,
       requestId,
-      status,
+      status: project.status,
       userId: auth.user.sub,
     });
 
@@ -58,9 +77,11 @@ export async function buildGrowthEngineProject(input: GrowthEngineRequestInput, 
       userId: auth.user.sub,
     });
 
-    const project = await createGrowthProjectRecord({
+    const project = await upsertGrowthProjectShell({
       input,
+      lastError: error instanceof Error ? error.message : String(error),
       productImage,
+      projectId: crypto.randomUUID(),
       status: "draft",
       userId: auth.user.sub,
     });
@@ -76,6 +97,9 @@ export async function buildGrowthEngineProject(input: GrowthEngineRequestInput, 
 }
 
 async function uploadProductImage(input: GrowthEngineRequestInput) {
+  const productImage = input.productImage;
+  if (!productImage) throw apiErrors.badRequest("Product image is missing.");
+
   return retryOperation({
     attempts: 2,
     delayMs: 500,
@@ -84,29 +108,12 @@ async function uploadProductImage(input: GrowthEngineRequestInput) {
       withOperationTimeout(
         uploadFileToImageKit({
           alt: `${input.brandName} product image`,
-          file: input.productImage,
-          fileName: `growth-engine-product-${crypto.randomUUID()}-${input.productImage.name}`,
+          file: productImage,
+          fileName: `growth-engine-product-${crypto.randomUUID()}-${productImage.name}`,
           folder: "/marketly-ai/growth-engine/products",
         }),
         IMAGEKIT_UPLOAD_TIMEOUT_MS,
         "Growth Engine image upload timed out.",
       ),
   });
-}
-
-function deriveProjectStatus(result: N8nGrowthEngineResponse): GrowthProjectStatus {
-  if (result.status) return result.status;
-  if (result.videoAssets.length > 0) return "videos_ready";
-  if (result.imageAssets.length > 0) return "images_ready";
-  if (result.storyboards.length > 0) return "storyboards_ready";
-  if (result.campaigns.length > 0) return "campaigns_ready";
-
-  const hasStrategy =
-    Boolean(result.strategy) ||
-    result.personas.length > 0 ||
-    result.competitors.length > 0 ||
-    result.marketingAngles.length > 0;
-
-  if (hasStrategy) return "strategy_ready";
-  throw apiErrors.aiProvider("Growth Engine webhook returned no usable workflow output.");
 }

@@ -1,7 +1,8 @@
 "use client";
 
-import { AlertTriangle, ImageIcon, Loader2, Rocket, Sparkles, Upload, Video } from "lucide-react";
-import { useCallback, useRef, useState } from "react";
+import { AlertTriangle, ImageIcon, Loader2, Rocket, Sparkles, Upload, Video, Target, Users, Lightbulb, Activity, ArrowRight, ShieldAlert, Zap, LineChart, Milestone } from "lucide-react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 
 import { PageShell } from "@/components/layout/page-shell";
 import { Button } from "@/components/ui/button";
@@ -14,7 +15,7 @@ import { WorkflowSection } from "@/features/growth-engine/components/workflow-se
 import {
   generateGrowthVideos,
   generateGrowthVisualAssets,
-  getGrowthGenerationProgress,
+  getGrowthProject,
   submitGrowthEngineWorkflow,
 } from "@/features/growth-engine/services";
 import type {
@@ -36,16 +37,21 @@ function stageFromStatus(status: GrowthProjectRecord["status"]): GrowthEngineSta
       return "Campaigns Generated";
     case "storyboards_ready":
       return "Storyboards Generated";
+    case "images_generating":
     case "images_ready":
       return "Images Generated";
+    case "videos_generating":
     case "videos_ready":
+    case "completed":
       return "Videos Generated";
+    case "failed":
+      return "Draft";
     default:
       return "Draft";
   }
 }
 
-function completedStagesFromStatus(status: GrowthProjectRecord["status"]): GrowthEngineStage[] {
+function completedStagesFromProject(project: GrowthProjectRecord): GrowthEngineStage[] {
   const ORDER: GrowthEngineStage[] = [
     "Draft",
     "Strategy Generated",
@@ -54,7 +60,14 @@ function completedStagesFromStatus(status: GrowthProjectRecord["status"]): Growt
     "Images Generated",
     "Videos Generated",
   ];
-  const idx = ORDER.indexOf(stageFromStatus(status));
+  let idx = 0;
+
+  if (project.status === "strategy_ready" || project.strategy) idx = 1;
+  if (project.status === "campaigns_ready" || project.campaigns.length) idx = 2;
+  if (project.status === "storyboards_ready" || project.status === "images_generating" || project.storyboards.length) idx = 3;
+  if (project.status === "images_ready" || project.status === "videos_generating" || project.imageAssets.length) idx = 4;
+  if (project.status === "videos_ready" || project.status === "completed" || project.videoAssets.length) idx = 5;
+
   return ORDER.slice(0, idx + 1);
 }
 
@@ -65,8 +78,7 @@ function sectionStatus(hasData: boolean, isLoading: boolean, error: string | und
   return "empty";
 }
 
-const POLL_INTERVAL_MS = 4_000;
-const MAX_POLLS = 120;
+const POLL_INTERVAL_MS = 5_000;
 
 /* ------------------------------------------------------------------ */
 /*  component                                                          */
@@ -92,77 +104,95 @@ export function GrowthEngineView() {
 
   /* ---------- workflow state ---------- */
   const [project, setProject] = useState<GrowthProjectRecord | null>(null);
+  const [projectId, setProjectId] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [generatingImages, setGeneratingImages] = useState(false);
   const [generatingVideos, setGeneratingVideos] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const imageTriggerRef = useRef<string | null>(null);
+  const videoTriggerRef = useRef<string | null>(null);
+
+  // Auto-load the latest project on mount so the user sees their data without re-running the workflow
+  const latestProjectQuery = useQuery({
+    enabled: !projectId,
+    queryFn: async () => {
+      const response = await getGrowthProject("latest");
+      return response.project;
+    },
+    queryKey: ["growth-engine-project", "latest"],
+    retry: false,
+  });
+
+  // Once the latest project loads, set it as the active project for polling
+  useEffect(() => {
+    if (latestProjectQuery.data && !projectId) {
+      setProject(latestProjectQuery.data);
+      setProjectId(latestProjectQuery.data.id);
+    }
+  }, [latestProjectQuery.data, projectId]);
+
+  const projectQuery = useQuery({
+    enabled: Boolean(projectId),
+    queryFn: async () => {
+      const response = await getGrowthProject(projectId ?? "");
+      return response.project;
+    },
+    queryKey: ["growth-engine-project", projectId],
+    refetchInterval: projectId ? POLL_INTERVAL_MS : false,
+  });
+
+  const liveProject = projectQuery.data ?? latestProjectQuery.data ?? project;
 
   const isRunning = submitting || generatingImages || generatingVideos;
 
   /* ---------- derived UI state ---------- */
-  const activeStage: GrowthEngineStage = project ? stageFromStatus(project.status) : "Draft";
-  const completedStages = project ? completedStagesFromStatus(project.status) : [];
+  const completedStages = liveProject ? completedStagesFromProject(liveProject) : [];
+  const activeStage: GrowthEngineStage = liveProject
+    ? liveProject.status === "failed"
+      ? completedStages.at(-1) ?? "Draft"
+      : stageFromStatus(liveProject.status)
+    : "Draft";
 
-  const hasStrategy = Boolean(project?.strategy);
-  const hasCampaigns = (project?.campaigns?.length ?? 0) > 0;
-  const hasStoryboards = (project?.storyboards?.length ?? 0) > 0;
-  const hasImages = (project?.imageAssets?.length ?? 0) > 0;
-  const hasVideos = (project?.videoAssets?.length ?? 0) > 0;
+  // Determine which stage should show a spinner
+  let loadingStage: GrowthEngineStage | null = null;
+  if (generatingVideos) {
+    loadingStage = "Videos Generated";
+  } else if (generatingImages) {
+    loadingStage = "Images Generated";
+  } else if (submitting) {
+    // If the pipeline is running, the next uncompleted stage is loading.
+    const STAGES_LIST: GrowthEngineStage[] = [
+      "Draft",
+      "Strategy Generated",
+      "Campaigns Generated",
+      "Storyboards Generated",
+      "Images Generated",
+      "Videos Generated",
+    ];
+    loadingStage = STAGES_LIST.find((s) => !completedStages.includes(s)) ?? null;
+  }
 
-  /* ---------- polling ---------- */
-  const stopPolling = useCallback(() => {
-    if (pollRef.current) {
-      clearInterval(pollRef.current);
-      pollRef.current = null;
-    }
-  }, []);
+  const hasStrategy = Boolean(liveProject?.strategy);
+  const hasCampaigns = (liveProject?.campaigns?.length ?? 0) > 0;
+  const hasStoryboards = (liveProject?.storyboards?.length ?? 0) > 0;
+  const hasImages = (liveProject?.imageAssets?.length ?? 0) > 0;
+  const hasVideos = (liveProject?.videoAssets?.length ?? 0) > 0;
+  const workflowError = error ?? liveProject?.lastError;
+  const imageStageFailed = Boolean(liveProject?.status === "failed" && hasStoryboards && !hasImages);
+  const videoStageFailed = Boolean(liveProject?.status === "failed" && hasImages && !hasVideos);
 
-  const startPolling = useCallback(
-    (projectId: string, kind: "visual_assets" | "video_assets", jobId?: string) => {
-      stopPolling();
-      let count = 0;
+  useEffect(() => {
+    if (!liveProject) return;
+    setGeneratingImages(liveProject.status === "images_generating");
+    setGeneratingVideos(liveProject.status === "videos_generating");
+  }, [liveProject]);
 
-      pollRef.current = setInterval(async () => {
-        count += 1;
-        if (count > MAX_POLLS) {
-          stopPolling();
-          return;
-        }
 
-        try {
-          const { project: updated } = await getGrowthGenerationProgress({
-            projectId,
-            kind,
-            jobId,
-          });
-          setProject(updated);
 
-          const done =
-            kind === "visual_assets"
-              ? updated.status === "images_ready" || updated.status === "videos_ready"
-              : updated.status === "videos_ready";
 
-          if (done) {
-            stopPolling();
-            if (kind === "visual_assets") setGeneratingImages(false);
-            if (kind === "video_assets") setGeneratingVideos(false);
-          }
-        } catch {
-          /* keep polling on transient failures */
-        }
-      }, POLL_INTERVAL_MS);
-    },
-    [stopPolling],
-  );
 
   /* ---------- submit workflow ---------- */
   async function handleSubmit() {
-    if (!form.productImage) {
-      setError("Please upload a product image before submitting.");
-      return;
-    }
-
     try {
       setError(null);
       setSubmitting(true);
@@ -173,10 +203,11 @@ export function GrowthEngineView() {
         brief: form.brandBrief,
         goal: form.marketingGoal,
         industry: form.industry,
-        productImage: form.productImage,
+        productImage: form.productImage ?? undefined,
       });
 
       setProject(result.project);
+      setProjectId(result.project.id);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Workflow submission failed.");
     } finally {
@@ -186,12 +217,12 @@ export function GrowthEngineView() {
 
   /* ---------- generate images ---------- */
   async function handleGenerateImages() {
-    if (!project) return;
+    if (!liveProject) return;
     try {
       setError(null);
       setGeneratingImages(true);
-      const { job } = await generateGrowthVisualAssets(project.id);
-      startPolling(project.id, "visual_assets", job.id);
+      await generateGrowthVisualAssets(liveProject.id);
+      await projectQuery.refetch();
     } catch (err) {
       setGeneratingImages(false);
       setError(err instanceof Error ? err.message : "Image generation failed.");
@@ -200,12 +231,12 @@ export function GrowthEngineView() {
 
   /* ---------- generate videos ---------- */
   async function handleGenerateVideos() {
-    if (!project) return;
+    if (!liveProject) return;
     try {
       setError(null);
       setGeneratingVideos(true);
-      const { job } = await generateGrowthVideos(project.id);
-      startPolling(project.id, "video_assets", job.id);
+      await generateGrowthVideos(liveProject.id);
+      await projectQuery.refetch();
     } catch (err) {
       setGeneratingVideos(false);
       setError(err instanceof Error ? err.message : "Video generation failed.");
@@ -213,17 +244,26 @@ export function GrowthEngineView() {
   }
 
   /* ---------- can the user fire asset generation? ---------- */
-  const canGenerateImages = Boolean(project && hasStoryboards && !generatingImages && !hasImages);
-  const canGenerateVideos = Boolean(project && hasImages && !generatingVideos && !hasVideos);
+  const canGenerateImages = Boolean(
+    liveProject &&
+      hasStoryboards &&
+      !generatingImages &&
+      (!hasImages || liveProject.status === "failed"),
+  );
+  const canGenerateVideos = Boolean(
+    liveProject &&
+      hasImages &&
+      !generatingVideos &&
+      (!hasVideos || liveProject.status === "failed"),
+  );
 
-  /* ---------------------------------------------------------------- */
-
+  /* ---------- render ---------- */
   return (
     <PageShell
       title="AI Growth Engine"
     >
       {/* ---- status tracker ---- */}
-      <StatusTracker activeStage={activeStage} completedStages={completedStages} />
+      <StatusTracker activeStage={activeStage} completedStages={completedStages} loadingStage={loadingStage} />
 
       <div className="mt-6 grid gap-5 xl:grid-cols-[24rem_1fr]">
         {/* ---- sidebar: form ---- */}
@@ -299,10 +339,10 @@ export function GrowthEngineView() {
               </label>
             </FormField>
 
-            {error ? (
+            {workflowError ? (
               <div className="flex items-center gap-2 rounded-lg border border-red-300/20 bg-red-400/10 p-3 text-sm leading-6 text-red-100">
                 <AlertTriangle className="size-4 shrink-0" />
-                {error}
+                {workflowError}
               </div>
             ) : null}
 
@@ -312,7 +352,7 @@ export function GrowthEngineView() {
             </Button>
 
             {/* generation actions */}
-            {project ? (
+            {liveProject ? (
               <div className="space-y-2 border-t border-white/10 pt-4">
                 <Button
                   className="w-full"
@@ -356,29 +396,140 @@ export function GrowthEngineView() {
             emptyTitle="No Strategy Yet"
             emptyDescription="Submit your brand brief to generate a marketing strategy."
           >
-            {project?.strategy ? (
-              <div className="space-y-3">
-                <p className="text-sm leading-6 text-foreground">
-                  {typeof project.strategy === "string" ? project.strategy : JSON.stringify(project.strategy, null, 2)}
-                </p>
-                {project.personas.length > 0 ? (
-                  <div className="grid gap-3 md:grid-cols-2">
-                    {project.personas.map((persona, i) => (
-                      <div key={i} className="rounded-lg border border-primary/15 bg-primary/[0.04] p-4">
-                        <p className="text-sm font-semibold text-white">
-                          {typeof persona === "object" && persona !== null && "name" in persona
-                            ? String((persona as Record<string, unknown>).name)
-                            : `Persona ${i + 1}`}
-                        </p>
-                        <p className="mt-1 text-xs leading-5 text-muted">
-                          {typeof persona === "object" && persona !== null && "role" in persona
-                            ? String((persona as Record<string, unknown>).role)
-                            : JSON.stringify(persona)}
-                        </p>
+            {liveProject?.strategy ? (
+              <div className="space-y-6">
+                {/* Check if it's an object with swot/personas, else generic */}
+                {typeof liveProject.strategy === "object" && !Array.isArray(liveProject.strategy) && "swot" in (liveProject.strategy || {}) ? (
+                  <>
+                    {/* SWOT Analysis */}
+                    {((liveProject.strategy as any).swot) && (
+                      <div className="space-y-3">
+                        <h4 className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-primary/80">
+                          <Activity className="size-4 text-primary" /> SWOT Analysis
+                        </h4>
+                        <div className="grid gap-3 sm:grid-cols-2">
+                          {["strengths", "weaknesses", "opportunities", "threats"].map((key) => {
+                            const items = (liveProject.strategy as any).swot[key];
+                            if (!items || items.length === 0) return null;
+                            const isPositive = key === "strengths" || key === "opportunities";
+                            return (
+                              <div key={key} className="rounded-lg border border-primary/10 bg-primary/[0.03] p-4 transition-colors hover:border-primary/20 hover:bg-primary/[0.05]">
+                                <h5 className="mb-3 flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest text-primary/70">
+                                  {key === "strengths" && <Zap className="size-3 text-green-400" />}
+                                  {key === "weaknesses" && <AlertTriangle className="size-3 text-red-400" />}
+                                  {key === "opportunities" && <LineChart className="size-3 text-blue-400" />}
+                                  {key === "threats" && <ShieldAlert className="size-3 text-orange-400" />}
+                                  {key}
+                                </h5>
+                                <ul className="space-y-2">
+                                  {items.map((item: string, idx: number) => (
+                                    <li key={idx} className="flex items-start gap-2 text-sm leading-5 text-muted-foreground">
+                                      <span className="mt-[2px] block size-1.5 shrink-0 rounded-full bg-primary/40" />
+                                      {item}
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
+                            );
+                          })}
+                        </div>
                       </div>
-                    ))}
+                    )}
+
+                    {/* Personas */}
+                    {((liveProject.strategy as any).personas && (liveProject.strategy as any).personas.length > 0) && (
+                      <div className="space-y-3">
+                        <h4 className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-primary/80">
+                          <Users className="size-4 text-primary" /> Target Personas
+                        </h4>
+                        <div className="grid gap-3 md:grid-cols-3">
+                          {((liveProject.strategy as any).personas).map((persona: any, i: number) => (
+                            <div key={i} className="group flex flex-col rounded-lg border border-primary/15 bg-gradient-to-b from-primary/[0.05] to-transparent p-4">
+                              <p className="font-mono text-[10px] text-primary/50">PERSONA {i + 1}</p>
+                              <p className="mt-1 font-semibold text-white group-hover:text-primary transition-colors">{persona.name}</p>
+                              <p className="mt-2 text-xs leading-5 text-muted-foreground">{persona.description || persona.role}</p>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Recommendations */}
+                    {((liveProject.strategy as any).recommendations && (liveProject.strategy as any).recommendations.length > 0) && (
+                      <div className="space-y-3">
+                        <h4 className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-primary/80">
+                          <Lightbulb className="size-4 text-primary" /> Strategic Recommendations
+                        </h4>
+                        <div className="rounded-lg border border-primary/10 bg-primary/[0.02] p-5">
+                          <ul className="space-y-3">
+                            {((liveProject.strategy as any).recommendations).map((rec: string, i: number) => (
+                              <li key={i} className="flex items-start gap-3 text-sm leading-6 text-foreground/90">
+                                <Target className="mt-1 size-4 shrink-0 text-primary" />
+                                <span>{rec}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Launch Plan */}
+                    {((liveProject.strategy as any).launchPlan && (liveProject.strategy as any).launchPlan.length > 0) && (
+                      <div className="space-y-3">
+                        <h4 className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-primary/80">
+                          <Milestone className="size-4 text-primary" /> Launch Timeline
+                        </h4>
+                        <div className="space-y-3">
+                          {((liveProject.strategy as any).launchPlan).map((phase: any, i: number) => (
+                            <div key={i} className="relative overflow-hidden rounded-lg border border-primary/15 bg-primary/[0.03] p-5">
+                              <div className="absolute left-0 top-0 h-full w-1 bg-primary/40" />
+                              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-3 gap-2">
+                                <h5 className="font-semibold text-white">{phase.phase}</h5>
+                                <span className="inline-flex rounded-full bg-primary/10 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-primary">
+                                  {phase.timeline}
+                                </span>
+                              </div>
+                              <ul className="grid gap-2 sm:grid-cols-2">
+                                {phase.actions.map((action: string, j: number) => (
+                                  <li key={j} className="flex items-start gap-2 text-xs leading-5 text-muted-foreground">
+                                    <ArrowRight className="mt-0.5 size-3 shrink-0 text-primary/60" />
+                                    {action}
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  /* Fallback for other formats (string or unknown shape) */
+                  <div className="space-y-2">
+                    {typeof liveProject.strategy === "string" ? (
+                      <p className="text-sm leading-6 text-foreground">{liveProject.strategy}</p>
+                    ) : Array.isArray(liveProject.strategy) ? (
+                      <div className="space-y-2">
+                        {(liveProject.strategy as unknown[]).map((item, i) => (
+                          <div key={i} className="rounded-lg border border-primary/15 bg-primary/[0.04] p-3 text-sm text-foreground">
+                            {typeof item === "string" ? item : JSON.stringify(item, null, 2)}
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="space-y-2">
+                        {Object.entries(liveProject.strategy as Record<string, unknown>).map(([key, val]) => (
+                          <div key={key} className="rounded-lg border border-primary/15 bg-primary/[0.04] p-3">
+                            <p className="mb-1 font-mono text-[10px] font-semibold uppercase tracking-[0.1em] text-primary">{key}</p>
+                            <p className="text-sm leading-6 text-foreground">
+                              {typeof val === "string" ? val : JSON.stringify(val, null, 2)}
+                            </p>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
-                ) : null}
+                )}
               </div>
             ) : null}
           </WorkflowSection>
@@ -392,21 +543,22 @@ export function GrowthEngineView() {
             emptyDescription="Campaigns are generated as part of the strategy pipeline."
           >
             <div className="grid gap-3 md:grid-cols-2">
-              {project?.campaigns.map((campaign, i) => (
-                <div key={i} className="rounded-lg border border-primary/15 bg-primary/[0.04] p-4">
-                  <Rocket className="mb-2 size-4 text-primary" />
-                  <p className="text-sm font-semibold text-white">
-                    {typeof campaign === "object" && campaign !== null && "name" in campaign
-                      ? String((campaign as Record<string, unknown>).name)
-                      : `Campaign ${i + 1}`}
-                  </p>
-                  <p className="mt-1 text-xs leading-5 text-muted">
-                    {typeof campaign === "object" && campaign !== null && "description" in campaign
-                      ? String((campaign as Record<string, unknown>).description)
-                      : JSON.stringify(campaign)}
-                  </p>
-                </div>
-              ))}
+              {liveProject?.campaigns.map((campaign, i) => {
+                const c = campaign as Record<string, unknown>;
+                const title = c.title ?? c.name ?? `Campaign ${i + 1}`;
+                const objective = c.objective ?? c.description ?? c.hook ?? "";
+                const platform = c.platform ?? "";
+                const tone = c.tone ?? "";
+                return (
+                  <div key={i} className="rounded-lg border border-primary/15 bg-primary/[0.04] p-4">
+                    <Rocket className="mb-2 size-4 text-primary" />
+                    <p className="text-sm font-semibold text-white">{String(title)}</p>
+                    {platform ? <p className="mt-0.5 text-[10px] font-mono text-primary/70">{String(platform)}</p> : null}
+                    <p className="mt-1 text-xs leading-5 text-muted">{String(objective)}</p>
+                    {tone ? <p className="mt-1 text-[10px] text-muted/60 italic">{String(tone)}</p> : null}
+                  </div>
+                );
+              })}
             </div>
           </WorkflowSection>
 
@@ -419,18 +571,23 @@ export function GrowthEngineView() {
             emptyDescription="Storyboards are generated after campaigns are ready."
           >
             <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
-              {project?.storyboards.map((board, i) => (
-                <div key={i} className="rounded-lg border border-primary/15 bg-black/20 p-4">
-                  <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.1em] text-primary">
-                    Scene {i + 1}
-                  </p>
-                  <p className="mt-2 text-sm leading-6 text-foreground">
-                    {typeof board === "object" && board !== null && "description" in board
-                      ? String((board as Record<string, unknown>).description)
-                      : JSON.stringify(board)}
-                  </p>
-                </div>
-              ))}
+              {liveProject?.storyboards.flatMap((board, campIdx) => {
+                const scenes = Array.isArray(board) ? board : [board];
+                return scenes.map((scene, sceneIdx) => {
+                  const s = scene as Record<string, unknown>;
+                  const title = s.sceneTitle ?? s.title ?? `Scene ${sceneIdx + 1}`;
+                  const script = s.script ?? s.description ?? s.imagePrompt ?? "";
+                  return (
+                    <div key={`${campIdx}-${sceneIdx}`} className="rounded-lg border border-primary/15 bg-black/20 p-4">
+                      <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.1em] text-primary">
+                        Campaign {campIdx + 1} · Scene {sceneIdx + 1}
+                      </p>
+                      <p className="mt-1 text-xs font-semibold text-white/90">{String(title)}</p>
+                      <p className="mt-2 text-xs leading-5 text-muted">{String(script)}</p>
+                    </div>
+                  );
+                });
+              })}
             </div>
           </WorkflowSection>
 
@@ -438,13 +595,14 @@ export function GrowthEngineView() {
           <WorkflowSection
             title="Visual Assets"
             description="AI-generated images from storyboard scenes"
-            status={sectionStatus(hasImages, generatingImages, undefined)}
+            status={sectionStatus(hasImages, generatingImages || liveProject?.status === "images_generating", imageStageFailed ? workflowError : undefined)}
+            error={imageStageFailed ? workflowError : undefined}
             emptyTitle="No Images Yet"
             emptyDescription="Generate visual assets once storyboards are ready."
             loadingRows={3}
           >
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              {project?.imageAssets.map((asset, i) => {
+              {liveProject?.imageAssets.map((asset, i) => {
                 const url =
                   typeof asset === "object" && asset !== null && "url" in asset
                     ? String((asset as Record<string, unknown>).url)
@@ -463,7 +621,11 @@ export function GrowthEngineView() {
                         <ImageIcon className="size-6 opacity-30" />
                       </div>
                     )}
-                    <p className="border-t border-white/10 bg-black/30 px-3 py-2 text-xs text-muted">{alt}</p>
+                    <p className="border-t border-white/10 bg-black/30 px-3 py-2 text-xs text-muted">
+                      {alt} · {typeof asset === "object" && asset !== null && "status" in asset
+                        ? String((asset as Record<string, unknown>).status)
+                        : "ready"}
+                    </p>
                   </div>
                 );
               })}
@@ -474,13 +636,14 @@ export function GrowthEngineView() {
           <WorkflowSection
             title="Video Assets"
             description="AI-generated videos from visual assets"
-            status={sectionStatus(hasVideos, generatingVideos, undefined)}
+            status={sectionStatus(hasVideos, generatingVideos || liveProject?.status === "videos_generating", videoStageFailed ? workflowError : undefined)}
+            error={videoStageFailed ? workflowError : undefined}
             emptyTitle="No Videos Yet"
             emptyDescription="Generate video assets once images are ready."
             loadingRows={2}
           >
             <div className="grid gap-3 sm:grid-cols-2">
-              {project?.videoAssets.map((asset, i) => {
+              {liveProject?.videoAssets.map((asset, i) => {
                 const url =
                   typeof asset === "object" && asset !== null && "url" in asset
                     ? String((asset as Record<string, unknown>).url)
@@ -495,7 +658,11 @@ export function GrowthEngineView() {
                         <Video className="size-6 opacity-30" />
                       </div>
                     )}
-                    <p className="border-t border-white/10 bg-black/30 px-3 py-2 text-xs text-muted">Video {i + 1}</p>
+                    <p className="border-t border-white/10 bg-black/30 px-3 py-2 text-xs text-muted">
+                      Video {i + 1} · {typeof asset === "object" && asset !== null && "status" in asset
+                        ? String((asset as Record<string, unknown>).status)
+                        : "ready"}
+                    </p>
                   </div>
                 );
               })}

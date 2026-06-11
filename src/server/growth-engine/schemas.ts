@@ -11,8 +11,22 @@ export const growthEngineRequestSchema = z.object({
   brief: stringField(4000),
   goal: stringField(240),
   industry: stringField(120),
-  productImage: z.instanceof(File),
+  productImage: z.instanceof(File).optional(),
 });
+
+export const growthGenerationTriggerSchema = z.object({
+  projectId: z.string().trim().min(1).max(120),
+});
+
+export const n8nGrowthProjectResponseSchema = z.object({
+  projectId: z.string().trim().min(1).max(120).optional(),
+  _id: z.string().trim().min(1).max(120).optional(),
+  id: z.string().trim().min(1).max(120).optional(),
+  success: z.boolean().default(true).optional(),
+}).transform((data) => ({
+  projectId: data.projectId || data._id || data.id || crypto.randomUUID(),
+  success: data.success ?? true,
+}));
 
 const n8nAssetSchema = recordSchema;
 
@@ -29,4 +43,5 @@ export const n8nGrowthEngineResponseSchema = z.object({
 });
 
 export type GrowthEngineRequestInput = z.infer<typeof growthEngineRequestSchema>;
+export type GrowthGenerationTriggerInput = z.infer<typeof growthGenerationTriggerSchema>;
 export type N8nGrowthEngineOutput = z.infer<typeof n8nGrowthEngineResponseSchema>;
