@@ -12,22 +12,22 @@ const welcomeMessage: ChatMessage = {
 };
 
 async function apiGetSessions(): Promise<ChatSession[]> {
-  try { const r = await fetch("/api/ai-assistant/sessions"); if (!r.ok) return []; const d = await r.json() as { sessions: ChatSession[] }; return d.sessions ?? []; } catch { return []; }
+  try { const r = await fetch("/api/ai-assistant/sessions", { credentials: "include" }); if (!r.ok) return []; const d = await r.json() as { data: { sessions: ChatSession[] } }; return d.data?.sessions ?? []; } catch { return []; }
 }
 async function apiCreateSession(): Promise<ChatSession | null> {
-  try { const r = await fetch("/api/ai-assistant/sessions", { method: "POST" }); if (!r.ok) return null; const d = await r.json() as { session: ChatSession }; return d.session; } catch { return null; }
+  try { const r = await fetch("/api/ai-assistant/sessions", { method: "POST", credentials: "include" }); if (!r.ok) return null; const d = await r.json() as { data: { session: ChatSession } }; return d.data?.session ?? null; } catch { return null; }
 }
 async function apiGetMessages(id: string): Promise<ChatMessage[]> {
-  try { const r = await fetch(`/api/ai-assistant/sessions/${id}`); if (!r.ok) return []; const d = await r.json() as { messages: ChatMessage[] }; return d.messages ?? []; } catch { return []; }
+  try { const r = await fetch(`/api/ai-assistant/sessions/${id}`, { credentials: "include" }); if (!r.ok) return []; const d = await r.json() as { data: { messages: ChatMessage[] } }; return d.data?.messages ?? []; } catch { return []; }
 }
 async function apiSaveMsg(id: string, msg: ChatMessage): Promise<void> {
-  try { await fetch(`/api/ai-assistant/sessions/${id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ message: { id: msg.id, role: msg.role, content: msg.content } }) }); } catch { /* ignore */ }
+  try { await fetch(`/api/ai-assistant/sessions/${id}`, { method: "PATCH", credentials: "include", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ message: { id: msg.id, role: msg.role, content: msg.content } }) }); } catch { /* ignore */ }
 }
 async function apiUpdateTitle(id: string, title: string): Promise<void> {
-  try { await fetch(`/api/ai-assistant/sessions/${id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ title }) }); } catch { /* ignore */ }
+  try { await fetch(`/api/ai-assistant/sessions/${id}`, { method: "PATCH", credentials: "include", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ title }) }); } catch { /* ignore */ }
 }
 async function apiDeleteSession(id: string): Promise<void> {
-  try { await fetch(`/api/ai-assistant/sessions/${id}`, { method: "DELETE" }); } catch { /* ignore */ }
+  try { await fetch(`/api/ai-assistant/sessions/${id}`, { method: "DELETE", credentials: "include" }); } catch { /* ignore */ }
 }
 
 
@@ -44,10 +44,13 @@ export function useAssistantChat() {
   const abortController = useRef<AbortController | null>(null);
   const mounted = useRef(true);
   const isFirstMsg = useRef(true);
+  const initDone = useRef(false);
 
-  // Load sessions on mount
   useEffect(() => {
+    if (initDone.current) return;
+    initDone.current = true;
     async function init() {
+      await fetch("/api/ai-assistant/sessions/cleanup", { method: "POST", credentials: "include" }).catch(() => {});
       const list = await apiGetSessions();
       if (!mounted.current) return;
       if (list.length === 0) {
@@ -128,7 +131,6 @@ export function useAssistantChat() {
     abortController.current?.abort();
     abortController.current = new AbortController();
 
-    // Build message for API
     let apiMessage = content;
     let imageData: string | undefined;
 
@@ -162,6 +164,9 @@ export function useAssistantChat() {
         };
 
       setMessages((items) => [...items, assistantMsg]);
+
+      // Save assistant response to DB
+      if (activeSessionId) void apiSaveMsg(activeSessionId, assistantMsg);
     } catch (error) {
       if (!mounted.current || (error instanceof DOMException && error.name === "AbortError")) return;
 
@@ -176,7 +181,7 @@ export function useAssistantChat() {
     } finally {
       if (mounted.current) setIsSending(false);
     }
-  }, [draft, isSending, attachment]);
+  }, [draft, isSending, attachment, activeSessionId]);
 
   useEffect(() => {
     return () => {
@@ -198,6 +203,7 @@ export function useAssistantChat() {
     sessions,
     setAttachment,
     setDraft,
+    setMessages,
     startNewChat,
     voiceEnabled,
     setVoiceEnabled,
