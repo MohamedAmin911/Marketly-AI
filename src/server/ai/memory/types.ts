@@ -31,7 +31,19 @@ export type CreativeMemory = {
 
 export type UserBehaviorPatterns = Record<string, unknown>;
 
+export type AssistantMemoryDocument = {
+  content: string;
+  createdAt?: string;
+  embedding: number[];
+  id?: string;
+  metadata: Record<string, unknown>;
+  source: "assistant" | "document" | "import" | "system";
+  title?: string;
+  updatedAt?: string;
+};
+
 export type AIMemoryRecord = {
+  documents: AssistantMemoryDocument[];
   averageGenerationType?: ContentType;
   brandId?: string;
   brandIdentity: BrandIdentityMemory;

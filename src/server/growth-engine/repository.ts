@@ -31,7 +31,6 @@ export async function createGrowthProjectRecord({
       campaigns: n8nResult?.campaigns ?? [],
       competitors: n8nResult?.competitors ?? [],
       goal: input.goal,
-      imageAssets: n8nResult?.imageAssets ?? [],
       industry: input.industry,
       marketingAngles: n8nResult?.marketingAngles ?? [],
       personas: n8nResult?.personas ?? [],
@@ -40,7 +39,6 @@ export async function createGrowthProjectRecord({
       storyboards: n8nResult?.storyboards ?? [],
       strategy: n8nResult?.strategy ?? null,
       userId: objectId,
-      videoAssets: n8nResult?.videoAssets ?? [],
     });
 
     return serializeGrowthProject(project);
@@ -73,13 +71,11 @@ export async function upsertGrowthProjectShell({
   const setOnInsert: Record<string, unknown> = {
     campaigns: [],
     competitors: [],
-    imageAssets: [],
     marketingAngles: [],
     personas: [],
     storyboards: [],
     strategy: null,
     userId: userObjectId,
-    videoAssets: [],
   };
 
   if (Types.ObjectId.isValid(projectId)) {
@@ -126,7 +122,7 @@ export async function getGrowthProjectForUser(projectId: string, userId: string)
       ],
     }).sort({ _id: -1 }).lean();
 
-    console.log("[DEBUG] Strategy 1 result:", byProjectId ? `found _id=${String(byProjectId._id)} campaigns=${Array.isArray((byProjectId as Record<string,unknown>).campaigns) ? ((byProjectId as Record<string,unknown>).campaigns as unknown[]).length : "N/A"}` : "NOT FOUND");
+    console.log("[DEBUG] Strategy 1 result:", byProjectId ? `found _id=${String(byProjectId._id)} campaigns=${Array.isArray((byProjectId as unknown as Record<string,unknown>).campaigns) ? ((byProjectId as unknown as Record<string,unknown>).campaigns as unknown[]).length : "N/A"}` : "NOT FOUND");
 
     if (byProjectId) return serializeGrowthProject(byProjectId);
   }
@@ -139,14 +135,17 @@ export async function getGrowthProjectForUser(projectId: string, userId: string)
 
   // Count all docs for this user to understand what's in DB
   const allDocs = await GrowthProjectModel.find(userFilter).select("_id projectId externalProjectId campaigns status userId").lean();
-  console.log("[DEBUG] All user docs count:", allDocs.length, "docs:", allDocs.map((d: Record<string, unknown>) => ({
-    _id: String(d._id),
-    projectId: d.projectId,
-    externalProjectId: d.externalProjectId,
-    campaignCount: Array.isArray(d.campaigns) ? (d.campaigns as unknown[]).length : 0,
-    status: d.status,
-    userId: String(d.userId),
-  })));
+  console.log("[DEBUG] All user docs count:", allDocs.length, "docs:", allDocs.map((doc) => {
+    const d = doc as unknown as Record<string, unknown>;
+    return {
+      _id: String(d._id),
+      projectId: d.projectId,
+      externalProjectId: d.externalProjectId,
+      campaignCount: Array.isArray(d.campaigns) ? (d.campaigns as unknown[]).length : 0,
+      status: d.status,
+      userId: String(d.userId),
+    };
+  }));
 
   const projectWithData = await GrowthProjectModel.findOne({
     ...userFilter,
@@ -169,104 +168,6 @@ export async function getGrowthProjectForUser(projectId: string, userId: string)
 }
 
 
-export async function acquireGrowthProjectLock({
-  jobId,
-  kind,
-  projectId,
-  ttlMs,
-  userId,
-}: {
-  jobId: string;
-  kind: string;
-  projectId: string;
-  ttlMs: number;
-  userId: string;
-}): Promise<boolean> {
-  const projectObjectId = toObjectId(projectId);
-  const userObjectId = toObjectId(userId);
-  if (!userObjectId) return false;
-
-  await connectToDatabase();
-  const now = new Date();
-  const locked = await GrowthProjectModel.findOneAndUpdate(
-    {
-      ...buildProjectFilter(projectId, userId),
-      $or: [
-        { processingLock: null },
-        { processingLock: { $exists: false } },
-        { "processingLock.expiresAt": { $lte: now.toISOString() } },
-      ],
-    },
-    {
-      $set: {
-        processingLock: {
-          expiresAt: new Date(now.getTime() + ttlMs).toISOString(),
-          jobId,
-          kind,
-          lockedAt: now.toISOString(),
-        },
-      },
-    },
-    { new: true },
-  ).lean();
-
-  return Boolean(locked);
-}
-
-export async function releaseGrowthProjectLock(projectId: string, jobId: string) {
-  await connectToDatabase();
-  await GrowthProjectModel.updateOne(
-    {
-      ...projectIdentityFilter(projectId),
-      "processingLock.jobId": jobId,
-    },
-    { $set: { processingLock: null } },
-  );
-}
-
-export async function updateGrowthProjectGeneration({
-  appendJob,
-  imageAssets,
-  lastError,
-  projectId,
-  status,
-  userId,
-  videoAssets,
-}: {
-  appendJob?: Record<string, unknown>;
-  imageAssets?: Record<string, unknown>[];
-  lastError?: string;
-  projectId: string;
-  status?: GrowthProjectStatus;
-  userId: string;
-  videoAssets?: Record<string, unknown>[];
-}): Promise<GrowthProjectRecord> {
-  const userObjectId = toObjectId(userId);
-  if (!userObjectId) throw apiErrors.notFound("Growth project was not found.");
-
-  const update: Record<string, unknown> = {};
-  const push: Record<string, unknown> = {};
-
-  if (status) update.status = status;
-  if (lastError !== undefined) update.lastError = lastError;
-  if (imageAssets?.length) push.imageAssets = { $each: imageAssets };
-  if (videoAssets?.length) push.videoAssets = { $each: videoAssets };
-  if (appendJob) push.generationJobs = appendJob;
-
-  await connectToDatabase();
-  const project = await GrowthProjectModel.findOneAndUpdate(
-    buildProjectFilter(projectId, userId),
-    {
-      ...(Object.keys(update).length ? { $set: update } : {}),
-      ...(Object.keys(push).length ? { $push: push } : {}),
-    },
-    { new: true },
-  ).lean();
-
-  if (!project) throw apiErrors.notFound("Growth project was not found.");
-  return serializeGrowthProject(project);
-}
-
 export function serializeGrowthProject(project: unknown): GrowthProjectRecord {
   const record = isRecord(project) ? project : {};
 
@@ -283,16 +184,14 @@ export function serializeGrowthProject(project: unknown): GrowthProjectRecord {
     createdAt: toIso(record.createdAt),
     goal: stringValue(record.goal),
     id: stringValue(record.projectId, stringValue(record.externalProjectId, String(record._id))),
-    imageAssets: arrayOfRecords(record.imageAssets),
     industry: stringValue(record.industry),
-    generationJobs: arrayOfRecords(record.generationJobs),
     lastError: stringValue(record.lastError) || undefined,
     marketingAngles: Array.isArray(record.marketingAngles) ? record.marketingAngles.filter(isMarketingAngle) : [],
     personas: arrayOfRecords(record.personas),
     productImage: isRecord(record.productImage) ? assetFromRecord(record.productImage) : null,
     status: isGrowthProjectStatus(record.status) ? record.status : "draft",
     storyboards: Array.isArray(record.storyboards)
-      ? record.storyboards.filter((item) => Array.isArray(item) || isRecord(item))
+      ? record.storyboards.filter((item) => Array.isArray(item) || isRecord(item)) as Record<string, unknown>[]
       : [],
     strategy: Array.isArray(record.strategy)
       ? record.strategy
@@ -300,8 +199,7 @@ export function serializeGrowthProject(project: unknown): GrowthProjectRecord {
         ? record.strategy
         : null,
     updatedAt: toIso(record.updatedAt),
-    userId: String(record.userId),
-    videoAssets: arrayOfRecords(record.videoAssets),
+    userId: stringValue(record.userId),
   };
 }
 

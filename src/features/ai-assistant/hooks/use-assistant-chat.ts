@@ -53,7 +53,7 @@ export function useAssistantChat() {
   const abortController = useRef<AbortController | null>(null);
   const mounted = useRef(true);
 
-  const sendMessage = useCallback(async (override?: string): Promise<string | null> => {
+  const sendMessage = useCallback(async (override?: string): Promise<void> => {
     if (isSending) return;
     const content = (override ?? draft).trim();
 

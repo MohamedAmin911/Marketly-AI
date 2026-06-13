@@ -8,27 +8,25 @@ const STAGES: GrowthEngineStage[] = [
   "Strategy Generated",
   "Campaigns Generated",
   "Storyboards Generated",
-  "Images Generated",
-  "Videos Generated",
 ];
 
 export function StatusTracker({
   activeStage,
   completedStages,
-  loadingStage,
+  isGenerating,
 }: {
   activeStage: GrowthEngineStage;
   completedStages: GrowthEngineStage[];
-  loadingStage?: GrowthEngineStage | null;
+  isGenerating?: boolean;
 }) {
   const completed = new Set(completedStages);
 
   return (
-    <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-6">
+    <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
       {STAGES.map((stage) => {
         const isComplete = completed.has(stage);
         const isCurrent = stage === activeStage;
-        const isLoading = stage === loadingStage;
+        const isLoading = isGenerating && !isComplete;
 
         return (
           <div

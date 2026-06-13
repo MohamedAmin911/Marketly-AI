@@ -43,19 +43,6 @@ function SidebarContent() {
           );
         })}
       </nav>
-      <div className="border-t border-primary/15 p-4">
-        <div className="mb-3 rounded-lg border border-primary/15 bg-primary/[0.045] p-3">
-          <div className="flex items-center gap-2 text-sm font-semibold text-white">
-            <Crown className="size-4 text-tertiary" />
-            Pro workspace
-          </div>
-          <p className="mt-2 text-xs leading-5 text-muted">23 credits left before the next automated refill.</p>
-        </div>
-        <Button className="w-full" size="sm">
-          <Zap className="size-4" />
-          Upgrade to Pro
-        </Button>
-      </div>
     </div>
   );
 }

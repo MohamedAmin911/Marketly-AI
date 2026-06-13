@@ -36,6 +36,7 @@ function memoryContextToRecord(memory: AIMemoryContext): AIMemoryRecord {
   return {
     brandIdentity: memory.brandIdentity,
     conflicts: memory.conflicts,
+    documents: [],
     freshness: memory.freshness,
     isMissing: memory.isMissing,
     mostUsedFeatures: [],

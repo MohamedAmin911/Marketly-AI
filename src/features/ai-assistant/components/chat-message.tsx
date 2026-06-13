@@ -6,7 +6,7 @@ import { Card } from "@/components/ui/card";
 import type { ChatMessage as ChatMessageType } from "@/features/ai-assistant/types/chat";
 import { cn } from "@/lib/utils";
 
-export function ChatMessage({ message }: { message: ChatMessageType }) {
+export function ChatMessage({ message, onSpeak }: { message: ChatMessageType, onSpeak?: (text: string) => Promise<void> }) {
   const isUser = message.role === "user";
   const isImage = message.attachment?.mimeType.startsWith("image/");
 

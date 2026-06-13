@@ -71,10 +71,12 @@ export function AiAssistantView() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isListening, setIsListening] = useState(false);
  
-const recognitionRef = useRef<any>(null);
+const recognitionRef = useRef<unknown>(null);
 function toggleVoice() {
   const SR =
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (window as any).SpeechRecognition ||
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (window as any).webkitSpeechRecognition;
 
   console.log("SpeechRecognition:", SR);
@@ -85,7 +87,8 @@ function toggleVoice() {
   }
 
   if (isListening) {
-    recognitionRef.current?.stop();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (recognitionRef.current as any)?.stop();
     return;
   }
 
@@ -100,6 +103,7 @@ recognition.onspeechstart = () => console.log("Speech start");
 recognition.onspeechend = () => console.log("Speech end");
 recognition.onnomatch = () => console.log("No match");
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 recognition.onresult = (event: any) => {
   console.log("RESULT", event);
 
@@ -112,6 +116,7 @@ recognition.onresult = (event: any) => {
   console.log("TEXT", text);
   setDraft(text.trim());
 };
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   recognition.onerror = (event: any) => {
     console.error("SpeechRecognition error:", event);
     alert(`Voice error: ${event.error}`);

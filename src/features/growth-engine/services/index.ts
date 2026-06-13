@@ -1,9 +1,6 @@
 import type {
   GrowthEngineApiResponse,
   GrowthEngineSubmitRequest,
-  GrowthGenerationJobResponse,
-  GrowthGenerationKind,
-  GrowthGenerationProgressResponse,
 } from "@/features/growth-engine/types";
 import { apiJson } from "@/lib/api/client";
 
@@ -24,23 +21,7 @@ export async function submitGrowthEngineWorkflow(input: GrowthEngineSubmitReques
   });
 }
 
-export async function generateGrowthVisualAssets(projectId: string): Promise<GrowthGenerationJobResponse> {
-  return apiJson<GrowthGenerationJobResponse>("/api/growth-engine/generate-images", {
-    body: { projectId },
-    headers: { "Idempotency-Key": crypto.randomUUID() },
-    method: "POST",
-    timeoutMs: 30_000,
-  });
-}
 
-export async function generateGrowthVideos(projectId: string): Promise<GrowthGenerationJobResponse> {
-  return apiJson<GrowthGenerationJobResponse>("/api/growth-engine/generate-videos", {
-    body: { projectId },
-    headers: { "Idempotency-Key": crypto.randomUUID() },
-    method: "POST",
-    timeoutMs: 30_000,
-  });
-}
 
 export async function getGrowthProject(projectId: string): Promise<GrowthEngineApiResponse> {
   return apiJson<GrowthEngineApiResponse>(`/api/growth-engine/project/${projectId}`, {
@@ -49,22 +30,4 @@ export async function getGrowthProject(projectId: string): Promise<GrowthEngineA
   });
 }
 
-export async function getGrowthGenerationProgress({
-  jobId,
-  kind,
-  projectId,
-}: {
-  jobId?: string;
-  kind?: GrowthGenerationKind;
-  projectId: string;
-}): Promise<GrowthGenerationProgressResponse> {
-  const params = new URLSearchParams();
-  if (jobId) params.set("jobId", jobId);
-  if (kind) params.set("kind", kind);
 
-  const query = params.toString();
-  return apiJson<GrowthGenerationProgressResponse>(`/api/growth-engine/${projectId}/progress${query ? `?${query}` : ""}`, {
-    method: "GET",
-    timeoutMs: 20_000,
-  });
-}

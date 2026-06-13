@@ -1,7 +1,9 @@
 import {
   BarChart3,
   Bot,
+  Film,
   Grid2X2,
+  Image as ImageIcon,
   LayoutDashboard,
   Rocket,
   Settings,
@@ -14,6 +16,8 @@ export const NAV_ITEMS: NavItem[] = [
   { title: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
   { title: "Ad Studio", href: "/creator-studio", icon: Grid2X2 },
   { title: "AI Growth Engine", href: "/growth-engine", icon: Rocket },
+  { title: "Image Generation", href: "/images", icon: ImageIcon },
+  { title: "Video Generation", href: "/videos", icon: Film },
   { title: "AI Assistant", href: "/ai-assistant", icon: Bot },
   { title: "Analytics", href: "/analytics", icon: BarChart3 },
   { title: "Settings", href: "/settings", icon: Settings },
@@ -25,6 +29,18 @@ export const QUICK_CREATE_ITEMS = [
     description: "Product swap studio",
     href: "/creator-studio",
     icon: Wand2,
+  },
+  {
+    title: "Generate Image",
+    description: "AI storyboard frames",
+    href: "/images",
+    icon: ImageIcon,
+  },
+  {
+    title: "Create Video Ad",
+    description: "From script to screen",
+    href: "/videos",
+    icon: Film,
   },
   {
     title: "Build Growth Engine",

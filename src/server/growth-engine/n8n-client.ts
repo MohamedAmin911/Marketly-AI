@@ -1,5 +1,4 @@
 import { apiErrors } from "@/server/errors/api-error";
-import { n8nGrowthProjectResponseSchema } from "@/server/growth-engine/schemas";
 import { retryOperation, withOperationTimeout } from "@/server/growth-engine/retry";
 import type { GrowthEngineRequest, N8nGrowthProjectResponse } from "@/server/growth-engine/types";
 
@@ -55,8 +54,11 @@ export async function createGrowthProjectViaN8n({
       // We assume the n8n webhook succeeded if it returns a 2xx status.
       // Since the user's workflow saves to MongoDB directly and doesn't return the projectId,
       // we query MongoDB for the most recently created project for this user.
-      const { GrowthProjectModel } = await import("@/server/database");
+      const { GrowthProjectModel, connectToDatabase } = await import("@/server/database");
       const { Types } = await import("mongoose");
+      
+      await connectToDatabase();
+      
       const latestProject = await GrowthProjectModel.findOne({ 
         userId: { $in: [userId, Types.ObjectId.isValid(userId) ? new Types.ObjectId(userId) : userId] } 
       })
@@ -75,6 +77,7 @@ function extractPayload(payload: unknown): unknown {
   if (Array.isArray(payload)) return extractPayload(payload[0]);
   if (!isRecord(payload)) return payload;
   if (isRecord(payload.json)) return payload.json;
+  if (isRecord(payload.project)) return payload.project;
   if (isRecord(payload.data)) return payload.data;
   return payload;
 }

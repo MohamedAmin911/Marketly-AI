@@ -22,6 +22,7 @@ export type ChatMessage = {
 export type AssistantChatResponse = {
   actions: string[];
   answer: string;
+  audio?: string;
   cards: {
     description: string;
     evidence: string;

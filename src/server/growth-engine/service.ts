@@ -28,7 +28,7 @@ export async function buildGrowthEngineProject(input: GrowthEngineRequestInput, 
       productImage = await uploadProductImage(input);
     }
 
-    const n8nProject = await createGrowthProjectViaN8n({
+    const n8nResult = await createGrowthProjectViaN8n({
       input,
       requestId,
       userId: auth.user.sub,
@@ -117,3 +117,5 @@ async function uploadProductImage(input: GrowthEngineRequestInput) {
       ),
   });
 }
+
+
