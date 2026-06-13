@@ -53,7 +53,7 @@ export const defaultStrategyRequest: MarketingStrategyRequest = {
       reviewCadence: "weekly",
     },
   },
-  model: "mistralai/Mistral-7B-Instruct-v0.3",
+  model: "gpt-4o-mini",
 };
 
 export async function generateMarketingStrategy(input: MarketingStrategyRequest): Promise<MarketingStrategyOutput> {
