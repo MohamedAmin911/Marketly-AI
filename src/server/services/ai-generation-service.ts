@@ -175,6 +175,30 @@ function buildAssistantMessages(
         "Do not invent campaign facts. If context is missing, say what is missing and give the best next step.",
         "Never mention your communication medium (voice, text, chat). Just answer the question directly.",
         "If the user attaches a file, read the file contents provided and answer based on them.",
+        // Personality
+        input.brand.aiPersonality === "casual"
+          ? "Use a friendly, conversational tone. Keep it simple, warm, and direct. Use short sentences. Avoid corporate jargon."
+          : input.brand.aiPersonality === "technical"
+          ? "Be data-driven and precise. Use marketing metrics, percentages, and specific terminology. Include numbers wherever possible."
+          : "Be professional, structured, and authoritative. Use confident declarative statements. No fluff.",
+        // Tone
+        (() => {
+          const tones = Array.isArray(input.brand.tones) ? input.brand.tones as string[] : [];
+          if (tones.length === 0) return "";
+          const toneInstructions: Record<string, string> = {
+            "Authoritative": "Write with confidence and expertise. Use strong, decisive language.",
+            "Playful": "Be fun, energetic, and creative. Use wordplay and lighter language.",
+            "Minimalist": "Use as few words as possible. Every word must earn its place. No filler.",
+            "Energetic": "Be bold, dynamic, and action-oriented. Use power words and exclamations.",
+            "Technical & Precise": "Use industry-specific terminology, data points, and precise language.",
+          };
+          const instructions = tones.map(t => toneInstructions[t]).filter(Boolean);
+          return instructions.length > 0 ? `Tone instructions: ${instructions.join(" ")}` : "";
+        })(),
+        // Language
+        input.brand.language === "ar"
+          ? "IMPORTANT: Always respond in Arabic regardless of the language used in the question."
+          : "Respond in English.",
       ].join(" "),
       role: "system",
     },
@@ -215,10 +239,15 @@ function buildContextBlock(
   const sections = [
     "Workspace context:",
     `Brand: ${input.brand.name} (${input.brand.industry})`,
+    input.brand.tagline ? `Tagline: ${input.brand.tagline}` : "",
     `Audience: ${input.brand.audience}`,
     `Offer: ${input.brand.offer}`,
     `Tone: ${input.brand.tone}`,
     `Goals: ${input.brand.goals.join(", ") || "not provided"}`,
+    input.brand.socialLinks?.website ? `Website: ${input.brand.socialLinks.website}` : "",
+    input.brand.socialLinks?.linkedin ? `LinkedIn: ${input.brand.socialLinks.linkedin}` : "",
+    input.brand.socialLinks?.twitter ? `Twitter/X: ${input.brand.socialLinks.twitter}` : "",
+    input.brand.socialLinks?.instagram ? `Instagram: ${input.brand.socialLinks.instagram}` : "",
     "",
     "Persisted profile:",
     `Brand voice: ${profileMemory.brandIdentity.voice ?? profileMemory.brandIdentity.tone ?? "not recorded"}`,
