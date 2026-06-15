@@ -1,4 +1,5 @@
-import { Activity, AlertTriangle, ArrowRight, Lightbulb, LineChart, Milestone, Rocket, ShieldAlert, Target, Users, Zap } from "lucide-react";
+import { Activity, AlertTriangle, ArrowRight, Lightbulb, LineChart, Milestone, Rocket, ShieldAlert, Target, Users, Zap, ImageIcon } from "lucide-react";
+import Link from "next/link";
 import type { GrowthProjectRecord, SectionStatus } from "@/features/growth-engine/types";
 import { WorkflowSection } from "@/features/growth-engine/components/workflow-section";
 
@@ -220,14 +221,42 @@ export function GrowthEngineResults({
             return scenes.map((scene, sceneIdx) => {
               const s = scene as Record<string, unknown>;
               const title = s.sceneTitle ?? s.title ?? `Scene ${sceneIdx + 1}`;
-              const script = s.script ?? s.description ?? s.imagePrompt ?? "";
+              const script = s.script ?? s.description ?? "";
+              const imagePrompt = s.imagePrompt ?? "";
+              
               return (
                 <div key={`${campIdx}-${sceneIdx}`} className="rounded-lg border border-primary/15 bg-black/20 p-4">
                   <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.1em] text-primary">
                     Campaign {campIdx + 1} · Scene {sceneIdx + 1}
                   </p>
                   <p className="mt-1 text-xs font-semibold text-white/90">{String(title)}</p>
-                  <p className="mt-2 text-xs leading-5 text-muted">{String(script)}</p>
+                  
+                  {imagePrompt ? (
+                    <div className="mt-3">
+                      <div className="flex items-center gap-2 mb-1">
+                        <p className="text-[10px] font-bold uppercase tracking-widest text-primary/80">Image Prompt</p>
+                        <Link 
+                          href={`/images?prompt=${encodeURIComponent(String(imagePrompt))}`}
+                          className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-medium text-primary hover:bg-primary/20 transition-colors"
+                        >
+                          <ImageIcon className="size-3" />
+                          Generate
+                        </Link>
+                      </div>
+                      <p className="text-xs leading-5 text-muted">{String(imagePrompt)}</p>
+                    </div>
+                  ) : null}
+                  
+                  {script ? (
+                    <div className="mt-3">
+                      <p className="text-[10px] font-bold uppercase tracking-widest text-primary/80">Script</p>
+                      <p className="mt-1 text-xs leading-5 text-muted">{String(script)}</p>
+                    </div>
+                  ) : null}
+
+                  {(!imagePrompt && !script) && (
+                    <p className="mt-2 text-xs leading-5 text-muted">{String(s.imagePrompt ?? s.script ?? s.description ?? "")}</p>
+                  )}
                 </div>
               );
             });

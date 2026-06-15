@@ -7,7 +7,7 @@ import {
   UploadCloud,
   WandSparkles,
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 import { PageShell } from "@/components/layout/page-shell";
 import { UploadArea } from "@/components/shared/upload-area";
@@ -28,6 +28,16 @@ export function StoryboardView() {
     "Create a luxury cinematic campaign that makes the product feel precise, desirable, and iconic.",
   );
   const [inputError, setInputError] = useState("");
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const prompt = params.get("prompt");
+      if (prompt) {
+        setCampaignPrompt(prompt);
+      }
+    }
+  }, []);
 
   function submitGeneration() {
     if (!productImage) {

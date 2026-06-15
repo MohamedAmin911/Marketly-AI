@@ -52,9 +52,20 @@ export function SceneCard({ index, scene }: { index: number; scene: CinematicSto
 
       <div className="space-y-4 p-5">
         <h3 className="font-display text-xl font-semibold text-white">{scene.sceneTitle}</h3>
-        <div className="flex gap-3 rounded-lg border border-white/10 bg-black/20 p-4">
-          <Quote className="mt-1 size-4 shrink-0 text-primary" />
-          <p className="text-sm font-medium leading-6 text-white/86">{scene.script}</p>
+        
+        {scene.imagePrompt && (
+          <div className="space-y-2">
+            <span className="text-[10px] font-bold uppercase tracking-widest text-primary/80">Image Prompt</span>
+            <p className="text-sm font-medium leading-relaxed text-white/70">{scene.imagePrompt}</p>
+          </div>
+        )}
+
+        <div className="space-y-2">
+          <span className="text-[10px] font-bold uppercase tracking-widest text-primary/80">Voice Over</span>
+          <div className="flex gap-3 rounded-lg border border-white/10 bg-black/20 p-4">
+            <Quote className="mt-1 size-4 shrink-0 text-primary" />
+            <p className="text-sm font-medium leading-6 text-white/86">{scene.script}</p>
+          </div>
         </div>
       </div>
     </article>
