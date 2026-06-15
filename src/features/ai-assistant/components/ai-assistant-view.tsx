@@ -73,36 +73,68 @@ export function AiAssistantView() {
   const recognitionRef = useRef<SpeechRecognition | null>(null);
   const [isListening, setIsListening] = useState(false);
  
-  function toggleVoice() {
-    const SR =
-      (window as unknown as { SpeechRecognition?: typeof SpeechRecognition }).SpeechRecognition ??
-      (window as unknown as { webkitSpeechRecognition?: typeof SpeechRecognition }).webkitSpeechRecognition;
- 
-    if (!SR) { alert("Voice input requires Chrome or Edge."); return; }
-    if (isListening) { recognitionRef.current?.stop(); return; }
- 
-    const recognition = new SR();
-    recognition.lang = "en-US";
-    recognition.continuous = true;
-    recognition.interimResults = true;
- 
-    recognition.onresult = (event) => {
-      let text = "";
-      for (let i = 0; i < event.results.length; i++) {
-        text += event.results[i][0]?.transcript + " ";
-      }
-      setDraft(text.trim());
-    };
-    recognition.onerror = (event) => {
-      console.error("SpeechRecognition error:", event);
-      setIsListening(false);
-    };
-    recognition.onend = () => setIsListening(false);
- 
-    recognitionRef.current = recognition;
-    recognition.start();
-    setIsListening(true);
+const recognitionRef = useRef<unknown>(null);
+function toggleVoice() {
+  const SR =
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (window as any).SpeechRecognition ||
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (window as any).webkitSpeechRecognition;
+
+  console.log("SpeechRecognition:", SR);
+
+  if (!SR) {
+    alert("Voice input requires Chrome or Edge.");
+    return;
   }
+
+  if (isListening) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (recognitionRef.current as any)?.stop();
+    return;
+  }
+
+  const recognition = new SR();
+recognition.lang = "en-US";
+recognition.continuous = true;
+recognition.interimResults = true;
+
+recognition.onstart = () => console.log("Voice started");
+recognition.onaudiostart = () => console.log("Audio start");
+recognition.onspeechstart = () => console.log("Speech start");
+recognition.onspeechend = () => console.log("Speech end");
+recognition.onnomatch = () => console.log("No match");
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+recognition.onresult = (event: any) => {
+  console.log("RESULT", event);
+
+  let text = "";
+
+  for (let i = 0; i < event.results.length; i++) {
+    text += event.results[i][0].transcript + " ";
+  }
+
+  console.log("TEXT", text);
+  setDraft(text.trim());
+};
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  recognition.onerror = (event: any) => {
+    console.error("SpeechRecognition error:", event);
+    alert(`Voice error: ${event.error}`);
+    setIsListening(false);
+  };
+
+  recognition.onend = () => {
+    console.log("🎤 Voice ended");
+    setIsListening(false);
+  };
+
+  recognitionRef.current = recognition;
+
+  recognition.start();
+  setIsListening(true);
+}
  
   async function handleFileSelected(file: File | undefined) {
     if (!file) return;

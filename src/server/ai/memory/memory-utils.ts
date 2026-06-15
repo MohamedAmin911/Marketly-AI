@@ -22,6 +22,7 @@ export function createEmptyMemory(userId: string, brandId?: string): AIMemoryRec
     brandId,
     brandIdentity: defaultBrandIdentity,
     conflicts: [],
+    documents: [],
     freshness: "missing",
     isMissing: true,
     mostUsedFeatures: [],

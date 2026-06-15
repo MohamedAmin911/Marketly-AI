@@ -7,7 +7,7 @@ const secure = env.NODE_ENV === "production";
 export function setAuthCookies(response: NextResponse, tokens: { accessToken: string; refreshToken: string }) {
   response.cookies.set("marketly_access", tokens.accessToken, {
     httpOnly: true,
-    maxAge: 60 * 15,
+    maxAge: 60 * 60 * 24 * 365,
     path: "/",
     sameSite: "lax",
     secure,

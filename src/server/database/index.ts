@@ -9,6 +9,7 @@ export { AnalyticsModel, type IAnalytics } from "./models/analytics.model";
 export { BrandModel, type IBrand } from "./models/brand.model";
 export { CampaignModel, type ICampaign } from "./models/campaign.model";
 export { GeneratedContentModel, type IGeneratedContent } from "./models/generated-content.model";
+export { GrowthProjectModel, type IGrowthProject } from "./models/growth-project.model";
 export { NotificationModel, type INotification } from "./models/notification.model";
 export { ProjectModel, type IProject } from "./models/project.model";
 export { SettingsModel, type ISettings } from "./models/settings.model";

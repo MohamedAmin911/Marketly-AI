@@ -2,6 +2,7 @@
 
 import { ArrowRight, Check, Copy, Download, Loader2, Sparkles, X } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import type { ReactNode } from "react";
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
@@ -10,6 +11,8 @@ import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getDashboardGenerations, type DashboardGeneration } from "@/features/dashboard/services";
+import { GrowthEngineResults } from "@/features/growth-engine/components/growth-engine-results";
+import { getGrowthProject } from "@/features/growth-engine/services";
 import { cn } from "@/lib/utils";
 
 /* eslint-disable @next/next/no-img-element */
@@ -86,19 +89,25 @@ export function RecentGenerationsCard({ items }: { items: DashboardGeneration[] 
 }
 
 function GenerationTile({ item, onPreview }: { item: DashboardGeneration; onPreview: (item: DashboardGeneration) => void }) {
-  const canPreview = Boolean(item.imageUrl || item.isCampaign || item.isVideo);
+  const router = useRouter();
+  const isGrowthEngine = item.type === "AI Growth Engine";
+  const canPreview = isGrowthEngine || Boolean(item.imageUrl || item.isCampaign || item.isVideo);
+
+  const handleClick = () => {
+    onPreview(item);
+  };
 
   return (
     <article className="relative min-h-40 overflow-hidden rounded-lg border border-primary/15 bg-primary/[0.04]">
       {item.imageUrl ? (
-        <button type="button" onClick={() => onPreview(item)} className="absolute inset-0 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-glow" aria-label={`Open ${item.title}`}>
+        <button type="button" onClick={handleClick} className="absolute inset-0 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-glow" aria-label={`Open ${item.title}`}>
           <img src={item.imageUrl} alt={item.title} className="size-full object-cover transition-transform duration-500 hover:scale-105" loading="lazy" decoding="async" />
         </button>
       ) : (
         <>
           <div className={cn("absolute inset-0 bg-gradient-to-br", item.color)} aria-hidden="true" />
-          {item.isCampaign || item.isVideo ? (
-            <button type="button" onClick={() => onPreview(item)} className="absolute inset-0 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-glow" aria-label={`Open ${item.title}`} />
+          {canPreview ? (
+            <button type="button" onClick={handleClick} className="absolute inset-0 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-glow" aria-label={`Open ${item.title}`} />
           ) : null}
         </>
       )}
@@ -123,11 +132,48 @@ function ImagePreviewDialog({ item, onOpenChange }: { item: DashboardGeneration 
   return (
     <CenteredModal open={Boolean(item)} onOpenChange={onOpenChange} className="w-[min(calc(100vw-2rem),72rem)]">
       {item ? (
-        <div className="overflow-hidden rounded-lg">
-          {item.isCampaign ? <CampaignPreview item={item} /> : <AssetPreview item={item} />}
+        <div className="overflow-hidden rounded-lg bg-background">
+          {item.type === "AI Growth Engine" ? (
+            <GrowthEnginePreview item={item} />
+          ) : item.isCampaign ? (
+            <CampaignPreview item={item} />
+          ) : (
+            <AssetPreview item={item} />
+          )}
         </div>
       ) : null}
     </CenteredModal>
+  );
+}
+
+function GrowthEnginePreview({ item }: { item: DashboardGeneration }) {
+  const projectQuery = useQuery({
+    queryKey: ["growth-engine-project", item.id],
+    queryFn: async () => {
+      const response = await getGrowthProject(item.id);
+      return response.project;
+    },
+  });
+
+  return (
+    <div className="max-h-[calc(100dvh-2rem)] overflow-y-auto p-5 pr-14 sm:p-6 sm:pr-14">
+      <header className="mb-6 border-b border-white/10 pb-5">
+        <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-primary">{item.type}</p>
+        <h2 className="mt-2 font-display text-3xl font-semibold leading-tight">{item.title}</h2>
+        <p className="mt-3 text-sm leading-6 text-muted">{item.description || "Saved AI Growth Engine project."}</p>
+        <p className="mt-3 text-xs font-semibold text-secondary">Generated {formatDate(item.createdAt)}</p>
+      </header>
+
+      {projectQuery.isLoading ? (
+        <div className="flex justify-center p-12 text-muted">
+          <Loader2 className="size-6 animate-spin" />
+        </div>
+      ) : projectQuery.isError ? (
+        <div className="p-12 text-center text-red-400">Failed to load project data.</div>
+      ) : projectQuery.data ? (
+        <GrowthEngineResults liveProject={projectQuery.data} />
+      ) : null}
+    </div>
   );
 }
 

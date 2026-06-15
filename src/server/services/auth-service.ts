@@ -9,7 +9,7 @@ import type { ForgotPasswordRequest, LoginRequest, ResetPasswordRequest, SignupR
 
 const maxFailedLoginAttempts = 5;
 const lockoutMs = 15 * 60 * 1000;
-const accessTtlSeconds = 60 * 15;
+const accessTtlSeconds = 60 * 60 * 24 * 365;
 const refreshTtlSeconds = 60 * 60 * 24 * 30;
 const resetTtlMs = 60 * 60 * 1000;
 

@@ -135,7 +135,7 @@ function fromDbMemory(document: IAIMemory & { updatedAt?: Date }, userId: string
     brandId,
     brandIdentity: normalizeBrandIdentity(document.brandIdentity),
     conflicts: [],
-    documents: normalizeDocuments(document.documents ?? []),
+    documents: normalizeDocuments(((document as unknown as Record<string, unknown>).documents as Array<Record<string, unknown>>) ?? []),
     freshness: "fresh",
     isMissing: false,
     lastUpdatedAt: document.updatedAt?.toISOString(),

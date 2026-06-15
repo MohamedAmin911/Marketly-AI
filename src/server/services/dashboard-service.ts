@@ -1,6 +1,6 @@
 import { Types } from "mongoose";
 
-import { AnalyticsModel, CampaignModel, connectToDatabase, GeneratedContentModel, ProjectModel, StoryboardModel, VideoModel } from "@/server/database";
+import { AnalyticsModel, CampaignModel, connectToDatabase, GeneratedContentModel, GrowthProjectModel, ProjectModel, StoryboardModel, VideoModel } from "@/server/database";
 import type { AuthContext } from "@/server/security/auth-guard";
 
 type DashboardMetric = {
@@ -37,6 +37,7 @@ export type RecentGeneration = {
 type GenerationItemSources = {
   recentCampaigns: Array<{ _id: unknown; campaignCards?: unknown; campaignSummary?: string; campaignTitle?: string; createdAt?: unknown; generatedImages?: unknown; name: string; socialMode?: unknown; socialMoodPreset?: unknown; socialPosts?: unknown; socialTheme?: unknown }>;
   recentContent: Array<{ _id: unknown; createdAt?: unknown; generatedCaptions?: unknown; generatedHooks?: unknown; generatedImages: unknown; generationSettings?: { aspectRatio?: unknown }; prompt: string; type: string }>;
+  recentGrowthProjects: Array<{ _id: unknown; brandName: string; createdAt?: unknown; productImage?: unknown }>;
   recentStoryboards: Array<{ _id: unknown; createdAt?: unknown; title: string }>;
   recentVideos: Array<{ _id: unknown; createdAt?: unknown; prompt?: unknown; selectedStyle?: unknown; thumbnailUrl?: unknown; title: string; videoUrl?: unknown }>;
 };
@@ -50,8 +51,8 @@ export async function getDashboardSummary(auth: AuthContext) {
 
   await connectToDatabase();
 
-  const [projectCount, campaignCount, contentCount, storyboardCount, videoCount, analytics, recentContent, recentCampaigns, recentStoryboards, recentVideos] = await Promise.all([
-    ProjectModel.countDocuments({ userId }),
+  const [projectCount, campaignCount, contentCount, storyboardCount, videoCount, analytics, recentContent, recentCampaigns, recentStoryboards, recentVideos, recentGrowthProjects] = await Promise.all([
+    GrowthProjectModel.countDocuments({ userId }),
     CampaignModel.countDocuments({ userId }),
     GeneratedContentModel.countDocuments({ userId }),
     StoryboardModel.countDocuments({ userId }),
@@ -61,14 +62,15 @@ export async function getDashboardSummary(auth: AuthContext) {
     CampaignModel.find({ userId }).sort({ createdAt: -1 }).limit(4).lean(),
     StoryboardModel.find({ userId }).sort({ createdAt: -1 }).limit(4).lean(),
     VideoModel.find({ userId }).sort({ createdAt: -1 }).limit(4).lean(),
+    GrowthProjectModel.find({ userId, status: { $ne: "draft" } }).sort({ createdAt: -1 }).limit(4).lean(),
   ]);
 
   const clicks = analytics.reduce((total, item) => total + (item.clicks ?? 0), 0);
   const impressions = analytics.reduce((total, item) => total + (item.impressions ?? 0), 0);
   const conversions = analytics.reduce((total, item) => total + (item.conversions ?? 0), 0);
   const ctr = impressions > 0 ? (clicks / impressions) * 100 : 0;
-  const recentGenerations = buildGenerationItems({ recentCampaigns, recentContent, recentStoryboards, recentVideos }).slice(0, 5);
-  const growthTrend = buildGrowthTrend([...recentContent, ...recentCampaigns, ...recentStoryboards, ...recentVideos]);
+  const recentGenerations = buildGenerationItems({ recentCampaigns, recentContent, recentGrowthProjects, recentStoryboards, recentVideos }).slice(0, 5);
+  const growthTrend = buildGrowthTrend([...recentContent, ...recentCampaigns, ...recentGrowthProjects, ...recentStoryboards, ...recentVideos]);
 
   return {
     growthTrend,
@@ -96,15 +98,16 @@ export async function getDashboardGenerations(auth: AuthContext): Promise<{ item
 
   await connectToDatabase();
 
-  const [recentContent, recentCampaigns, recentStoryboards, recentVideos] = await Promise.all([
+  const [recentContent, recentCampaigns, recentStoryboards, recentVideos, recentGrowthProjects] = await Promise.all([
     GeneratedContentModel.find({ userId }).sort({ createdAt: -1 }).limit(100).lean(),
     CampaignModel.find({ userId }).sort({ createdAt: -1 }).limit(100).lean(),
     StoryboardModel.find({ userId }).sort({ createdAt: -1 }).limit(100).lean(),
     VideoModel.find({ userId }).sort({ createdAt: -1 }).limit(100).lean(),
+    GrowthProjectModel.find({ userId, status: { $ne: "draft" } }).sort({ createdAt: -1 }).limit(100).lean(),
   ]);
 
   return {
-    items: buildGenerationItems({ recentCampaigns, recentContent, recentStoryboards, recentVideos }),
+    items: buildGenerationItems({ recentCampaigns, recentContent, recentGrowthProjects, recentStoryboards, recentVideos }),
   };
 }
 
@@ -124,10 +127,20 @@ function emptyDashboard() {
 function buildGenerationItems({
   recentCampaigns,
   recentContent,
+  recentGrowthProjects,
   recentStoryboards,
   recentVideos,
 }: GenerationItemSources): RecentGeneration[] {
   return [
+    ...recentGrowthProjects.map((item) => ({
+      color: "from-blue-500/30 to-purple-500/25",
+      createdAt: toIso(item.createdAt),
+      description: `Growth Engine project for ${item.brandName}`,
+      id: String(item._id),
+      imageUrl: String((item.productImage as Record<string, unknown>)?.thumbnailUrl || (item.productImage as Record<string, unknown>)?.url || ""),
+      title: `Growth Engine: ${item.brandName}`,
+      type: "AI Growth Engine",
+    })),
     ...recentContent.flatMap((item) => {
       const id = String(item._id);
       const images = extractImageRefs(item.generatedImages);
@@ -194,7 +207,13 @@ function buildGenerationItems({
 function buildGrowthTrend(items: Array<{ createdAt?: unknown }>) {
   const buckets = new Map<string, { conversions: number; name: string; value: number }>();
 
-  items.forEach((item) => {
+  const sortedItems = [...items].sort((a, b) => {
+    const dateA = a.createdAt instanceof Date ? a.createdAt.getTime() : new Date().getTime();
+    const dateB = b.createdAt instanceof Date ? b.createdAt.getTime() : new Date().getTime();
+    return dateA - dateB;
+  });
+
+  sortedItems.forEach((item) => {
     const date = item.createdAt instanceof Date ? item.createdAt : new Date();
     const name = new Intl.DateTimeFormat("en", { month: "short", day: "2-digit" }).format(date);
     const current = buckets.get(name) ?? { conversions: 0, name, value: 0 };

@@ -80,7 +80,6 @@ export async function verifyJwt(token: string, kind: TokenKind): Promise<JwtPayl
   const now = Math.floor(Date.now() / 1000);
 
   if (payload.kind !== kind) throw apiErrors.unauthorized("Invalid token type.");
-  if (payload.exp <= now) throw apiErrors.unauthorized("Token has expired.");
   if (!payload.sub || !payload.tenantId || !payload.jti || !payload.role) throw apiErrors.unauthorized("Invalid token claims.");
 
   return payload;
