@@ -25,6 +25,16 @@ const assistantBrandSchema = z.object({
   name: z.string().trim().min(1).max(120).default("Marketly AI"),
   offer: z.string().trim().max(800).default("AI-powered marketing intelligence"),
   tone: z.string().trim().max(240).default("strategic, specific, confident"),
+  // Extended brand fields from settings
+  aiPersonality: z.enum(["formal", "casual", "technical"]).optional(),
+  language: z.string().max(10).optional(),
+  socialLinks: z.object({
+    website: z.string().max(200).optional(),
+    linkedin: z.string().max(200).optional(),
+    twitter: z.string().max(200).optional(),
+    instagram: z.string().max(200).optional(),
+  }).optional(),
+  tagline: z.string().max(200).optional(),
 });
 
 const assistantMemorySchema = z.object({
