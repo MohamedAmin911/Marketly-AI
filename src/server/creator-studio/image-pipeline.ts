@@ -1,5 +1,6 @@
 import { apiErrors } from "@/server/errors/api-error";
 import { validateUploadFile } from "@/server/security/uploads";
+import { getActiveProviderName } from "@/lib/services/ai-factory";
 import type { CreatorAsset } from "@/server/creator-studio/types";
 import type { CreatorGenerationInput, CreatorUploadInput } from "@/server/creator-studio/schemas";
 import { generateFluxAdvertisement } from "@/lib/api/gradio";
@@ -46,8 +47,10 @@ export async function runCreatorImagePipeline(input: CreatorGenerationInput) {
   const generatedImages: CreatorAsset[] = [];
 
   const generationPromises = Array.from({ length: input.variations }, async (_, index) => {
+    if (index > 0) {
+      await new Promise((resolve) => setTimeout(resolve, 1_000 * index));
+    }
     const rawImage = await generateFluxAdvertisement({
-      hfToken: process.env.HF_TOKEN,
       productImage: productImage.url,
       prompt,
       referenceImage: referenceImage?.url,
@@ -136,7 +139,9 @@ function buildSdxlPrompt(input: CreatorGenerationInput): string {
   ].filter(Boolean);
 
   return [
-    "SDXL product photography prompt:",
+    getActiveProviderName() === "huggingface"
+      ? "FLUX product photography prompt - product replacement with image conditioning:"
+      : "OpenAI DALL-E product photography prompt:",
     input.prompt,
     `Lighting: ${input.lighting}`,
     `Angle: ${input.angle}`,

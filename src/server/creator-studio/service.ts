@@ -265,7 +265,7 @@ async function persistCreatorGeneration(record: CreatorGenerationRecord, auth: A
     generationTime: 0,
     lighting: record.lighting,
     mode: record.mode,
-    modelUsed: "stable-diffusion-xl-preview",
+    modelUsed: "openai/dall-e-3",
     productImage: toAssetRef(record.productImage),
     prompt: record.prompt,
     quality: record.quality,
