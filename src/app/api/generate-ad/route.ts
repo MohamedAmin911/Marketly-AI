@@ -47,7 +47,7 @@ export async function POST(req: NextRequest) {
     return Response.json(
       {
         success: false,
-        error: error instanceof ApiError ? error.message : isTimeout ? "Generation timed out. The HuggingFace Space may be busy or cold-starting." : "Generation failed",
+        error: error instanceof ApiError ? error.message : isTimeout ? "Generation timed out. The AI service may be busy." : "Generation failed",
       },
       { status },
     );
