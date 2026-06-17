@@ -28,13 +28,18 @@ export function StoryboardView() {
     "Create a luxury cinematic campaign that makes the product feel precise, desirable, and iconic.",
   );
   const [inputError, setInputError] = useState("");
+  const [videoPrompt, setVideoPrompt] = useState<string | null>(null);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
       const params = new URLSearchParams(window.location.search);
       const prompt = params.get("prompt");
+      const urlVideoPrompt = params.get("videoPrompt");
       if (prompt) {
         setCampaignPrompt(prompt);
+      }
+      if (urlVideoPrompt) {
+        setVideoPrompt(urlVideoPrompt);
       }
     }
   }, []);
@@ -146,6 +151,7 @@ export function StoryboardView() {
                 key={`${scene.sceneTitle}-${index}`}
                 index={index}
                 scene={scene}
+                videoPrompt={videoPrompt}
               />
             ))}
 

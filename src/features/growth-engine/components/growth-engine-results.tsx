@@ -1,4 +1,4 @@
-import { Activity, AlertTriangle, ArrowRight, Lightbulb, LineChart, Milestone, Rocket, ShieldAlert, Target, Users, Zap, ImageIcon, Video } from "lucide-react";
+import { Activity, AlertTriangle, ArrowRight, Lightbulb, LineChart, Milestone, Rocket, ShieldAlert, Target, Users, Zap, ImageIcon, Video, WandSparkles } from "lucide-react";
 import Link from "next/link";
 import type { GrowthProjectRecord, SectionStatus } from "@/features/growth-engine/types";
 import { WorkflowSection } from "@/features/growth-engine/components/workflow-section";
@@ -388,9 +388,18 @@ export function GrowthEngineResults({
                     <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.1em] text-primary">
                       Camp {campIdx + 1} · Scene {String(num)}
                     </p>
-                    {duration ? (
-                      <span className="rounded-full bg-primary/10 px-2 py-0.5 font-mono text-[10px] text-primary">{duration}</span>
-                    ) : null}
+                    <div className="flex items-center gap-2">
+                      {duration ? (
+                        <span className="rounded-full bg-primary/10 px-2 py-0.5 font-mono text-[10px] text-primary">{duration}</span>
+                      ) : null}
+                      <Link
+                        href={`/images?prompt=${encodeURIComponent(imagePrompt || "")}&videoPrompt=${encodeURIComponent(videoPrompt || "")}`}
+                        className="inline-flex items-center gap-1.5 rounded-full bg-primary/20 px-3 py-1 text-[10px] font-bold text-primary hover:bg-primary/30 transition-colors"
+                      >
+                        <WandSparkles className="size-3" />
+                        Generate Scene
+                      </Link>
+                    </div>
                   </div>
 
                   <p className="text-xs font-semibold text-white/90">{title}</p>
@@ -408,13 +417,6 @@ export function GrowthEngineResults({
                     <div>
                       <div className="flex items-center gap-2 mb-1">
                         <p className="text-[10px] font-bold uppercase tracking-widest text-primary/80">Image Prompt</p>
-                        <Link
-                          href={`/images?prompt=${encodeURIComponent(imagePrompt)}`}
-                          className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-medium text-primary hover:bg-primary/20 transition-colors"
-                        >
-                          <ImageIcon className="size-3" />
-                          Generate
-                        </Link>
                       </div>
                       <p className="text-xs leading-5 text-muted">{imagePrompt}</p>
                     </div>
@@ -425,13 +427,6 @@ export function GrowthEngineResults({
                     <div>
                       <div className="flex items-center gap-2 mb-1">
                         <p className="text-[10px] font-bold uppercase tracking-widest text-primary/80">Video Prompt</p>
-                        <Link
-                          href={`/videos?prompt=${encodeURIComponent(videoPrompt)}`}
-                          className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-medium text-primary hover:bg-primary/20 transition-colors"
-                        >
-                          <Video className="size-3" />
-                          Generate
-                        </Link>
                       </div>
                       <p className="text-xs leading-5 text-muted">{videoPrompt}</p>
                     </div>

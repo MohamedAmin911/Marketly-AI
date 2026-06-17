@@ -1,12 +1,13 @@
 "use client";
 
-import { Check, Copy, Download, Loader2, Quote, X } from "lucide-react";
+import { Check, Copy, Download, Loader2, Quote, X, Film } from "lucide-react";
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
+import Link from "next/link";
 
 import type { CinematicStoryboardScene } from "@/features/storyboard/types";
 
-export function SceneCard({ index, scene }: { index: number; scene: CinematicStoryboardScene }) {
+export function SceneCard({ index, scene, videoPrompt }: { index: number; scene: CinematicStoryboardScene; videoPrompt?: string | null }) {
   const [isDownloading, setIsDownloading] = useState(false);
   const [copied, setCopied] = useState(false);
   const [lightboxOpen, setLightboxOpen] = useState(false);
@@ -72,7 +73,6 @@ export function SceneCard({ index, scene }: { index: number; scene: CinematicSto
           <h3 className="font-display text-xl font-semibold text-white">{scene.sceneTitle}</h3>
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              {/* <span className="text-[10px] font-bold uppercase tracking-widest text-primary/80">Title</span> */}
               <button
                 type="button"
                 onClick={copyTitle}
@@ -81,6 +81,16 @@ export function SceneCard({ index, scene }: { index: number; scene: CinematicSto
                 {copied ? <Check className="size-3" /> : <Copy className="size-3" />}
                 {copied ? "Copied" : "Copy"}
               </button>
+
+              {videoPrompt ? (
+                <Link
+                  href={`/videos?prompt=${encodeURIComponent(videoPrompt)}&imageUrl=${encodeURIComponent(scene.generatedImage)}`}
+                  className="inline-flex items-center gap-1.5 rounded-full bg-primary/20 px-3 py-1 text-[10px] font-bold uppercase tracking-wide text-primary transition-colors hover:bg-primary/30"
+                >
+                  <Film className="size-3.5" />
+                  Animate
+                </Link>
+              ) : null}
             </div>
             <div className="flex gap-3 rounded-lg border border-white/10 bg-black/20 p-4">
               <Quote className="mt-1 size-4 shrink-0 text-primary" />
@@ -127,6 +137,15 @@ export function SceneCard({ index, scene }: { index: number; scene: CinematicSto
                   {isDownloading ? <Loader2 className="size-3.5 animate-spin" /> : <Download className="size-3.5" />}
                   Download
                 </button>
+                {videoPrompt ? (
+                  <Link
+                    href={`/videos?prompt=${encodeURIComponent(videoPrompt)}&imageUrl=${encodeURIComponent(scene.generatedImage)}`}
+                    className="absolute right-32 top-4 inline-flex min-h-9 items-center gap-2 rounded-md border border-primary/40 bg-primary/20 px-3 text-xs font-semibold text-primary backdrop-blur transition hover:bg-primary hover:text-black"
+                  >
+                    <Film className="size-3.5" />
+                    Animate
+                  </Link>
+                ) : null}
               </div>
             </div>
           </div>,
