@@ -1,9 +1,6 @@
-import { FLUX_ADVERTISEMENT_SPACE, generateFluxAdvertisement } from "@/lib/api/gradio";
-import { env } from "@/server/config/env";
+import { generateFluxAdvertisement } from "@/lib/api/gradio";
 
 const DEFAULT_TIMEOUT_MS = 240_000;
-
-export { FLUX_ADVERTISEMENT_SPACE };
 
 export async function generateCampaignImageWithFlux({
   productImage,
@@ -15,7 +12,6 @@ export async function generateCampaignImageWithFlux({
   timeoutMs?: number;
 }) {
   return generateFluxAdvertisement({
-    hfToken: env.HF_TOKEN ?? env.HUGGINGFACE_API_KEY,
     productImage,
     prompt,
     timeoutMs,

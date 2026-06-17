@@ -1,6 +1,6 @@
 import { apiErrors } from "@/server/errors/api-error";
 import type { AuthContext } from "@/server/security/auth-guard";
-import type { AICapability, AIProviderName, HuggingFaceTask, WorkflowInput, WorkflowResult } from "@/server/ai/types";
+import type { AICapability, AIProviderName, WorkflowInput, WorkflowResult } from "@/server/ai/types";
 import { buildWorkflowContext } from "@/server/ai/context/context-builder";
 import { recordWorkflowMemory } from "@/server/ai/memory/update-service";
 import { evaluateOutputQuality, assertPromptIsValid } from "@/server/ai/parsers/quality";
@@ -35,7 +35,6 @@ export async function runAIWorkflow(input: WorkflowInput, auth: AuthContext, pre
           messages,
           model: input.model,
           responseFormat: "json",
-          task: resolveTask(input),
           temperature: input.temperature ?? workflow.temperature,
         },
         { attempts: 2, timeoutMs: 18_000 },
@@ -96,17 +95,4 @@ function resolveCapability(input: WorkflowInput): AICapability {
   return "text";
 }
 
-function resolveTask(input: WorkflowInput): HuggingFaceTask | undefined {
-  if (
-    input.context?.task === "text-generation" ||
-    input.context?.task === "text-to-image" ||
-    input.context?.task === "image-to-video" ||
-    input.context?.task === "text-to-video"
-  ) {
-    return input.context.task;
-  }
 
-  if (input.workflow === "video-generation") return input.context?.imageUrl ? "image-to-video" : "text-to-video";
-  if (input.workflow === "creator-studio") return "text-to-image";
-  return undefined;
-}
