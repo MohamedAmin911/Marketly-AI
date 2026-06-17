@@ -131,7 +131,7 @@ export async function generateCinematicStoryboard({
     },
     generationStatus: "completed",
     generationTime: Date.now() - startedAt,
-    modelUsed: `${OPENAI_STORYBOARD_MODEL} + openai/dall-e-3`,
+    modelUsed: `${OPENROUTER_MODEL} + FLUX.2-Klein-LoRA-Studio`,
     personalizationUsed: true,
     productImage: {
       alt: productImage.name || "Storyboard product image",
@@ -179,7 +179,7 @@ Campaign Prompt:
 ${campaignPrompt}`;
 
   const result = await getAIProvider().generateChatCompletion({
-    model: OPENAI_STORYBOARD_MODEL,
+    model: OPENROUTER_MODEL,
     messages: [
       {
         role: "user",
