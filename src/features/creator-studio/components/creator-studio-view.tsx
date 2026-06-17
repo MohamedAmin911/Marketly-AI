@@ -2,7 +2,7 @@
 
 import { useQueryClient } from "@tanstack/react-query";
 import { Clapperboard, Monitor, Smartphone, WandSparkles } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 
 import { PageShell } from "@/components/layout/page-shell";
 import { Button } from "@/components/ui/button";
@@ -37,6 +37,15 @@ export function CreatorStudioView() {
   const [generatedImage, setGeneratedImage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const urlPrompt = params.get("prompt");
+      if (urlPrompt) {
+        setCustomPrompt(urlPrompt);
+      }
+    }
+  }, []);
 
   const finalPrompt = useMemo(() => {
     const trimmedPrompt = customPrompt.trim();

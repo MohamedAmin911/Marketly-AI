@@ -53,8 +53,24 @@ export function VideoGeneratorView() {
     if (typeof window !== "undefined") {
       const params = new URLSearchParams(window.location.search);
       const urlPrompt = params.get("prompt");
+      const urlImage = params.get("imageUrl");
+
       if (urlPrompt) {
         setPrompt(urlPrompt);
+      }
+
+      if (urlImage) {
+        fetch(urlImage)
+          .then((res) => res.blob())
+          .then((blob) => {
+            let ext = "png";
+            if (blob.type === "image/jpeg") ext = "jpg";
+            else if (blob.type === "image/webp") ext = "webp";
+            
+            const file = new File([blob], `generated-scene.${ext}`, { type: blob.type });
+            setProductFile(file);
+          })
+          .catch((err) => console.error("Failed to load image from URL:", err));
       }
     }
   }, []);
