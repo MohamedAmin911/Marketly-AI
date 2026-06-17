@@ -1,7 +1,6 @@
 export * from "./types";
 export { runAIWorkflow } from "./orchestrator";
 export { ClaudeProvider } from "./providers/claude-provider";
-export { HuggingFaceProvider } from "./providers/huggingface-provider";
 export { MockProvider } from "./providers/mock-provider";
 export { OpenAIProvider } from "./providers/openai-provider";
 export { promptTemplates } from "./prompts/templates";

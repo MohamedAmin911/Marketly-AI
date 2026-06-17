@@ -2,8 +2,17 @@ import { Activity, AlertTriangle, ArrowRight, Lightbulb, LineChart, Milestone, R
 import Link from "next/link";
 import type { GrowthProjectRecord, SectionStatus } from "@/features/growth-engine/types";
 import { WorkflowSection } from "@/features/growth-engine/components/workflow-section";
+import { Button } from "@/components/ui/button";
+import {
+  getPrimaryImageGenerationPreset,
+  encodeImageGenerationState,
+} from "@/features/growth-engine/services/image-generation-adapter";
 
-function sectionStatus(hasData: boolean, isLoading: boolean, error: string | undefined): SectionStatus {
+function sectionStatus(
+  hasData: boolean,
+  isLoading: boolean,
+  error: string | undefined,
+): SectionStatus {
   if (error) return "error";
   if (isLoading) return "loading";
   if (hasData) return "success";
@@ -98,29 +107,57 @@ export function GrowthEngineResults({
                 return (
                   <>
                     {/* SWOT Analysis */}
-                    {(strategy.swot) && (
+                    {strategy.swot && (
                       <div className="space-y-3">
                         <h4 className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-primary/80">
-                          <Activity className="size-4 text-primary" /> SWOT Analysis
+                          <Activity className="size-4 text-primary" /> SWOT
+                          Analysis
                         </h4>
                         <div className="grid gap-3 sm:grid-cols-2">
-                          {["strengths", "weaknesses", "opportunities", "threats"].map((key) => {
-                            const items = strategy.swot as Record<string, unknown>;
-                            if (!items || !items[key] || !Array.isArray(items[key])) return null;
+                          {[
+                            "strengths",
+                            "weaknesses",
+                            "opportunities",
+                            "threats",
+                          ].map((key) => {
+                            const items = strategy.swot as Record<
+                              string,
+                              unknown
+                            >;
+                            if (
+                              !items ||
+                              !items[key] ||
+                              !Array.isArray(items[key])
+                            )
+                              return null;
                             const arr = items[key] as string[];
                             if (arr.length === 0) return null;
                             return (
-                              <div key={key} className="rounded-lg border border-primary/10 bg-primary/[0.03] p-4 transition-colors hover:border-primary/20 hover:bg-primary/[0.05]">
+                              <div
+                                key={key}
+                                className="rounded-lg border border-primary/10 bg-primary/[0.03] p-4 transition-colors hover:border-primary/20 hover:bg-primary/[0.05]"
+                              >
                                 <h5 className="mb-3 flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest text-primary/70">
-                                  {key === "strengths" && <Zap className="size-3 text-green-400" />}
-                                  {key === "weaknesses" && <AlertTriangle className="size-3 text-red-400" />}
-                                  {key === "opportunities" && <LineChart className="size-3 text-blue-400" />}
-                                  {key === "threats" && <ShieldAlert className="size-3 text-orange-400" />}
+                                  {key === "strengths" && (
+                                    <Zap className="size-3 text-green-400" />
+                                  )}
+                                  {key === "weaknesses" && (
+                                    <AlertTriangle className="size-3 text-red-400" />
+                                  )}
+                                  {key === "opportunities" && (
+                                    <LineChart className="size-3 text-blue-400" />
+                                  )}
+                                  {key === "threats" && (
+                                    <ShieldAlert className="size-3 text-orange-400" />
+                                  )}
                                   {key}
                                 </h5>
                                 <ul className="space-y-2">
                                   {arr.map((item: string, idx: number) => (
-                                    <li key={idx} className="flex items-start gap-2 text-sm leading-5 text-muted-foreground">
+                                    <li
+                                      key={idx}
+                                      className="flex items-start gap-2 text-sm leading-5 text-muted-foreground"
+                                    >
                                       <span className="mt-[2px] block size-1.5 shrink-0 rounded-full bg-primary/40" />
                                       {item}
                                     </li>
@@ -137,7 +174,8 @@ export function GrowthEngineResults({
                     {personas.length > 0 && (
                       <div className="space-y-3">
                         <h4 className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-primary/80">
-                          <Users className="size-4 text-primary" /> Target Personas
+                          <Users className="size-4 text-primary" /> Target
+                          Personas
                         </h4>
                         <div className="grid gap-3 md:grid-cols-3">
                           {personas.map((persona: Record<string, unknown>, i: number) => (
@@ -155,12 +193,16 @@ export function GrowthEngineResults({
                     {recommendations.length > 0 && (
                       <div className="space-y-3">
                         <h4 className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-primary/80">
-                          <Lightbulb className="size-4 text-primary" /> Strategic Recommendations
+                          <Lightbulb className="size-4 text-primary" />{" "}
+                          Strategic Recommendations
                         </h4>
                         <div className="rounded-lg border border-primary/10 bg-primary/[0.02] p-5">
                           <ul className="space-y-3">
                             {recommendations.map((rec: unknown, i: number) => (
-                              <li key={i} className="flex items-start gap-3 text-sm leading-6 text-foreground/90">
+                              <li
+                                key={i}
+                                className="flex items-start gap-3 text-sm leading-6 text-foreground/90"
+                              >
                                 <Target className="mt-1 size-4 shrink-0 text-primary" />
                                 <span>{recToString(rec)}</span>
                               </li>
@@ -174,7 +216,8 @@ export function GrowthEngineResults({
                     {launchPlan.length > 0 && (
                       <div className="space-y-3">
                         <h4 className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-primary/80">
-                          <Milestone className="size-4 text-primary" /> Launch Timeline
+                          <Milestone className="size-4 text-primary" /> Launch
+                          Timeline
                         </h4>
                         <div className="space-y-3">
                           {launchPlan.map((phase: Record<string, unknown>, i: number) => {
@@ -217,22 +260,38 @@ export function GrowthEngineResults({
               /* Fallback for other formats (string or unknown shape) */
               <div className="space-y-2">
                 {typeof liveProject.strategy === "string" ? (
-                  <p className="text-sm leading-6 text-foreground">{liveProject.strategy}</p>
+                  <p className="text-sm leading-6 text-foreground">
+                    {liveProject.strategy}
+                  </p>
                 ) : Array.isArray(liveProject.strategy) ? (
                   <div className="space-y-2">
                     {(liveProject.strategy as unknown[]).map((item, i) => (
-                      <div key={i} className="rounded-lg border border-primary/15 bg-primary/[0.04] p-3 text-sm text-foreground">
-                        {typeof item === "string" ? item : JSON.stringify(item, null, 2)}
+                      <div
+                        key={i}
+                        className="rounded-lg border border-primary/15 bg-primary/[0.04] p-3 text-sm text-foreground"
+                      >
+                        {typeof item === "string"
+                          ? item
+                          : JSON.stringify(item, null, 2)}
                       </div>
                     ))}
                   </div>
                 ) : (
                   <div className="space-y-2">
-                    {Object.entries(liveProject.strategy as Record<string, unknown>).map(([key, val]) => (
-                      <div key={key} className="rounded-lg border border-primary/15 bg-primary/[0.04] p-3">
-                        <p className="mb-1 font-mono text-[10px] font-semibold uppercase tracking-[0.1em] text-primary">{key}</p>
+                    {Object.entries(
+                      liveProject.strategy as Record<string, unknown>,
+                    ).map(([key, val]) => (
+                      <div
+                        key={key}
+                        className="rounded-lg border border-primary/15 bg-primary/[0.04] p-3"
+                      >
+                        <p className="mb-1 font-mono text-[10px] font-semibold uppercase tracking-[0.1em] text-primary">
+                          {key}
+                        </p>
                         <p className="text-sm leading-6 text-foreground">
-                          {typeof val === "string" ? val : JSON.stringify(val, null, 2)}
+                          {typeof val === "string"
+                            ? val
+                            : JSON.stringify(val, null, 2)}
                         </p>
                       </div>
                     ))}
@@ -260,12 +319,27 @@ export function GrowthEngineResults({
             const platform = c.platform ?? "";
             const tone = c.tone ?? "";
             return (
-              <div key={i} className="rounded-lg border border-primary/15 bg-primary/[0.04] p-4">
+              <div
+                key={i}
+                className="rounded-lg border border-primary/15 bg-primary/[0.04] p-4"
+              >
                 <Rocket className="mb-2 size-4 text-primary" />
-                <p className="text-sm font-semibold text-white">{String(title)}</p>
-                {platform ? <p className="mt-0.5 text-[10px] font-mono text-primary/70">{String(platform)}</p> : null}
-                <p className="mt-1 text-xs leading-5 text-muted">{String(objective)}</p>
-                {tone ? <p className="mt-1 text-[10px] text-muted/60 italic">{String(tone)}</p> : null}
+                <p className="text-sm font-semibold text-white">
+                  {String(title)}
+                </p>
+                {platform ? (
+                  <p className="mt-0.5 text-[10px] font-mono text-primary/70">
+                    {String(platform)}
+                  </p>
+                ) : null}
+                <p className="mt-1 text-xs leading-5 text-muted">
+                  {String(objective)}
+                </p>
+                {tone ? (
+                  <p className="mt-1 text-[10px] text-muted/60 italic">
+                    {String(tone)}
+                  </p>
+                ) : null}
               </div>
             );
           })}

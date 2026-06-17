@@ -1,15 +1,16 @@
 import { Client, handle_file } from "@gradio/client";
+import { getAIProvider } from "@/lib/services/ai-factory";
+import { mapAspectRatioToDalleSize } from "@/lib/services/openai-service";
 
-export const FLUX_ADVERTISEMENT_SPACE = "prithivMLmods/FLUX.2-Klein-LoRA-Studio";
 export const WAN_I2V_VIDEO_SPACE = "zerogpu-aoti/wan2-2-fp8da-aoti-faster";
 export const WAN_I2V_VIDEO_DURATION_SECONDS = 5;
 
 type GenerateFluxAdvertisementInput = {
-  hfToken?: string;
-  productImage: File | Blob | string;
+  productImage?: File | Blob | string;
   prompt: string;
   referenceImage?: File | Blob | string;
-  timeoutMs: number;
+  timeoutMs?: number;
+  aspectRatio?: string;
 };
 
 export type FluxAdvertisementResult = {
@@ -25,54 +26,29 @@ export type WanVideoResult = {
 };
 
 export async function generateFluxAdvertisement({
-  hfToken,
   productImage,
   prompt,
   referenceImage,
-  timeoutMs,
+  timeoutMs = 120_000,
+  aspectRatio,
 }: GenerateFluxAdvertisementInput): Promise<FluxAdvertisementResult> {
-  const client = await Client.connect(
-    FLUX_ADVERTISEMENT_SPACE,
-    isHuggingFaceToken(hfToken)
-      ? {
-          token: hfToken,
-        }
-      : undefined,
-  );
-
-  const rawResult = await withTimeout(
-    client.predict("/infer", {
-      guidance_scale: 1,
-      input_images: [
-        {
-          image: handle_file(productImage),
-        },
-        ...(referenceImage
-          ? [
-              {
-                image: handle_file(referenceImage),
-              },
-            ]
-          : []),
-      ],
+  const size = mapAspectRatioToDalleSize(aspectRatio);
+  const result = await withTimeout(
+    getAIProvider().generateImage({
       prompt,
-      randomize_seed: true,
-      seed: 0,
-      steps: 4,
-      style_name: "None",
+      size,
+      quality: "hd",
+      style: "vivid",
+      productImage,
+      referenceImage,
     }),
     timeoutMs,
   );
 
-  const imageUrl = extractGeneratedImageUrl(rawResult);
-  if (!imageUrl) {
-    throw new Error("The Space returned a result, but no generated image URL was found.");
-  }
-
   return {
-    imageUrl,
-    rawResult,
-    seed: extractUsedSeed(rawResult),
+    imageUrl: result.imageUrl,
+    rawResult: result.rawResult ?? { revisedPrompt: result.revisedPrompt },
+    seed: result.seed,
   };
 }
 
@@ -83,7 +59,7 @@ export async function generateWanProductVideo({
   timeoutMs,
 }: {
   hfToken?: string;
-  productImage: File | Blob | string;
+  productImage: File | Blob;
   prompt: string;
   timeoutMs: number;
 }): Promise<WanVideoResult> {
@@ -92,20 +68,19 @@ export async function generateWanProductVideo({
     isHuggingFaceToken(hfToken) ? { token: hfToken } : undefined,
   );
 
-  const payload = {
-    duration_seconds: WAN_I2V_VIDEO_DURATION_SECONDS,
-    guidance_scale: 1,
-    guidance_scale_2: 1,
-    input_image: handle_file(productImage),
-    negative_prompt: "static image, no motion, low quality, distorted product, warped logo, blurry, flicker, artifacts, extra objects, unreadable text, watermark, subtitles, text overlay",
-    prompt,
-    randomize_seed: true,
-    seed: 42,
-    steps: 6,
-  };
-
   const rawResult = await withTimeout(
-    client.predict("/generate_video", payload),
+    client.predict("/generate_video", {
+      duration_seconds: WAN_I2V_VIDEO_DURATION_SECONDS,
+      guidance_scale: 1,
+      guidance_scale_2: 1,
+      input_image: handle_file(productImage),
+      negative_prompt:
+        "static image, no motion, low quality, distorted product, warped logo, blurry, flicker, artifacts, extra objects, unreadable text, watermark, subtitles, text overlay",
+      prompt,
+      randomize_seed: true,
+      seed: 42,
+      steps: 6,
+    }),
     timeoutMs,
   );
 
@@ -138,10 +113,6 @@ function withTimeout<T>(promise: Promise<T>, timeoutMs: number): Promise<T> {
   });
 }
 
-function extractGeneratedImageUrl(result: unknown): string | null {
-  return extractGeneratedMediaUrl(result);
-}
-
 function extractGeneratedMediaUrl(result: unknown): string | null {
   if (!result || typeof result !== "object") return null;
 
@@ -158,7 +129,7 @@ function extractGeneratedMediaUrl(result: unknown): string | null {
   return null;
 }
 
-function hasMediaUrl(value: unknown) {
+function hasMediaUrl(value: unknown): boolean {
   if (typeof value === "string") return true;
   if (!value || typeof value !== "object") return false;
   const candidate = value as { path?: unknown; url?: unknown };

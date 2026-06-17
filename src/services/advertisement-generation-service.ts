@@ -1,13 +1,18 @@
 import { Types } from "mongoose";
 
 import { generateFluxAdvertisement } from "@/lib/api/gradio";
+import { getActiveProviderName } from "@/lib/services/ai-factory";
 import { updateAIMemory } from "@/server/ai/memory/update-service";
-import { env } from "@/server/config/env";
 import { connectToDatabase, GeneratedContentModel } from "@/server/database";
-import { uploadFileToImageKit, uploadRemoteImageToImageKit } from "@/server/services/imagekit-service";
+import { uploadRemoteImageToImageKit } from "@/server/services/imagekit-service";
 
 const GENERATION_TIMEOUT_MS = 240_000;
-const MODEL_ID = "prithivMLmods/FLUX.2-Klein-LoRA-Studio";
+
+function resolveModelId(): string {
+  return getActiveProviderName() === "huggingface"
+    ? "prithivMLmods/FLUX.2-Klein-LoRA-Studio"
+    : "openai/dall-e-3";
+}
 
 type GenerateAdvertisementInput = {
   aspectRatio: string;
@@ -25,29 +30,11 @@ export async function generateProductAdvertisement({
   userId,
 }: GenerateAdvertisementInput) {
   const startedAt = Date.now();
-  const uploadedProduct = await uploadFileToImageKit({
-    alt: "Product image for ad",
-    file: productImage,
-    fileName: `product-${crypto.randomUUID()}.png`,
-    folder: "/marketly-ai/advertisements",
-  });
-
-  let uploadedReferenceUrl: string | undefined = undefined;
-  if (referenceImage && referenceImage.size > 0) {
-    const uploadedReference = await uploadFileToImageKit({
-      alt: "Reference image for ad",
-      file: referenceImage,
-      fileName: `reference-${crypto.randomUUID()}.png`,
-      folder: "/marketly-ai/advertisements",
-    });
-    uploadedReferenceUrl = uploadedReference.url;
-  }
 
   const fluxResult = await generateFluxAdvertisement({
-    hfToken: env.HF_TOKEN ?? env.HUGGINGFACE_API_KEY,
-    productImage: uploadedProduct.url,
+    productImage,
     prompt,
-    referenceImage: uploadedReferenceUrl,
+    referenceImage,
     timeoutMs: GENERATION_TIMEOUT_MS,
   });
 
@@ -84,7 +71,7 @@ export async function generateProductAdvertisement({
     generationStatus: "completed",
     generationTime: Date.now() - startedAt,
     mode: "reference",
-    modelUsed: MODEL_ID,
+    modelUsed: resolveModelId(),
     personalizationUsed: true,
     productImage: {
       alt: productImage.name || "Product image",

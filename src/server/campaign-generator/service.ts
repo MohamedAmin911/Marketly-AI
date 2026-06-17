@@ -216,7 +216,7 @@ async function generateCreativesForAngles(angles: CampaignAngle[], productTitle:
         mimeType: "image/webp",
         name: `campaign-creative-${index + 1}.webp`,
         prompt: angle.prompt,
-        provider: "stable-diffusion-xl",
+        provider: "openai/dall-e-3",
         size: 0,
         title: angle.title,
       };

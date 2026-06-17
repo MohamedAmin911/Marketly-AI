@@ -36,7 +36,7 @@ export async function buildGrowthEngineProject(input: GrowthEngineRequestInput, 
 
     let project: Awaited<ReturnType<typeof getGrowthProjectForUser>> | null = null;
     try {
-      project = await getGrowthProjectForUser(n8nProject.projectId, auth.user.sub);
+      project = await getGrowthProjectForUser(n8nResult.projectId, auth.user.sub);
     } catch {
       // project not found by id, will try fallback below
     }
@@ -55,7 +55,7 @@ export async function buildGrowthEngineProject(input: GrowthEngineRequestInput, 
       project = await upsertGrowthProjectShell({
         input,
         productImage,
-        projectId: n8nProject.projectId || crypto.randomUUID(),
+        projectId: n8nResult.projectId || crypto.randomUUID(),
         status: "draft",
         userId: auth.user.sub,
       });

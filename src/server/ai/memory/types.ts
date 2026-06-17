@@ -37,6 +37,7 @@ export type AssistantMemoryDocument = {
   embedding: number[];
   id?: string;
   metadata: Record<string, unknown>;
+  score?: number;
   source: "assistant" | "document" | "import" | "system";
   title?: string;
   updatedAt?: string;
