@@ -9,7 +9,7 @@ import {
   Sparkles,
   UploadCloud,
 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 
 import { PageShell } from "@/components/layout/page-shell";
 import { Button } from "@/components/ui/button";
@@ -48,6 +48,16 @@ export function VideoGeneratorView() {
     () => (productFile ? URL.createObjectURL(productFile) : ""),
     [productFile],
   );
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const urlPrompt = params.get("prompt");
+      if (urlPrompt) {
+        setPrompt(urlPrompt);
+      }
+    }
+  }, []);
   const canGenerate = Boolean(productFile && prompt.trim() && !isRendering);
 
   async function submitGeneration() {

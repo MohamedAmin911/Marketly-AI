@@ -35,11 +35,9 @@ export async function generateEmbedding(input: string, model = "text-embedding-3
         url: OPENROUTER_EMBEDDINGS_URL,
       }, text);
     } catch {
-      // OpenRouter may not support embeddings — fall through to empty vector
     }
   }
 
-  // No embedding provider available — return empty vector (RAG silently disabled)
   return [];
 }
 

@@ -174,6 +174,8 @@ export function serializeGrowthProject(project: unknown): GrowthProjectRecord {
   // Debug: log ALL top-level keys so we can find the strategy
   const keys = Object.keys(record);
   console.log("[DEBUG keys in serializeGrowthProject]", keys.join(", "));
+  console.log("[DEBUG storyboards raw]", JSON.stringify(record.storyboards ?? record.scenes ?? record.storyboard ?? "NOT FOUND").slice(0, 400));
+  console.log("[DEBUG all storyboard-like keys]", keys.filter(k => k.toLowerCase().includes("story") || k.toLowerCase().includes("scene") || k.toLowerCase().includes("board")).join(", ") || "NONE");
   
   return {
     audience: stringValue(record.audience),
@@ -190,9 +192,17 @@ export function serializeGrowthProject(project: unknown): GrowthProjectRecord {
     personas: arrayOfRecords(record.personas),
     productImage: isRecord(record.productImage) ? assetFromRecord(record.productImage) : null,
     status: isGrowthProjectStatus(record.status) ? record.status : "draft",
-    storyboards: Array.isArray(record.storyboards)
-      ? record.storyboards.filter((item) => Array.isArray(item) || isRecord(item)) as Record<string, unknown>[]
-      : [],
+    storyboards: (() => {
+      const raw = record.storyboards ?? record.storyboard ?? record.scenes;
+      if (Array.isArray(raw)) {
+        return raw.filter((item) => Array.isArray(item) || isRecord(item)) as Record<string, unknown>[];
+      }
+      if (isRecord(raw)) {
+        // If it's an object with keys like campaign_1, campaign_2...
+        return Object.values(raw).filter((item) => Array.isArray(item) || isRecord(item)) as Record<string, unknown>[];
+      }
+      return [];
+    })(),
     strategy: Array.isArray(record.strategy)
       ? record.strategy
       : isRecord(record.strategy) || typeof record.strategy === "string"

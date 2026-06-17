@@ -97,6 +97,20 @@ export function GrowthEngineView() {
   const [error, setError] = useState<string | null>(null);
 
   // Auto-load the latest project on mount so the user sees their data without re-running the workflow
+  useEffect(() => {
+    const savedId = localStorage.getItem("latest_growth_project_id");
+    if (savedId && !projectId) {
+      setProjectId(savedId);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (projectId) {
+      localStorage.setItem("latest_growth_project_id", projectId);
+    }
+  }, [projectId]);
+
+  // Auto-load the latest project on mount so the user sees their data without re-running the workflow
 
   const projectQuery = useQuery({
     enabled: Boolean(projectId),

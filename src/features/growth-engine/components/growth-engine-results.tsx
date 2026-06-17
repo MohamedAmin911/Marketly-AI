@@ -1,22 +1,6 @@
-import {
-  Activity,
-  AlertTriangle,
-  ArrowRight,
-  ImageIcon,
-  Lightbulb,
-  LineChart,
-  Milestone,
-  Rocket,
-  ShieldAlert,
-  Target,
-  Users,
-  Zap,
-} from "lucide-react";
+import { Activity, AlertTriangle, ArrowRight, Lightbulb, LineChart, Milestone, Rocket, ShieldAlert, Target, Users, Zap, ImageIcon, Video } from "lucide-react";
 import Link from "next/link";
-import type {
-  GrowthProjectRecord,
-  SectionStatus,
-} from "@/features/growth-engine/types";
+import type { GrowthProjectRecord, SectionStatus } from "@/features/growth-engine/types";
 import { WorkflowSection } from "@/features/growth-engine/components/workflow-section";
 import { Button } from "@/components/ui/button";
 import {
@@ -59,23 +43,66 @@ export function GrowthEngineResults({
         {liveProject?.strategy ? (
           <div className="space-y-6">
             {/* Check if it's an object with swot/personas, else generic */}
-            {typeof liveProject.strategy === "object" &&
-            !Array.isArray(liveProject.strategy) &&
-            "swot" in (liveProject.strategy || {}) ? (
+            {typeof liveProject.strategy === "object" && !Array.isArray(liveProject.strategy) && liveProject.strategy !== null && (() => {
+              const s = liveProject.strategy as Record<string, unknown>;
+              return (
+                "swot" in s ||
+                "personas" in s ||
+                "recommendations" in s ||
+                "roadmap" in s ||
+                "launchPlan" in s ||
+                "launch_plan" in s ||
+                "phases" in s ||
+                Object.keys(s).some((k) => /^phase[_\d]/.test(k))
+              );
+            })() ? (
               (() => {
-                const strategy = liveProject.strategy as Record<
-                  string,
-                  unknown
-                >;
-                const personas = Array.isArray(strategy.personas)
-                  ? strategy.personas
-                  : [];
-                const recommendations = Array.isArray(strategy.recommendations)
-                  ? strategy.recommendations
-                  : [];
-                const launchPlan = Array.isArray(strategy.launchPlan)
-                  ? strategy.launchPlan
-                  : [];
+                const strategy = liveProject.strategy as Record<string, unknown>;
+                const personas = Array.isArray(strategy.personas) ? strategy.personas : [];
+                const recommendations = Array.isArray(strategy.recommendations) ? strategy.recommendations : [];
+
+                // Resolve launch plan from multiple possible key names and shapes
+                function extractLaunchPlan(s: Record<string, unknown>): Record<string, unknown>[] {
+                  const raw =
+                    s.launchPlan ??
+                    s.launch_plan ??
+                    s.roadmap ??
+                    s.timeline ??
+                    s.phases ??
+                    null;
+
+                  // Array of phase objects: [{phase, timeline, actions}] or [{focus, months, activities}]
+                  if (Array.isArray(raw)) return raw as Record<string, unknown>[];
+
+                  // Object with phase_1, phase_2... keys: { phase_1: {...}, phase_2: {...} }
+                  if (raw && typeof raw === "object" && !Array.isArray(raw)) {
+                    return Object.values(raw as Record<string, unknown>) as Record<string, unknown>[];
+                  }
+
+                  // Try top-level keys named phase_N
+                  const phaseKeys = Object.keys(s).filter((k) => /^phase[_\d]/.test(k));
+                  if (phaseKeys.length > 0) {
+                    return phaseKeys.map((k) => s[k] as Record<string, unknown>);
+                  }
+
+                  return [];
+                }
+
+                const launchPlan = extractLaunchPlan(strategy);
+
+                // Convert a recommendation to a displayable string (handles objects too)
+                function recToString(rec: unknown): string {
+                  if (typeof rec === "string") return rec;
+                  if (rec && typeof rec === "object") {
+                    const obj = rec as Record<string, unknown>;
+                    // Try common text keys
+                    const text = obj.recommendation ?? obj.text ?? obj.title ?? obj.description ?? obj.action ?? obj.suggestion ?? obj.content;
+                    if (typeof text === "string") return text;
+                    // Fallback: join all string values
+                    return Object.values(obj).filter((v) => typeof v === "string").join(" — ") || JSON.stringify(rec);
+                  }
+                  return String(rec);
+                }
 
                 return (
                   <>
@@ -151,24 +178,13 @@ export function GrowthEngineResults({
                           Personas
                         </h4>
                         <div className="grid gap-3 md:grid-cols-3">
-                          {personas.map(
-                            (persona: Record<string, unknown>, i: number) => (
-                              <div
-                                key={i}
-                                className="group flex flex-col rounded-lg border border-primary/15 bg-gradient-to-b from-primary/[0.05] to-transparent p-4"
-                              >
-                                <p className="font-mono text-[10px] text-primary/50">
-                                  PERSONA {i + 1}
-                                </p>
-                                <p className="mt-1 font-semibold text-white group-hover:text-primary transition-colors">
-                                  {String(persona.name)}
-                                </p>
-                                <p className="mt-2 text-xs leading-5 text-muted-foreground">
-                                  {String(persona.description || persona.role)}
-                                </p>
-                              </div>
-                            ),
-                          )}
+                          {personas.map((persona: Record<string, unknown>, i: number) => (
+                            <div key={i} className="group flex flex-col rounded-lg border border-primary/15 bg-gradient-to-b from-primary/[0.05] to-transparent p-4">
+                              <p className="font-mono text-[10px] text-primary/50">PERSONA {i + 1}</p>
+                              <p className="mt-1 font-semibold text-white group-hover:text-primary transition-colors">{String(persona.name)}</p>
+                              <p className="mt-2 text-xs leading-5 text-muted-foreground">{String(persona.description ?? persona.bio ?? persona.role ?? persona.details ?? persona.summary ?? persona.background ?? "")}</p>
+                            </div>
+                          ))}
                         </div>
                       </div>
                     )}
@@ -188,7 +204,7 @@ export function GrowthEngineResults({
                                 className="flex items-start gap-3 text-sm leading-6 text-foreground/90"
                               >
                                 <Target className="mt-1 size-4 shrink-0 text-primary" />
-                                <span>{String(rec)}</span>
+                                <span>{recToString(rec)}</span>
                               </li>
                             ))}
                           </ul>
@@ -204,38 +220,36 @@ export function GrowthEngineResults({
                           Timeline
                         </h4>
                         <div className="space-y-3">
-                          {launchPlan.map(
-                            (phase: Record<string, unknown>, i: number) => (
-                              <div
-                                key={i}
-                                className="relative overflow-hidden rounded-lg border border-primary/15 bg-primary/[0.03] p-5"
-                              >
-                                <div className="absolute left-0 top-0 h-full w-1 bg-primary/40" />
-                                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-3 gap-2">
-                                  <h5 className="font-semibold text-white">
-                                    {String(phase.phase)}
-                                  </h5>
-                                  <span className="inline-flex rounded-full bg-primary/10 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-primary">
-                                    {String(phase.timeline)}
-                                  </span>
+                          {launchPlan.map((phase: Record<string, unknown>, i: number) => {
+                              const label = String(phase.focus ?? phase.phase ?? `Phase ${i + 1}`);
+                              const timeline = String(phase.months ?? phase.timeline ?? "");
+                              const items: unknown[] = Array.isArray(phase.activities)
+                                ? phase.activities
+                                : Array.isArray(phase.actions)
+                                ? phase.actions
+                                : [];
+                              return (
+                                <div key={i} className="relative overflow-hidden rounded-lg border border-primary/15 bg-primary/[0.03] p-5">
+                                  <div className="absolute left-0 top-0 h-full w-1 bg-primary/40" />
+                                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-3 gap-2">
+                                    <h5 className="font-semibold text-white">{label}</h5>
+                                    {timeline && (
+                                      <span className="inline-flex rounded-full bg-primary/10 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-primary">
+                                        {timeline}
+                                      </span>
+                                    )}
+                                  </div>
+                                  <ul className="grid gap-2 sm:grid-cols-2">
+                                    {items.map((action: unknown, j: number) => (
+                                      <li key={j} className="flex items-start gap-2 text-xs leading-5 text-muted-foreground">
+                                        <ArrowRight className="mt-0.5 size-3 shrink-0 text-primary/60" />
+                                        {String(action)}
+                                      </li>
+                                    ))}
+                                  </ul>
                                 </div>
-                                <ul className="grid gap-2 sm:grid-cols-2">
-                                  {(Array.isArray(phase.actions)
-                                    ? phase.actions
-                                    : []
-                                  ).map((action: unknown, j: number) => (
-                                    <li
-                                      key={j}
-                                      className="flex items-start gap-2 text-xs leading-5 text-muted-foreground"
-                                    >
-                                      <ArrowRight className="mt-0.5 size-3 shrink-0 text-primary/60" />
-                                      {String(action)}
-                                    </li>
-                                  ))}
-                                </ul>
-                              </div>
-                            ),
-                          )}
+                              );
+                            })}
                         </div>
                       </div>
                     )}
@@ -342,25 +356,102 @@ export function GrowthEngineResults({
       >
         <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
           {liveProject?.storyboards.flatMap((board, campIdx) => {
-            const scenes = Array.isArray(board) ? board : [board];
+            // Normalize board into flat array of scene objects
+            let scenes: Record<string, unknown>[] = [];
+            if (Array.isArray(board)) {
+              scenes = board as Record<string, unknown>[];
+            } else {
+              const b = board as Record<string, unknown>;
+              if (Array.isArray(b.scenes)) {
+                scenes = b.scenes as Record<string, unknown>[];
+              } else {
+                scenes = [b];
+              }
+            }
+
             return scenes.map((scene, sceneIdx) => {
               const s = scene as Record<string, unknown>;
-              const title = s.sceneTitle ?? s.title ?? `Scene ${sceneIdx + 1}`;
-              const script = s.script ?? s.description ?? s.imagePrompt ?? "";
+              const num = s.scene_number ?? sceneIdx + 1;
+              const title = String(s.title ?? s.sceneTitle ?? s.scene_title ?? `Scene ${num}`);
+              const imagePrompt = String(s.imagePrompt ?? s.image_prompt ?? s.visual ?? s.prompt ?? "");
+              const videoPrompt = String(s.videoPrompt ?? s.video_prompt ?? s.action ?? s.script ?? s.narration ?? s.description ?? "");
+              // Optional fields
+              const audio = String(s.audio ?? "");
+              const textOverlay = String(s.text_overlay ?? s.textOverlay ?? "");
+              const duration = String(s.duration ?? "");
+              const imageUrl = String(s.generatedImage ?? s.imageUrl ?? s.image_url ?? "");
+
               return (
-                <div
-                  key={`${campIdx}-${sceneIdx}`}
-                  className="rounded-lg border border-primary/15 bg-black/20 p-4"
-                >
-                  <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.1em] text-primary">
-                    Campaign {campIdx + 1} · Scene {sceneIdx + 1}
-                  </p>
-                  <p className="mt-1 text-xs font-semibold text-white/90">
-                    {String(title)}
-                  </p>
-                  <p className="mt-2 text-xs leading-5 text-muted">
-                    {String(script)}
-                  </p>
+                <div key={`${campIdx}-${sceneIdx}`} className="rounded-lg border border-primary/15 bg-black/20 p-4 flex flex-col gap-3">
+                  {/* Header */}
+                  <div className="flex items-center justify-between">
+                    <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.1em] text-primary">
+                      Camp {campIdx + 1} · Scene {String(num)}
+                    </p>
+                    {duration ? (
+                      <span className="rounded-full bg-primary/10 px-2 py-0.5 font-mono text-[10px] text-primary">{duration}</span>
+                    ) : null}
+                  </div>
+
+                  <p className="text-xs font-semibold text-white/90">{title}</p>
+
+                  {/* Generated image if available */}
+                  {imageUrl && imageUrl !== "undefined" ? (
+                    <div className="overflow-hidden rounded-md">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={imageUrl} alt={title} className="w-full object-cover" loading="lazy" />
+                    </div>
+                  ) : null}
+
+                  {/* Image Prompt */}
+                  {imagePrompt && imagePrompt !== "undefined" ? (
+                    <div>
+                      <div className="flex items-center gap-2 mb-1">
+                        <p className="text-[10px] font-bold uppercase tracking-widest text-primary/80">Image Prompt</p>
+                        <Link
+                          href={`/images?prompt=${encodeURIComponent(imagePrompt)}`}
+                          className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-medium text-primary hover:bg-primary/20 transition-colors"
+                        >
+                          <ImageIcon className="size-3" />
+                          Generate
+                        </Link>
+                      </div>
+                      <p className="text-xs leading-5 text-muted">{imagePrompt}</p>
+                    </div>
+                  ) : null}
+
+                  {/* Video Prompt */}
+                  {videoPrompt && videoPrompt !== "undefined" ? (
+                    <div>
+                      <div className="flex items-center gap-2 mb-1">
+                        <p className="text-[10px] font-bold uppercase tracking-widest text-primary/80">Video Prompt</p>
+                        <Link
+                          href={`/videos?prompt=${encodeURIComponent(videoPrompt)}`}
+                          className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-medium text-primary hover:bg-primary/20 transition-colors"
+                        >
+                          <Video className="size-3" />
+                          Generate
+                        </Link>
+                      </div>
+                      <p className="text-xs leading-5 text-muted">{videoPrompt}</p>
+                    </div>
+                  ) : null}
+
+                  {/* Audio */}
+                  {audio && audio !== "undefined" ? (
+                    <div>
+                      <p className="text-[10px] font-bold uppercase tracking-widest text-primary/80">Audio</p>
+                      <p className="mt-1 text-xs leading-5 text-muted">{audio}</p>
+                    </div>
+                  ) : null}
+
+                  {/* Text Overlay */}
+                  {textOverlay && textOverlay !== "undefined" ? (
+                    <div>
+                      <p className="text-[10px] font-bold uppercase tracking-widest text-primary/80">Text Overlay</p>
+                      <p className="mt-1 text-xs leading-5 text-muted italic">{textOverlay}</p>
+                    </div>
+                  ) : null}
                 </div>
               );
             });
@@ -370,3 +461,5 @@ export function GrowthEngineResults({
     </div>
   );
 }
+
+

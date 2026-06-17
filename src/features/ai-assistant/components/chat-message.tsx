@@ -1,5 +1,6 @@
 "use client";
-import { Bot, FileText } from "lucide-react";
+import { Bot, FileText, Pause, Play, Volume2 } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
@@ -32,8 +33,15 @@ export function ChatMessage({ message, onSpeak }: { message: ChatMessageType, on
           ) : null}
 
           <p className="text-sm leading-6 text-foreground">{message.content}</p>
+
+          {}
           {message.audio ? (
             <audio controls src={message.audio} className="mt-2 w-full rounded-lg" />
+          ) : null}
+
+          {}
+          {!isUser && onSpeak ? (
+            <SpeakButton text={message.content} />
           ) : null}
 
           {message.card ? (

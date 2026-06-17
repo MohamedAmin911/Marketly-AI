@@ -1,6 +1,6 @@
 import { connectToDatabase } from "@/server/database";
 import { createApiHandler } from "@/server/http/route-handler";
-import { ChatSession } from "@/server/database/models/chat-session.model";
+import { ChatSession } from "@/server/models/chat-session";
 import { requireAuth } from "@/server/security/auth-guard";
 
 export const GET = createApiHandler(async ({ request }) => {

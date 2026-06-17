@@ -37,7 +37,7 @@ export async function runCreatorImagePipeline(input: CreatorGenerationInput) {
 
   const productImage = normalizeInputAsset(input.productImage, "Product");
   const referenceImage = input.referenceImage ? normalizeInputAsset(input.referenceImage, "Reference") : undefined;
-  const prompt = buildSdxlPrompt(input);
+  const prompt = buildFluxPrompt(input);
   const adapters = {
     controlNet: input.mode === "placement",
     ipAdapter: input.mode === "reference" && Boolean(referenceImage),
@@ -132,16 +132,14 @@ function normalizeInputAsset(asset: CreatorGenerationInput["productImage"], tag:
   };
 }
 
-function buildSdxlPrompt(input: CreatorGenerationInput): string {
+function buildFluxPrompt(input: CreatorGenerationInput): string {
   const adapterNotes = [
     input.mode === "placement" ? "ControlNet placement guidance enabled" : null,
     input.mode === "reference" ? "IP Adapter reference consistency enabled" : null,
   ].filter(Boolean);
 
   return [
-    getActiveProviderName() === "huggingface"
-      ? "FLUX product photography prompt - product replacement with image conditioning:"
-      : "OpenAI DALL-E product photography prompt:",
+    "FLUX.2-Klein-LoRA-Studio product photography prompt:",
     input.prompt,
     `Lighting: ${input.lighting}`,
     `Angle: ${input.angle}`,
