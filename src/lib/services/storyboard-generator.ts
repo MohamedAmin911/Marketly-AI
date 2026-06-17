@@ -7,12 +7,12 @@ import { apiErrors } from "@/server/errors/api-error";
 import { uploadRemoteImageToImageKit } from "@/server/services/imagekit-service";
 
 const OPENROUTER_MODEL = "openrouter/owl-alpha";
-const SCENE_COUNT = 3;
+const SCENE_COUNT = 1;
 const GRADIO_TIMEOUT_MS = 240_000;
 
 const STORYBOARD_GENERATION_PROMPT = `You are an elite cinematic commercial director.
 
-Generate a 3-scene luxury advertisement storyboard for the uploaded product.
+Generate a 1-scene luxury advertisement storyboard for the uploaded product.
 
 For each scene generate:
 
@@ -238,7 +238,7 @@ function normalizeSceneDrafts(value: unknown): SceneDraft[] {
   });
 
   if (scenes.length !== SCENE_COUNT) {
-    throw new Error("OpenRouter must return exactly 3 storyboard scenes.");
+    throw new Error(`OpenRouter must return exactly ${SCENE_COUNT} storyboard scene.`);
   }
 
   return scenes;

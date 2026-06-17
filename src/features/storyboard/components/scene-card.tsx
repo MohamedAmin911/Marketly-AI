@@ -1,19 +1,30 @@
 "use client";
 
-import { Download, Loader2, Quote } from "lucide-react";
-import { useState } from "react";
+import { Check, Copy, Download, Loader2, Quote, X } from "lucide-react";
+import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 
 import type { CinematicStoryboardScene } from "@/features/storyboard/types";
 
 export function SceneCard({ index, scene }: { index: number; scene: CinematicStoryboardScene }) {
   const [isDownloading, setIsDownloading] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+
+  useEffect(() => {
+    if (!lightboxOpen) return;
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "Escape") setLightboxOpen(false);
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [lightboxOpen]);
 
   async function downloadFrame() {
     try {
       setIsDownloading(true);
       const response = await fetch(scene.generatedImage);
       if (!response.ok) throw new Error("Could not download storyboard frame.");
-
       const blob = await response.blob();
       const url = URL.createObjectURL(blob);
       const anchor = document.createElement("a");
@@ -30,45 +41,98 @@ export function SceneCard({ index, scene }: { index: number; scene: CinematicSto
     }
   }
 
+  function copyTitle() {
+    navigator.clipboard.writeText(scene.script);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  }
+
   return (
-    <article className="group overflow-hidden rounded-lg border border-white/10 bg-white/[0.045] shadow-[0_24px_80px_rgba(0,0,0,0.28)] backdrop-blur transition-all duration-500 animate-in fade-in slide-in-from-bottom-3 hover:-translate-y-1 hover:border-primary/45 hover:shadow-glow">
-      <div className="relative aspect-video overflow-hidden bg-black">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={scene.generatedImage} alt={scene.sceneTitle} className="size-full object-cover transition-transform duration-700 group-hover:scale-[1.035]" loading="lazy" decoding="async" />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/5 to-black/35" />
-        <span className="absolute left-4 top-4 rounded-md border border-white/10 bg-black/45 px-3 py-1 font-mono text-[10px] uppercase tracking-[0.18em] text-white/80 backdrop-blur">
-          Frame {String(index + 1).padStart(2, "0")}
-        </span>
+    <>
+      <article className="group overflow-hidden rounded-lg border border-white/10 bg-white/[0.045] shadow-[0_24px_80px_rgba(0,0,0,0.28)] backdrop-blur transition-all duration-500 animate-in fade-in slide-in-from-bottom-3 hover:-translate-y-1 hover:border-primary/45 hover:shadow-glow">
         <button
           type="button"
-          onClick={() => void downloadFrame()}
-          disabled={isDownloading}
-          className="absolute right-4 top-4 inline-flex min-h-9 items-center gap-2 rounded-md border border-white/10 bg-black/50 px-3 text-xs font-semibold text-white/90 backdrop-blur transition hover:border-primary/55 hover:bg-primary/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-glow disabled:cursor-wait disabled:opacity-70"
+          className="relative aspect-video w-full overflow-hidden bg-black cursor-zoom-in block"
+          onClick={() => setLightboxOpen(true)}
+          aria-label="Open full-size image"
         >
-          {isDownloading ? <Loader2 className="size-3.5 animate-spin" /> : <Download className="size-3.5" />}
-          Download
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={scene.generatedImage}
+            alt={scene.sceneTitle}
+            className="size-full object-cover transition-transform duration-700 group-hover:scale-[1.035]"
+            loading="lazy"
+            decoding="async"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/5 to-black/35 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+ 
         </button>
-      </div>
 
-      <div className="space-y-4 p-5">
-        <h3 className="font-display text-xl font-semibold text-white">{scene.sceneTitle}</h3>
-        
-        {scene.imagePrompt && (
+        <div className="space-y-4 p-5">
+          <h3 className="font-display text-xl font-semibold text-white">{scene.sceneTitle}</h3>
           <div className="space-y-2">
-            <span className="text-[10px] font-bold uppercase tracking-widest text-primary/80">Image Prompt</span>
-            <p className="text-sm font-medium leading-relaxed text-white/70">{scene.imagePrompt}</p>
-          </div>
-        )}
-
-        <div className="space-y-2">
-          <span className="text-[10px] font-bold uppercase tracking-widest text-primary/80">Voice Over</span>
-          <div className="flex gap-3 rounded-lg border border-white/10 bg-black/20 p-4">
-            <Quote className="mt-1 size-4 shrink-0 text-primary" />
-            <p className="text-sm font-medium leading-6 text-white/86">{scene.script}</p>
+            <div className="flex items-center justify-between">
+              {/* <span className="text-[10px] font-bold uppercase tracking-widest text-primary/80">Title</span> */}
+              <button
+                type="button"
+                onClick={copyTitle}
+                className="inline-flex items-center gap-1.5 rounded text-xs font-medium text-white/50 hover:text-white"
+              >
+                {copied ? <Check className="size-3" /> : <Copy className="size-3" />}
+                {copied ? "Copied" : "Copy"}
+              </button>
+            </div>
+            <div className="flex gap-3 rounded-lg border border-white/10 bg-black/20 p-4">
+              <Quote className="mt-1 size-4 shrink-0 text-primary" />
+              <p className="text-sm font-medium leading-6 text-white/86">{scene.script}</p>
+            </div>
           </div>
         </div>
-      </div>
-    </article>
+      </article>
+
+      {lightboxOpen &&
+        createPortal(
+          <div
+            className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm"
+            onClick={() => setLightboxOpen(false)}
+            role="dialog"
+            aria-modal="true"
+            aria-label={scene.sceneTitle}
+          >
+            <div
+              className="absolute inset-x-4 top-4 flex flex-col items-center"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="relative w-full max-w-5xl rounded-lg overflow-hidden bg-black shadow-2xl">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={scene.generatedImage}
+                  alt={scene.sceneTitle}
+                  className="w-2/3 mx-auto object-contain"
+                />
+                <button
+                  type="button"
+                  onClick={() => setLightboxOpen(false)}
+                  className="absolute left-4 top-4 inline-flex size-9 items-center justify-center rounded-full border border-white/10 bg-black/60 text-white/80 backdrop-blur transition hover:bg-white/20"
+                  aria-label="Close"
+                >
+                  <X className="size-4" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => void downloadFrame()}
+                  disabled={isDownloading}
+                  className="absolute right-4 top-4 inline-flex min-h-9 items-center gap-2 rounded-md border border-white/10 bg-black/50 px-3 text-xs font-semibold text-white/90 backdrop-blur transition hover:border-primary/55 hover:bg-primary/15 disabled:cursor-wait disabled:opacity-70"
+                >
+                  {isDownloading ? <Loader2 className="size-3.5 animate-spin" /> : <Download className="size-3.5" />}
+                  Download
+                </button>
+              </div>
+            </div>
+          </div>,
+          document.body,
+        )}
+    </>
   );
 }
 

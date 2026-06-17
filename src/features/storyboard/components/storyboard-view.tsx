@@ -18,7 +18,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { SceneCard } from "@/features/storyboard/components/scene-card";
 import { useStoryboardScenes } from "@/features/storyboard/hooks/use-storyboard-scenes";
 
-const loadingFrames = [0, 1, 2];
+const loadingFrames = [0];
 
 export function StoryboardView() {
   const { generate, generationError, isGenerating, isRevealing, scenes } =
@@ -63,7 +63,7 @@ export function StoryboardView() {
   return (
     <PageShell
       title="AI Cinematic Storyboard Director"
-      description="Upload a product, write the campaign intention, and generate three luxury commercial frames with cinematic script lines."
+      description="Upload a product, write the campaign intention, and generate one luxury commercial frame with cinematic script lines."
       className="relative overflow-hidden"
     >
       <div className="pointer-events-none absolute inset-x-6 top-24 h-56 grid-field opacity-30" />
@@ -137,12 +137,10 @@ export function StoryboardView() {
                 Cinematic Story Frames
               </h2>
             </div>
-            <span className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 font-mono text-[10px] uppercase tracking-[0.14em] text-muted">
-              {scenes.length}/3 frames
-            </span>
+         
           </div>
 
-          <div className="grid gap-5 lg:grid-cols-3">
+          <div className="grid gap-5 lg:grid-cols-1">
             {scenes.map((scene, index) => (
               <SceneCard
                 key={`${scene.sceneTitle}-${index}`}
@@ -194,8 +192,8 @@ function EmptyStoryboard() {
           No cinematic sequence yet
         </h3>
         <p className="mt-2 max-w-md text-sm leading-6 text-muted">
-          Upload a product and describe the campaign moment to generate three
-          premium storyboard frames.
+          Upload a product and describe the campaign moment to generate one
+          premium storyboard frame.
         </p>
       </div>
     </div>
