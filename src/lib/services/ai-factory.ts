@@ -12,6 +12,12 @@ const providers: Record<AIProviderName, AIProvider> = {
 function resolveProviderName(): AIProviderName {
   const envValue = process.env.AI_PROVIDER?.trim().toLowerCase();
   if (envValue === "huggingface") return "huggingface";
+  if (envValue === "openai") return "openai";
+  
+  if (process.env.HUGGINGFACE_API_KEY && !process.env.OPENAI_API_KEY) {
+    return "huggingface";
+  }
+  
   return DEFAULT_PROVIDER;
 }
 

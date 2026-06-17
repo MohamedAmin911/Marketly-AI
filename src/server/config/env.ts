@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 const envSchema = z.object({
-  AI_PROVIDER: z.enum(["openai", "huggingface"]).optional(),
+  AI_PROVIDER: z.string().optional(),
   ANTHROPIC_API_KEY: z.string().optional(),
   GITHUB_CLIENT_ID: z.string().optional(),
   GITHUB_CLIENT_SECRET: z.string().optional(),
