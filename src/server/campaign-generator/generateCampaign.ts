@@ -1,6 +1,6 @@
 import { Types } from "mongoose";
-
-import { CAMPAIGN_TEXT_MODEL, generateOpenRouterJson } from "@/server/ai/openrouter";
+import { z } from "zod";
+import { getAIProvider } from "@/lib/services/ai-factory";
 import { updateAIMemory } from "@/server/ai/memory/update-service";
 import { CampaignModel, connectToDatabase } from "@/server/database";
 import { apiErrors } from "@/server/errors/api-error";
@@ -23,7 +23,7 @@ export async function generateAndPersistCampaign(input: SocialCampaignGeneration
       fileName: `social-campaign-ref-${crypto.randomUUID()}-${input.productImage.name}`,
       folder: "/marketly-ai/campaign-products",
     }),
-    generateOpenRouterJson({
+    generateOpenAIJson({
       messages: buildSocialCampaignMessages({
         customIdeas: input.customIdeas,
         mode: input.mode,
@@ -60,9 +60,9 @@ export async function generateAndPersistCampaign(input: SocialCampaignGeneration
     generatedImages: [],
     goal: "social-post-ideas",
     hooks: posts.map((post) => post.title),
-    modelUsed: CAMPAIGN_TEXT_MODEL,
+    modelUsed: textResult.modelUsed,
     name: title,
-    platforms: [...new Set(posts.map((post) => post.platform))],
+    platforms: Array.from(new Set(posts.map((post) => post.platform))),
     platformStrategy: posts.map((post) => `${post.platform}: ${post.visualDirection}`),
     productImage: toAssetRef(productAsset),
     productTitle: "Uploaded product reference",
@@ -94,6 +94,57 @@ export async function generateAndPersistCampaign(input: SocialCampaignGeneration
   }).catch(() => undefined);
 
   return serializeCampaign(campaign);
+}
+
+async function generateOpenAIJson<TSchema extends z.ZodType>(
+  options: {
+    messages: Array<{ content: string; role: "system" | "user" | "assistant" }>;
+    schema: TSchema;
+    maxTokens?: number;
+    model?: string;
+    temperature?: number;
+  },
+): Promise<{ data: z.infer<TSchema>; modelUsed: string; rawContent: string }> {
+  const model = options.model ?? "gpt-4o-mini";
+  const response = await getAIProvider().generateChatCompletion({
+    model,
+    messages: options.messages,
+    maxTokens: options.maxTokens ?? 3500,
+    temperature: options.temperature ?? 0.72,
+    responseFormat: "text",
+  });
+
+  const rawContent = response.content;
+  if (!rawContent.trim()) {
+    throw new Error("OpenAI returned an empty campaign response.");
+  }
+
+  const parsed = parseStrictJson(rawContent);
+  const result = options.schema.safeParse(parsed);
+  if (!result.success) {
+    const issues = result.error.issues
+      .map((issue) => `${issue.path.join(".") || "root"}: ${issue.message}`)
+      .join("; ");
+    throw new Error(`OpenAI returned malformed campaign JSON: ${issues}`);
+  }
+
+  return {
+    data: result.data,
+    modelUsed: model,
+    rawContent,
+  };
+}
+
+function parseStrictJson(content: string): unknown {
+  const trimmed = content.trim().replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/i, "");
+
+  try {
+    return JSON.parse(trimmed);
+  } catch {
+    const match = trimmed.match(/\{[\s\S]*\}/);
+    if (!match) throw new Error("OpenAI response did not contain valid JSON.");
+    return JSON.parse(match[0]);
+  }
 }
 
 export async function listCampaignsForUser(userId: string) {
@@ -139,7 +190,7 @@ function serializeCampaign(value: unknown) {
     generationStatus: stringValue(campaign.generationStatus, "completed"),
     id: String(campaign._id),
     mode: campaign.socialMode === "custom" ? "custom" : "auto",
-    modelUsed: stringValue(campaign.modelUsed, CAMPAIGN_TEXT_MODEL),
+    modelUsed: stringValue(campaign.modelUsed, "gpt-4o-mini"),
     moodPreset: stringValue(campaign.socialMoodPreset, "Original"),
     posts,
     productImage: isRecord(campaign.productImage) ? campaign.productImage : undefined,

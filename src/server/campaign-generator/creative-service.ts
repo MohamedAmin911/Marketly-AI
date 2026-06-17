@@ -1,35 +1,20 @@
-import { env } from "@/server/config/env";
+import { getAIProvider } from "@/lib/services/ai-factory";
 import type { CampaignAngle, CampaignCreative } from "@/server/campaign-generator/types";
-
-const SDXL_MODEL = "stabilityai/stable-diffusion-xl-base-1.0";
 
 export async function generateCampaignCreative(angle: CampaignAngle, productTitle: string, index: number): Promise<CampaignCreative> {
   const prompt = buildSdxlPrompt(angle, productTitle);
 
-  if (env.HUGGINGFACE_API_KEY) {
-    const response = await fetch(`https://api-inference.huggingface.co/models/${SDXL_MODEL}`, {
-      body: JSON.stringify({
-        inputs: prompt,
-        parameters: {
-          guidance_scale: 7.5,
-          negative_prompt: "fake claims, medical claims, distorted product, wrong logo, misspelled text, watermark, low quality, repeated objects",
-          num_inference_steps: 30,
-        },
-      }),
-      headers: {
-        Authorization: `Bearer ${env.HUGGINGFACE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      method: "POST",
+  try {
+    const result = await getAIProvider().generateImage({
+      prompt,
+      size: "1024x1024",
+      quality: "standard",
+      style: "vivid",
     });
 
-    if (!response.ok) {
-      const detail = await response.text().catch(() => "");
-      throw new Error(`Stable Diffusion XL creative generation failed (${response.status}) ${detail}`.trim());
-    }
-
-    const contentType = response.headers.get("content-type") ?? "image/png";
-    const buffer = Buffer.from(await response.arrayBuffer());
+    const imageResponse = await fetch(result.imageUrl);
+    const buffer = Buffer.from(await imageResponse.arrayBuffer());
+    const contentType = imageResponse.headers.get("content-type") ?? "image/png";
 
     return {
       alt: angle.title,
@@ -40,15 +25,16 @@ export async function generateCampaignCreative(angle: CampaignAngle, productTitl
       mimeType: contentType,
       name: `campaign-creative-${index + 1}.png`,
       prompt,
-      provider: SDXL_MODEL,
+      provider: "dall-e-3",
       size: buffer.length,
       storageKey: `campaigns/generated/${crypto.randomUUID()}.png`,
       title: angle.title,
       url: `data:${contentType};base64,${buffer.toString("base64")}`,
     };
+  } catch (error) {
+    console.error("OpenAI creative generation failed:", error);
+    return createPreviewCreative(angle, prompt, index);
   }
-
-  return createPreviewCreative(angle, prompt, index);
 }
 
 function buildSdxlPrompt(angle: CampaignAngle, productTitle: string): string {
@@ -74,7 +60,7 @@ function createPreviewCreative(angle: CampaignAngle, prompt: string, index: numb
     `<rect x="108" y="126" width="864" height="828" rx="34" fill="rgba(0,0,0,.24)" stroke="rgba(255,255,255,.28)" stroke-width="2"/>`,
     `<circle cx="755" cy="360" r="190" fill="rgba(255,255,255,.16)"/>`,
     `<rect x="612" y="248" width="230" height="342" rx="30" fill="rgba(255,255,255,.24)" stroke="rgba(255,255,255,.46)" stroke-width="3"/>`,
-    `<text x="150" y="196" fill="rgba(255,255,255,.72)" font-family="Arial, sans-serif" font-size="28" letter-spacing="5">SDXL CREATIVE</text>`,
+    `<text x="150" y="196" fill="rgba(255,255,255,.72)" font-family="Arial, sans-serif" font-size="28" letter-spacing="5">AI CREATIVE</text>`,
     `<text x="150" y="720" fill="white" font-family="Arial, sans-serif" font-size="56" font-weight="700">${title}</text>`,
     `<text x="150" y="790" fill="rgba(255,255,255,.78)" font-family="Arial, sans-serif" font-size="30">${hook}</text>`,
     `<text x="150" y="875" fill="rgba(255,255,255,.66)" font-family="Arial, sans-serif" font-size="24">${escapeXml(angle.platform.toUpperCase())}</text>`,
@@ -90,7 +76,7 @@ function createPreviewCreative(angle: CampaignAngle, prompt: string, index: numb
     mimeType: "image/svg+xml",
     name: `campaign-creative-${index + 1}.svg`,
     prompt,
-    provider: "stable-diffusion-xl-preview",
+    provider: "openai/dall-e-3",
     size: svg.length,
     storageKey: `campaigns/previews/${crypto.randomUUID()}.svg`,
     title: angle.title,

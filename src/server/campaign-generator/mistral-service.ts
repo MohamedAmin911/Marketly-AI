@@ -1,8 +1,6 @@
 import { z } from "zod";
 
-import { env } from "@/server/config/env";
-
-const MISTRAL_MODEL = "mistralai/Mistral-7B-Instruct-v0.3";
+import { getAIProvider } from "@/lib/services/ai-factory";
 
 type MistralResult<T> = {
   data: T;
@@ -10,46 +8,24 @@ type MistralResult<T> = {
 };
 
 export async function generateWithMistral<T>(prompt: string, schema: z.ZodType<T>, fallback: T): Promise<MistralResult<T>> {
-  if (!env.HUGGINGFACE_API_KEY) {
-    return {
-      data: fallback,
-      modelUsed: "deterministic-mistral-7b-fallback",
-    };
-  }
-
   try {
-    const response = await fetch(`https://api-inference.huggingface.co/models/${MISTRAL_MODEL}`, {
-      body: JSON.stringify({
-        inputs: `<s>[INST] ${prompt} [/INST]`,
-        parameters: {
-          max_new_tokens: 2200,
-          return_full_text: false,
-          temperature: 0.62,
-        },
-      }),
-      headers: {
-        Authorization: `Bearer ${env.HUGGINGFACE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      method: "POST",
+    const result = await getAIProvider().generateChatCompletion({
+      messages: [{ content: prompt, role: "user" }],
+      maxTokens: 2200,
+      temperature: 0.62,
+      responseFormat: "text",
     });
 
-    if (!response.ok) {
-      throw new Error(`Mistral 7B request failed with status ${response.status}.`);
-    }
-
-    const raw = await response.json();
-    const text = Array.isArray(raw) ? raw.map((item) => item.generated_text).filter(Boolean).join("\n") : JSON.stringify(raw);
-    const parsed = parseJson(text, schema);
+    const parsed = parseJson(result.content, schema);
 
     return {
       data: parsed,
-      modelUsed: MISTRAL_MODEL,
+      modelUsed: result.model,
     };
   } catch {
     return {
       data: fallback,
-      modelUsed: "deterministic-mistral-7b-fallback",
+      modelUsed: "deterministic-fallback",
     };
   }
 }
@@ -59,7 +35,7 @@ function parseJson<T>(text: string, schema: z.ZodType<T>): T {
   const parsed = JSON.parse(extracted);
   const result = schema.safeParse(parsed);
 
-  if (!result.success) throw new Error("Mistral output did not match campaign schema.");
+  if (!result.success) throw new Error("OpenAI output did not match campaign schema.");
   return result.data;
 }
 
@@ -75,5 +51,5 @@ function extractJson(text: string): string {
   const last = trimmed.lastIndexOf("}");
   if (first >= 0 && last > first) return trimmed.slice(first, last + 1);
 
-  throw new Error("Mistral output did not contain JSON.");
+  throw new Error("OpenAI output did not contain JSON.");
 }
