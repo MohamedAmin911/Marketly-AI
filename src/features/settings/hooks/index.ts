@@ -12,6 +12,7 @@ export type BrandData = {
   aiPersonality: "formal" | "casual" | "technical";
   tones: string[];
   logoUrl: string;
+  logoTintEnabled: boolean; 
   primaryColor: string;
   secondaryColor: string;
   accentColor: string;
@@ -28,6 +29,7 @@ export const DEFAULT_BRAND: BrandData = {
   aiPersonality: "formal",
   tones: ["Authoritative", "Minimalist"],
   logoUrl: "",
+  logoTintEnabled: false,
   primaryColor: "#72ff5f",
   secondaryColor: "#b8f7a9",
   accentColor: "#62ff9a",
@@ -58,7 +60,7 @@ export function useBrand() {
     queryKey: ["brand"],
     queryFn: fetchBrand,
     staleTime: 1000 * 60 * 5,
-    gcTime: 1000 * 60 * 30, // يفضل في الـ cache 30 دقيقة
+    gcTime: 1000 * 60 * 30, 
   });
 
   const mutation = useMutation({
