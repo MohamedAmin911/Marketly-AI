@@ -1,13 +1,12 @@
 "use client";
 
-import { Activity, AlertTriangle, Banknote, BarChart3, Download, Eye, MousePointerClick, Percent, RefreshCw, Sparkles, Target, TrendingUp } from "lucide-react";
-import { useMemo, useState } from "react";
+import { Activity, AlertTriangle, Banknote, BarChart3, Download, Eye, Filter, Lightbulb, MousePointerClick, Percent, RefreshCw, Sparkles, Target, TrendingUp } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
+import { useMemo, useState } from "react";
 
 import { PageShell } from "@/components/layout/page-shell";
 import { DataTable } from "@/components/shared/data-table";
 import { AnalyticsTrendChart, PerformanceChart } from "@/components/shared/lazy-charts";
-import { MetricCard } from "@/components/shared/metric-card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -15,9 +14,8 @@ import { Select } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAnalytics, useAnalyticsIntelligence } from "@/features/analytics/hooks/use-analytics";
 import { defaultAnalyticsFilters } from "@/features/analytics/services";
-import type { AnalyticsFilterState, AnalyticsMetricCard } from "@/features/analytics/types";
-import { createRange } from "@/lib/utils";
-import type { Metric } from "@/types/common";
+import type { AnalyticsFilterState, AnalyticsInsight, AnalyticsMetricCard, AnalyticsRecommendation } from "@/features/analytics/types";
+import { cn } from "@/lib/utils";
 
 const metricIcons: Record<AnalyticsMetricCard["key"], LucideIcon> = {
   clicks: MousePointerClick,
@@ -37,13 +35,19 @@ const ranges: { label: string; value: AnalyticsFilterState["range"] }[] = [
   { label: "All", value: "all" },
 ];
 
+const insightTypes = [
+  { icon: Lightbulb, label: "Opportunity", type: "opportunity" },
+  { icon: AlertTriangle, label: "Risk", type: "risk" },
+  { icon: TrendingUp, label: "Trend", type: "trend" },
+] as const;
+
 export function AnalyticsView() {
   const [filters, setFilters] = useState<AnalyticsFilterState>(defaultAnalyticsFilters);
   const { data, isFetching, isLoading, refetch } = useAnalytics(filters);
   const intelligence = useAnalyticsIntelligence();
-  const metricCards = useMemo(() => data?.metrics.map((metric) => ({ icon: metricIcons[metric.key], metric: toMetric(metric), key: metric.key })), [data?.metrics]);
-  const visibleRecommendations = useMemo(() => (data?.recommendations ?? []).slice(0, 3), [data?.recommendations]);
-  const visibleInsights = useMemo(() => intelligence.data?.insights.slice(0, 4) ?? [], [intelligence.data?.insights]);
+  const metricCards = useMemo(() => data?.metrics ?? [], [data?.metrics]);
+  const visibleInsights = useMemo(() => intelligence.data?.insights ?? [], [intelligence.data?.insights]);
+  const primaryRecommendation = data?.recommendations[0] ?? intelligence.data?.recommendations[0];
 
   function updateFilter(key: keyof AnalyticsFilterState, value: string) {
     setFilters((current) => ({ ...current, [key]: value }));
@@ -63,12 +67,12 @@ export function AnalyticsView() {
 
   return (
     <PageShell
-      title="Analytics Overview"
-      description="Track clicks, conversions, CTR, ROI, CPC, engagement rate, reports, anomalies, and AI-backed recommendations from one reporting contract."
+      title="Analytics Dashboard"
+      description="Monitor marketing performance, spot risks and opportunities, and export reporting from the existing analytics contract."
       actions={
         <>
           <Button variant="secondary" onClick={() => refetch()} disabled={isFetching}>
-            <RefreshCw className="size-4" />
+            <RefreshCw className={cn("size-4", isFetching && "animate-spin")} />
             Refresh
           </Button>
           <Button variant="secondary" onClick={exportReport} disabled={!data}>
@@ -78,170 +82,286 @@ export function AnalyticsView() {
         </>
       }
     >
-      <Card className="mb-5">
-        <CardContent className="grid gap-3 md:grid-cols-4">
-          <Select value={filters.range} onChange={(event) => updateFilter("range", event.target.value)}>
-            {ranges.map((range) => (
-              <option key={range.value} value={range.value}>{range.label}</option>
-            ))}
-          </Select>
-          <Select value={filters.channel} onChange={(event) => updateFilter("channel", event.target.value)}>
-            <option value="all">All channels</option>
-            {data?.filterOptions.channels.map((channel) => <option key={channel} value={channel}>{channel}</option>)}
-          </Select>
-          <Select value={filters.campaign} onChange={(event) => updateFilter("campaign", event.target.value)}>
-            <option value="all">All campaigns</option>
-            {data?.filterOptions.campaigns.map((campaign) => <option key={campaign} value={campaign}>{campaign}</option>)}
-          </Select>
-          <Select value={filters.status} onChange={(event) => updateFilter("status", event.target.value)}>
-            <option value="all">All statuses</option>
-            {data?.filterOptions.statuses.map((status) => <option key={status} value={status}>{status}</option>)}
-          </Select>
-        </CardContent>
-      </Card>
+      <div className="space-y-6">
+        <FiltersPanel data={data} filters={filters} updateFilter={updateFilter} />
 
-      <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
-        {isLoading
-          ? createRange(7).map((index) => <Skeleton key={index} className="h-32 rounded-lg" />)
-          : metricCards?.map(({ icon, key, metric }) => (
-              <MetricCard key={key} metric={metric} icon={icon} />
-            ))}
-      </div>
-
-      <div className="mt-5 grid gap-5 xl:grid-cols-[1fr_22rem]">
-        <Card>
-          <CardHeader>
-            <div>
-              <CardTitle>Trend Analysis</CardTitle>
-              <p className="mt-1 text-sm leading-6 text-muted">CTR, ROI, and engagement rate across the selected report window.</p>
-            </div>
-            <BarChart3 className="size-5 text-primary" />
-          </CardHeader>
-          <CardContent>
-            <AnalyticsTrendChart data={data?.trends} />
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle>Traffic Sources</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
+        <section>
+          <SectionHeading title="KPI Cards" description="Core performance indicators across the selected reporting window." />
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-7">
             {isLoading
-              ? createRange(4).map((index) => <Skeleton key={index} className="h-8" />)
-              : data?.sources.map(([label, value]) => (
-                  <div key={label}>
-                    <div className="mb-2 flex justify-between text-sm">
-                      <span>{label}</span>
-                      <span className="text-muted">{value}%</span>
-                    </div>
-                    <div className="h-2 rounded-full bg-white/[0.06]">
-                      <div className="h-full rounded-full bg-primary" style={{ width: `${value}%` }} />
-                    </div>
-                  </div>
+              ? Array.from({ length: 7 }).map((_, index) => <Skeleton key={index} className="h-36 rounded-lg" />)
+              : metricCards.map((metric) => <AnalyticsKpiCard key={metric.key} metric={metric} />)}
+          </div>
+        </section>
+
+        <section>
+          <SectionHeading title="Charts" description="Visual performance trends, conversion volume, and traffic source distribution." />
+          <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_24rem]">
+            <ChartCard title="Trend Analysis" description="CTR, ROI, and engagement rate over time." icon={BarChart3}>
+              {data?.trends.length ? <AnalyticsTrendChart data={data.trends} /> : <ChartEmptyState label="Trend data will appear when analytics events are available." />}
+            </ChartCard>
+            <TrafficSourcesCard sources={data?.sources ?? []} isLoading={isLoading} />
+          </div>
+          <div className="mt-5">
+            <ChartCard title="Conversions" description="Conversion volume across the selected period." icon={Target}>
+              {data?.trends.length ? <PerformanceChart data={data.trends} /> : <ChartEmptyState label="Conversion chart is waiting for report data." />}
+            </ChartCard>
+          </div>
+        </section>
+
+        <section>
+          <SectionHeading title="AI Insights" description="Opportunity, risk, trend, and recommendation signals from the analytics intelligence layer." />
+          <div className="grid gap-4 lg:grid-cols-4">
+            {intelligence.isLoading ? (
+              Array.from({ length: 4 }).map((_, index) => <Skeleton key={index} className="h-44 rounded-lg" />)
+            ) : (
+              <>
+                {insightTypes.map((item) => (
+                  <InsightCard key={item.type} title={item.label} icon={item.icon} insight={visibleInsights.find((insight) => insight.type === item.type)} />
                 ))}
-          </CardContent>
-        </Card>
-      </div>
+                <RecommendationInsight recommendation={primaryRecommendation} />
+              </>
+            )}
+          </div>
+        </section>
 
-      <div className="mt-5 grid gap-5 xl:grid-cols-[1fr_22rem]">
-        <Card>
-          <CardHeader>
-            <CardTitle>Conversions</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <PerformanceChart data={data?.trends} />
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <div>
-              <CardTitle>Data Quality</CardTitle>
-              <p className="mt-1 text-sm leading-6 text-muted">Division-by-zero and inconsistent reports are converted into guardrails.</p>
+        <ReportsSection data={data} isLoading={isLoading} />
+      </div>
+    </PageShell>
+  );
+}
+
+function FiltersPanel({
+  data,
+  filters,
+  updateFilter,
+}: {
+  data: ReturnType<typeof useAnalytics>["data"];
+  filters: AnalyticsFilterState;
+  updateFilter: (key: keyof AnalyticsFilterState, value: string) => void;
+}) {
+  return (
+    <Card>
+      <CardHeader>
+        <div className="flex items-center gap-3">
+          <span className="grid size-10 place-items-center rounded-lg border border-primary/20 bg-primary/10 text-primary">
+            <Filter className="size-4" />
+          </span>
+          <div>
+            <CardTitle>Filters</CardTitle>
+            <p className="mt-1 text-sm leading-6 text-muted">Refine analytics by date range, channel, campaign, and status.</p>
+          </div>
+        </div>
+      </CardHeader>
+      <CardContent className="grid gap-3 md:grid-cols-4">
+        <FilterSelect label="Date Range" value={filters.range} onChange={(value) => updateFilter("range", value)}>
+          {ranges.map((range) => (
+            <option key={range.value} value={range.value}>{range.label}</option>
+          ))}
+        </FilterSelect>
+        <FilterSelect label="Channel" value={filters.channel} onChange={(value) => updateFilter("channel", value)}>
+          <option value="all">All channels</option>
+          {data?.filterOptions.channels.map((channel) => <option key={channel} value={channel}>{channel}</option>)}
+        </FilterSelect>
+        <FilterSelect label="Campaign" value={filters.campaign} onChange={(value) => updateFilter("campaign", value)}>
+          <option value="all">All campaigns</option>
+          {data?.filterOptions.campaigns.map((campaign) => <option key={campaign} value={campaign}>{campaign}</option>)}
+        </FilterSelect>
+        <FilterSelect label="Status" value={filters.status} onChange={(value) => updateFilter("status", value)}>
+          <option value="all">All statuses</option>
+          {data?.filterOptions.statuses.map((status) => <option key={status} value={status}>{status}</option>)}
+        </FilterSelect>
+      </CardContent>
+    </Card>
+  );
+}
+
+function FilterSelect({ children, label, onChange, value }: { children: React.ReactNode; label: string; onChange: (value: string) => void; value: string }) {
+  return (
+    <label className="space-y-2">
+      <span className="text-xs font-semibold uppercase text-muted">{label}</span>
+      <Select value={value} onChange={(event) => onChange(event.target.value)}>
+        {children}
+      </Select>
+    </label>
+  );
+}
+
+function AnalyticsKpiCard({ metric }: { metric: AnalyticsMetricCard }) {
+  const Icon = metricIcons[metric.key];
+  const direction = metric.delta >= 0 ? "+" : "";
+
+  return (
+    <Card className="min-h-36">
+      <CardContent className="flex h-full flex-col justify-between gap-5">
+        <div className="flex items-start justify-between gap-3">
+          <span className="text-xs font-semibold uppercase text-muted">{metric.label}</span>
+          <span className="grid size-9 place-items-center rounded-lg border border-primary/20 bg-primary/10 text-primary">
+            <Icon className="size-4" />
+          </span>
+        </div>
+        <div>
+          <p className="font-display text-3xl font-bold text-foreground">{metric.value}</p>
+          <p className={cn("mt-2 text-xs leading-5", toneClass(metric.tone))}>{direction}{metric.delta}% vs previous period</p>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+function TrafficSourcesCard({ isLoading, sources }: { isLoading: boolean; sources: [string, number][] }) {
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Traffic Sources</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {isLoading ? Array.from({ length: 4 }).map((_, index) => <Skeleton key={index} className="h-10 rounded-lg" />) : null}
+        {!isLoading && sources.length === 0 ? <ChartEmptyState label="Traffic source data is not available yet." /> : null}
+        {sources.map(([label, value]) => (
+          <div key={label} className="rounded-lg border border-border bg-surface p-3">
+            <div className="mb-2 flex justify-between gap-3 text-sm">
+              <span className="font-medium text-foreground">{label}</span>
+              <span className="text-muted">{value}%</span>
             </div>
-            <AlertTriangle className="size-5 text-tertiary" />
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {(data?.contract.anomaliesDetected.length ? data.contract.anomaliesDetected : ["No invalid, incomplete, or inconsistent analytics detected."]).map((item) => (
-              <p key={item} className="rounded-lg border border-white/10 bg-black/20 p-3 text-sm leading-6 text-muted">{item}</p>
-            ))}
-          </CardContent>
-        </Card>
-      </div>
-
-      <div className="mt-5 grid gap-5 lg:grid-cols-3">
-        {visibleRecommendations.map((recommendation) => (
-          <Card key={recommendation.title}>
-            <CardHeader>
-              <div>
-                <CardTitle className="text-lg">{recommendation.title}</CardTitle>
-                <p className="mt-1 text-sm leading-6 text-muted">{recommendation.rationale}</p>
-              </div>
-              <Badge tone={recommendation.priority === "high" ? "danger" : recommendation.priority === "medium" ? "warning" : "success"}>{Math.round(recommendation.confidence * 100)}%</Badge>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm leading-6 text-foreground">{recommendation.action}</p>
-              <p className="mt-3 font-mono text-[11px] leading-5 text-primary">{recommendation.evidence}</p>
-            </CardContent>
-          </Card>
+            <div className="h-2 overflow-hidden rounded-full bg-surface-container">
+              <div className="h-full rounded-full bg-primary" style={{ width: `${value}%` }} />
+            </div>
+          </div>
         ))}
-      </div>
+      </CardContent>
+    </Card>
+  );
+}
 
-      <div className="mt-5 grid gap-5 xl:grid-cols-[1fr_24rem]">
-        <Card>
-          <CardHeader>
-            <div>
-              <CardTitle>AI Recommendation Insights</CardTitle>
-              <p className="mt-1 text-sm leading-6 text-muted">Generated from the analytics contract and marketing intelligence guardrails.</p>
-            </div>
-            <Sparkles className="size-5 text-primary" />
-          </CardHeader>
-          <CardContent className="grid gap-3 md:grid-cols-2">
-            {intelligence.isLoading
-              ? createRange(4).map((index) => <Skeleton key={index} className="h-28 rounded-lg" />)
-              : visibleInsights.map((insight) => (
-                  <div key={`${insight.title}-${insight.evidence}`} className="rounded-lg border border-white/10 bg-white/[0.04] p-4">
-                    <div className="flex items-start justify-between gap-3">
-                      <h3 className="font-semibold text-white">{insight.title}</h3>
-                      <Badge tone={insight.severity === "high" ? "danger" : insight.severity === "medium" ? "warning" : "success"}>{insight.type}</Badge>
-                    </div>
-                    <p className="mt-2 text-sm leading-6 text-muted">{insight.description}</p>
-                    <p className="mt-3 font-mono text-[11px] leading-5 text-primary">{insight.evidence}</p>
-                  </div>
-                ))}
-          </CardContent>
-        </Card>
+function ChartCard({ children, description, icon: Icon, title }: { children: React.ReactNode; description: string; icon: LucideIcon; title: string }) {
+  return (
+    <Card>
+      <CardHeader>
+        <div>
+          <CardTitle>{title}</CardTitle>
+          <p className="mt-1 text-sm leading-6 text-muted">{description}</p>
+        </div>
+        <Icon className="size-5 text-primary" />
+      </CardHeader>
+      <CardContent>{children}</CardContent>
+    </Card>
+  );
+}
+
+function InsightCard({ icon: Icon, insight, title }: { icon: LucideIcon; insight?: AnalyticsInsight; title: string }) {
+  return (
+    <Card>
+      <CardHeader>
+        <div>
+          <CardTitle className="text-lg">{title}</CardTitle>
+          {insight ? <p className="mt-1 text-sm leading-6 text-muted">{insight.title}</p> : null}
+        </div>
+        <Icon className="size-5 text-primary" />
+      </CardHeader>
+      <CardContent>
+        {insight ? (
+          <>
+            <Badge tone={insight.severity === "high" ? "danger" : insight.severity === "medium" ? "warning" : "success"}>{insight.severity}</Badge>
+            <p className="mt-3 text-sm leading-6 text-foreground">{insight.description}</p>
+            <p className="mt-3 text-xs leading-5 text-primary">{insight.evidence}</p>
+          </>
+        ) : (
+          <EmptyMini label={`No ${title.toLowerCase()} insight available yet.`} />
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+function RecommendationInsight({ recommendation }: { recommendation?: AnalyticsRecommendation }) {
+  return (
+    <Card>
+      <CardHeader>
+        <div>
+          <CardTitle className="text-lg">Recommendation</CardTitle>
+          {recommendation ? <p className="mt-1 text-sm leading-6 text-muted">{recommendation.title}</p> : null}
+        </div>
+        <Sparkles className="size-5 text-primary" />
+      </CardHeader>
+      <CardContent>
+        {recommendation ? (
+          <>
+            <Badge tone={recommendation.priority === "high" ? "danger" : recommendation.priority === "medium" ? "warning" : "success"}>{Math.round(recommendation.confidence * 100)}%</Badge>
+            <p className="mt-3 text-sm leading-6 text-foreground">{recommendation.action}</p>
+            <p className="mt-3 text-xs leading-5 text-primary">{recommendation.evidence}</p>
+          </>
+        ) : (
+          <EmptyMini label="No recommendation available yet." />
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+function ReportsSection({ data, isLoading }: { data: ReturnType<typeof useAnalytics>["data"]; isLoading: boolean }) {
+  return (
+    <section>
+      <SectionHeading title="Reports Section" description="Executive summary, report findings, anomalies, and campaign-level rows." />
+      <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_24rem]">
         <Card>
           <CardHeader>
             <CardTitle>Report</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <p className="text-sm leading-6 text-foreground">{data?.report.executiveSummary ?? "Report is loading."}</p>
+            {isLoading ? <Skeleton className="h-32 rounded-lg" /> : <p className="text-sm leading-6 text-foreground">{data?.report.executiveSummary ?? "Report is loading."}</p>}
             {data?.report.sections.map((section) => (
               <div key={section.title}>
-                <h3 className="mb-2 font-mono text-[11px] font-semibold uppercase tracking-[0.08em] text-primary">{section.title}</h3>
+                <h3 className="mb-2 text-xs font-semibold uppercase text-primary">{section.title}</h3>
                 <div className="space-y-2">
                   {section.findings.map((finding) => (
-                    <p key={finding} className="rounded-lg border border-white/10 bg-white/[0.03] p-3 text-sm leading-6 text-muted">{finding}</p>
+                    <p key={finding} className="rounded-lg border border-border bg-surface p-3 text-sm leading-6 text-muted">{finding}</p>
                   ))}
                 </div>
               </div>
             ))}
           </CardContent>
         </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle>Data Quality</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {(data?.contract.anomaliesDetected.length ? data.contract.anomaliesDetected : ["No invalid, incomplete, or inconsistent analytics detected."]).map((item) => (
+              <p key={item} className="rounded-lg border border-border bg-surface p-3 text-sm leading-6 text-muted">{item}</p>
+            ))}
+          </CardContent>
+        </Card>
       </div>
-
       <div className="mt-5">{data ? <DataTable title="Campaign Reports" campaigns={data.campaigns} /> : <Skeleton className="h-64 rounded-lg" />}</div>
-    </PageShell>
+    </section>
   );
 }
 
-function toMetric(metric: AnalyticsMetricCard): Metric {
-  const direction = metric.delta >= 0 ? "+" : "";
+function SectionHeading({ description, title }: { description: string; title: string }) {
+  return (
+    <div className="mb-4">
+      <h2 className="font-display text-2xl font-semibold text-foreground">{title}</h2>
+      <p className="mt-1 text-sm leading-6 text-muted">{description}</p>
+    </div>
+  );
+}
 
-  return {
-    delta: `${direction}${metric.delta}% vs previous period`,
-    label: metric.label,
-    tone: metric.tone,
-    value: metric.value,
-  };
+function ChartEmptyState({ label }: { label: string }) {
+  return (
+    <div className="grid min-h-60 place-items-center rounded-lg border border-dashed border-border bg-surface p-6 text-center">
+      <p className="max-w-sm text-sm leading-6 text-muted">{label}</p>
+    </div>
+  );
+}
+
+function EmptyMini({ label }: { label: string }) {
+  return <p className="rounded-lg border border-dashed border-border bg-surface p-4 text-sm leading-6 text-muted">{label}</p>;
+}
+
+function toneClass(tone: AnalyticsMetricCard["tone"]) {
+  if (tone === "success") return "text-primary";
+  if (tone === "warning") return "text-tertiary";
+  if (tone === "danger") return "text-red-200";
+  return "text-muted";
 }

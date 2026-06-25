@@ -12,7 +12,7 @@ type GenerateButtonProps = {
 
 export function GenerateButton({ disabled, loading, onClick }: GenerateButtonProps) {
   return (
-    <Button type="button" size="lg" className="h-14 w-full text-base shadow-[0_0_42px_rgba(114,255,95,0.22)]" disabled={disabled || loading} onClick={onClick}>
+    <Button type="button" size="lg" className="h-14 w-full text-base" disabled={disabled || loading} onClick={onClick}>
       {loading ? <Loader2 className="size-5 animate-spin" /> : <Sparkles className="size-5" />}
       {loading ? "Composing Advertisement" : "Generate Advertisement"}
     </Button>

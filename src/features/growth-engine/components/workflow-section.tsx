@@ -53,7 +53,7 @@ function StatusPill({ status }: { status: SectionStatus }) {
         status === "success" && "border-primary/30 bg-primary/10 text-primary",
         status === "loading" && "border-tertiary/30 bg-tertiary/10 text-tertiary",
         status === "error" && "border-red-300/25 bg-red-300/10 text-red-200",
-        status === "empty" && "border-white/10 bg-white/[0.03] text-muted",
+        status === "empty" && "border-border bg-surface text-muted",
       )}
     >
       {status}

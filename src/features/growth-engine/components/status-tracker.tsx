@@ -32,15 +32,15 @@ export function StatusTracker({
           <div
             key={stage}
             className={cn(
-              "flex min-h-14 items-center gap-3 rounded-lg border bg-black/20 px-3 py-2",
-              isComplete ? "border-primary/30 text-foreground" : isLoading ? "border-primary/50 shadow-[0_0_15px_rgba(114,255,95,0.1)] text-foreground" : "border-white/10 text-muted",
-              isCurrent && !isLoading && "shadow-[0_0_22px_rgba(114,255,95,0.12)]",
+              "flex min-h-14 items-center gap-3 rounded-lg border bg-surface px-3 py-2",
+              isComplete ? "border-primary/30 text-foreground" : isLoading ? "border-primary/50 text-foreground shadow-[0_0_0_3px_var(--focus-ring)]" : "border-border text-muted",
+              isCurrent && !isLoading && "shadow-[0_0_0_3px_var(--focus-ring)]",
             )}
           >
             <span
               className={cn(
                 "flex size-7 shrink-0 items-center justify-center rounded-md border",
-                isComplete ? "border-primary/40 bg-primary/10 text-primary" : isLoading ? "border-primary/40 bg-primary/10 text-primary" : "border-white/10 bg-white/[0.03]",
+                isComplete ? "border-primary/40 bg-primary/10 text-primary" : isLoading ? "border-primary/40 bg-primary/10 text-primary" : "border-border bg-card",
               )}
             >
               {isComplete ? <Check className="size-4" /> : isLoading ? <Loader2 className="size-4 animate-spin" /> : <Circle className="size-3" />}

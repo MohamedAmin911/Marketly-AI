@@ -8,7 +8,7 @@ export function BrandMark({ className, logoClassName }: { className?: string; lo
     <div className={cn("flex items-center mt-10 mb-4", className)}>
       <Image 
         alt="Marketly AI Logo" 
-        className={cn("h-60 w-auto object-contain drop-shadow-[0_0_12px_rgba(114,255,95,0.2)]", logoClassName)}
+        className={cn("h-60 w-auto object-contain drop-shadow-[0_8px_18px_var(--focus-ring)]", logoClassName)}
         priority
         src={logoImg} 
       />
