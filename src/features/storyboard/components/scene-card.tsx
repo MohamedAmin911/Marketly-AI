@@ -155,6 +155,48 @@ export function SceneCard({ index, scene, videoPrompt }: { index: number; scene:
   );
 }
 
+function ProductionNote({
+  compact = false,
+  icon: Icon,
+  label,
+  value,
+}: {
+  compact?: boolean;
+  icon: typeof Video;
+  label: string;
+  value: string;
+}) {
+  return (
+    <div className="rounded-lg border border-border bg-surface p-3">
+      <div className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase text-muted">
+        <Icon className="size-3.5 text-primary" />
+        {label}
+      </div>
+      <p className={compact ? "text-xs leading-5 text-foreground" : "text-sm leading-6 text-muted"}>{value}</p>
+    </div>
+  );
+}
+
+function extractCameraAngle(prompt: string): string {
+  const lower = prompt.toLowerCase();
+  if (lower.includes("close-up") || lower.includes("close up")) return "Close-up product hero shot";
+  if (lower.includes("wide")) return "Wide establishing commercial frame";
+  if (lower.includes("low angle")) return "Low-angle premium hero perspective";
+  if (lower.includes("overhead") || lower.includes("top-down")) return "Overhead product composition";
+  if (lower.includes("macro")) return "Macro detail shot";
+  return "Cinematic product-focused angle";
+}
+
+function extractLighting(prompt: string): string {
+  const lower = prompt.toLowerCase();
+  if (lower.includes("golden")) return "Warm golden-hour lighting";
+  if (lower.includes("neon")) return "High-contrast neon accent lighting";
+  if (lower.includes("soft")) return "Soft diffused studio lighting";
+  if (lower.includes("dramatic")) return "Dramatic contrast with shaped shadows";
+  if (lower.includes("natural")) return "Natural commercial lighting";
+  return "Premium controlled commercial lighting";
+}
+
 function slugify(value: string): string {
   return value.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "") || "cinematic-frame";
 }

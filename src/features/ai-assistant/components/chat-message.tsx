@@ -1,6 +1,9 @@
 "use client";
-import { Bot, FileText, Pause, Play, Volume2 } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+
+/* eslint-disable @next/next/no-img-element */
+
+import { Bot, FileText, Volume2 } from "lucide-react";
+import { useState } from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
@@ -41,7 +44,7 @@ export function ChatMessage({ message, onSpeak }: { message: ChatMessageType, on
 
           {}
           {!isUser && onSpeak ? (
-            <SpeakButton text={message.content} />
+            <SpeakButton text={message.content} onSpeak={onSpeak} />
           ) : null}
 
           {message.card ? (
@@ -60,5 +63,30 @@ export function ChatMessage({ message, onSpeak }: { message: ChatMessageType, on
         </Card>
       </div>
     </article>
+  );
+}
+
+function SpeakButton({ onSpeak, text }: { onSpeak: (text: string) => Promise<void>; text: string }) {
+  const [isSpeaking, setSpeaking] = useState(false);
+
+  async function handleClick() {
+    try {
+      setSpeaking(true);
+      await onSpeak(text);
+    } finally {
+      setSpeaking(false);
+    }
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={() => void handleClick()}
+      disabled={isSpeaking}
+      className="mt-3 inline-flex items-center gap-2 rounded-lg border border-border bg-surface px-3 py-2 text-xs font-semibold text-muted transition hover:border-primary/45 hover:text-primary disabled:cursor-wait disabled:opacity-70"
+    >
+      <Volume2 className="size-3.5" />
+      {isSpeaking ? "Preparing audio" : "Speak"}
+    </button>
   );
 }

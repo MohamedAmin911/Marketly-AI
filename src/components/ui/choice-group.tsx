@@ -38,8 +38,8 @@ export function ChoiceGroup<TValue extends string = string>({
             <label
               key={option.value}
               className={cn(
-                "grid min-h-10 cursor-pointer place-items-center rounded-lg border border-white/10 bg-white/[0.04] px-3 py-2 text-sm text-muted transition-colors focus-within:ring-2 focus-within:ring-cyan-glow hover:border-primary/50 hover:text-primary",
-                checked && "border-primary/60 bg-primary/10 text-primary",
+                "grid min-h-10 cursor-pointer place-items-center rounded-lg border border-border bg-surface px-3 py-2 text-sm text-muted transition-colors focus-within:ring-2 focus-within:ring-primary/70 hover:border-primary/50 hover:bg-card hover:text-primary",
+                checked && "border-primary/60 bg-primary/10 text-primary shadow-[0_0_0_3px_var(--focus-ring)]",
               )}
             >
               <input

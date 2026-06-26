@@ -1,6 +1,6 @@
 import { Activity, AlertTriangle, ArrowRight, Lightbulb, LineChart, Milestone, Rocket, ShieldAlert, Target, Users, Zap, ImageIcon, Video, WandSparkles } from "lucide-react";
 import Link from "next/link";
-import type { GrowthProjectRecord, SectionStatus } from "@/features/growth-engine/types";
+
 import { WorkflowSection } from "@/features/growth-engine/components/workflow-section";
 import { Button } from "@/components/ui/button";
 import {
@@ -26,19 +26,22 @@ export function GrowthEngineResults({
   liveProject: GrowthProjectRecord | null;
   submitting?: boolean;
 }) {
-  const hasStrategy = Boolean(liveProject?.strategy);
-  const hasCampaigns = Boolean(liveProject?.campaigns?.length);
-  const hasStoryboards = Boolean(liveProject?.storyboards?.length);
+  const strategy = toRecord(liveProject?.strategy);
+  const swot = toRecord(strategy?.swot);
+  const personas = arrayOfRecords(strategy?.personas).length ? arrayOfRecords(strategy?.personas) : liveProject?.personas ?? [];
+  const recommendedActions = arrayOfUnknown(strategy?.recommendations).length ? arrayOfUnknown(strategy?.recommendations) : liveProject?.marketingAngles ?? [];
+  const campaigns = liveProject?.campaigns ?? [];
+  const storyboards = liveProject?.storyboards ?? [];
+  const hasStrategySummary = Boolean(liveProject?.strategy);
 
   return (
     <div className="space-y-5">
-      {/* strategy */}
       <WorkflowSection
-        title="Marketing Strategy"
-        description="AI-generated SWOT, personas, and recommendations"
-        status={sectionStatus(hasStrategy, submitting, undefined)}
+        title="Strategy Overview"
+        description="Positioning, market context, and generated strategic direction."
+        status={sectionStatus(hasStrategySummary, submitting, undefined)}
         emptyTitle="No Strategy Yet"
-        emptyDescription="Submit your brand brief to generate a marketing strategy."
+        emptyDescription="Submit the brand brief to generate the first strategic pass."
       >
         {liveProject?.strategy ? (
           <div className="space-y-6">
@@ -303,13 +306,12 @@ export function GrowthEngineResults({
         ) : null}
       </WorkflowSection>
 
-      {/* campaigns */}
       <WorkflowSection
         title="Campaign Concepts"
-        description="Social campaigns across platforms"
-        status={sectionStatus(hasCampaigns, submitting, undefined)}
-        emptyTitle="No Campaigns Yet"
-        emptyDescription="Campaigns are generated as part of the strategy pipeline."
+        description="Campaign hooks, platforms, objectives, and creative angles."
+        status={sectionStatus(campaigns.length > 0, submitting, undefined)}
+        emptyTitle="No Campaign Concepts Yet"
+        emptyDescription="Campaign concepts are generated after the strategy stage."
       >
         <div className="grid gap-3 md:grid-cols-2">
           {liveProject?.campaigns.map((campaign, i) => {
@@ -346,13 +348,12 @@ export function GrowthEngineResults({
         </div>
       </WorkflowSection>
 
-      {/* storyboards */}
       <WorkflowSection
         title="Storyboards"
-        description="Cinematic scene breakdowns for each campaign"
-        status={sectionStatus(hasStoryboards, submitting, undefined)}
+        description="Scene-level creative direction with image prompts."
+        status={sectionStatus(storyboards.length > 0, submitting, undefined)}
         emptyTitle="No Storyboards Yet"
-        emptyDescription="Storyboards are generated after campaigns are ready."
+        emptyDescription="Storyboards are generated after campaign concepts are ready."
       >
         <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
           {liveProject?.storyboards.flatMap((board, campIdx) => {
@@ -448,11 +449,30 @@ export function GrowthEngineResults({
                     </div>
                   ) : null}
                 </div>
-              );
-            });
-          })}
+              ) : null}
+            </div>
+          );
+        });
+      })}
+    </div>
+  );
+}
+
+function RecommendedActions({ actions }: { actions: unknown[] }) {
+  return (
+    <div className="grid gap-3 md:grid-cols-2">
+      {actions.map((action, index) => (
+        <div key={index} className="flex gap-3 rounded-lg border border-border bg-surface p-4">
+          <span className="grid size-9 shrink-0 place-items-center rounded-lg border border-primary/20 bg-primary/10 text-primary">
+            {index % 2 === 0 ? <Target className="size-4" /> : <Rocket className="size-4" />}
+          </span>
+          <div>
+            <p className="text-xs font-semibold uppercase text-primary">Action {index + 1}</p>
+            <p className="mt-1 text-sm leading-6 text-foreground">{stringifyValue(action)}</p>
+          </div>
+          <ArrowRight className="ml-auto mt-1 size-4 shrink-0 text-muted" />
         </div>
-      </WorkflowSection>
+      ))}
     </div>
   );
 }

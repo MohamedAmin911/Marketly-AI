@@ -1,9 +1,10 @@
 "use client";
 
-import { Bell, HelpCircle, Menu, Search, UserRound } from "lucide-react";
+import { Menu, UserRound } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
+import { ThemeToggle } from "@/components/theme/theme-toggle";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -11,7 +12,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Input } from "@/components/ui/input";
 import { useUiStore } from "@/store/ui-store";
 
 export function Topbar() {
@@ -27,7 +27,7 @@ export function Topbar() {
   };
 
   return (
-    <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-primary/15 bg-background/78 px-4 backdrop-blur-2xl lg:px-6">
+    <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-border bg-background/82 px-4 backdrop-blur-2xl lg:px-6">
       <div className="flex items-center gap-3">
         <Button
           variant="icon"
@@ -40,9 +40,10 @@ export function Topbar() {
         </Button>
       </div>
       <div className="flex items-center gap-2">
+        <ThemeToggle />
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <button className="ml-1 grid size-10 place-items-center rounded-lg border border-primary/30 bg-primary/10 text-white shadow-[0_0_18px_rgba(114,255,95,0.12)]">
+            <button className="ml-1 grid size-10 place-items-center rounded-lg border border-border bg-card text-foreground shadow-[var(--panel-shadow)] transition-colors hover:border-primary/40 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/70 focus-visible:ring-offset-2 focus-visible:ring-offset-background">
               <UserRound className="size-4" />
             </button>
           </DropdownMenuTrigger>

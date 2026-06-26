@@ -9,13 +9,14 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 type ImageUploadCardProps = {
+  compact?: boolean;
   eyebrow: string;
   hint: string;
   image: File | null;
   onImageChange: (file: File | null) => void;
 };
 
-export function ImageUploadCard({ eyebrow, hint, image, onImageChange }: ImageUploadCardProps) {
+export function ImageUploadCard({ compact = false, eyebrow, hint, image, onImageChange }: ImageUploadCardProps) {
   const inputId = useId();
   const [isDragging, setIsDragging] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -39,9 +40,9 @@ export function ImageUploadCard({ eyebrow, hint, image, onImageChange }: ImageUp
 
   return (
     <div className="group space-y-3">
-      <div className="flex items-end justify-between gap-3">
+      <div className={cn("flex items-end justify-between gap-3", compact && "sr-only")}>
         <div>
-          <p className="font-display text-lg font-semibold text-white">{eyebrow}</p>
+          <p className="font-display text-lg font-semibold text-foreground">{eyebrow}</p>
           <p className="mt-1 text-xs leading-5 text-muted">{hint}</p>
         </div>
         {image ? (
@@ -68,8 +69,9 @@ export function ImageUploadCard({ eyebrow, hint, image, onImageChange }: ImageUp
           selectFile(event.dataTransfer.files?.[0]);
         }}
         className={cn(
-          "relative grid min-h-52 cursor-pointer place-items-center overflow-hidden rounded-lg border border-dashed border-primary/20 bg-primary/[0.04] p-4 transition-all duration-300 hover:border-primary/60 hover:bg-primary/[0.07] hover:shadow-[0_0_34px_rgba(114,255,95,0.12)]",
-          isDragging && "border-cyan-glow/80 bg-cyan-glow/10 shadow-[0_0_40px_rgba(114,255,95,0.18)]",
+          "relative grid cursor-pointer place-items-center overflow-hidden rounded-lg border border-dashed border-border bg-card p-4 transition-all duration-300 hover:border-primary/60 hover:bg-soft-green-surface",
+          compact ? "min-h-40" : "min-h-52",
+          isDragging && "border-primary bg-primary/10 shadow-[0_0_0_3px_var(--focus-ring)]",
         )}
       >
         <input id={inputId} type="file" accept="image/*" className="sr-only" onChange={(event) => { selectFile(event.target.files?.[0]); event.target.value = ""; }} />
@@ -85,10 +87,10 @@ export function ImageUploadCard({ eyebrow, hint, image, onImageChange }: ImageUp
           </>
         ) : (
           <div className="text-center">
-            <div className="mx-auto grid size-14 place-items-center rounded-lg border border-primary/15 bg-primary/[0.06] text-primary shadow-[0_0_30px_rgba(114,255,95,0.18)]">
+            <div className="mx-auto grid size-12 place-items-center rounded-lg border border-primary/20 bg-primary/10 text-primary">
               <ImagePlus className="size-6" />
             </div>
-            <p className="mt-4 text-sm font-semibold text-white">Drop image here or click to upload</p>
+            <p className="mt-4 text-sm font-semibold text-foreground">Drop image here or click to upload</p>
             <p className="mt-1 text-xs text-muted">PNG, JPG, or WebP</p>
           </div>
         )}

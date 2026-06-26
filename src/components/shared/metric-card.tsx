@@ -17,14 +17,16 @@ export function MetricCard({ metric, icon: Icon }: { metric: Metric; icon: Lucid
 
   return (
     <Card className="min-h-32">
-      <CardContent className="flex h-full flex-col justify-between">
+      <CardContent className="flex h-full flex-col justify-between gap-6">
         <div className="flex items-center justify-between gap-3">
-          <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.1em] text-primary/75">{metric.label}</span>
-          <Icon className="size-4 text-primary" />
+          <span className="text-xs font-semibold uppercase text-muted">{metric.label}</span>
+          <span className="grid size-9 place-items-center rounded-lg border border-primary/20 bg-primary/10 text-primary">
+            <Icon className="size-4" />
+          </span>
         </div>
         <div>
-          <p className="mt-6 terminal-title text-4xl font-bold text-white">{metric.value}</p>
-          <Badge tone={metric.tone === "danger" ? "danger" : metric.tone === "warning" ? "warning" : "success"} className="mt-4 border-0 bg-transparent px-0">
+          <p className="font-display text-4xl font-bold text-foreground">{metric.value}</p>
+          <Badge tone={metric.tone === "danger" ? "danger" : metric.tone === "warning" ? "warning" : "success"} className="mt-4">
             <DeltaIcon className="mr-1 size-3" />
             {metric.delta}
           </Badge>

@@ -24,12 +24,12 @@ export function DropdownMenuContent({ className, sideOffset = 8, ...props }: Rea
 export function DropdownMenuItem({ className, ...props }: React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.Item>) {
   return (
     <DropdownMenuPrimitive.Item
-      className={cn("flex cursor-pointer select-none items-center gap-2 rounded-lg px-3 py-2 text-muted transition-colors focus:bg-white/10 focus:text-foreground focus:outline-none", className)}
+      className={cn("flex cursor-pointer select-none items-center gap-2 rounded-lg px-3 py-2 text-muted transition-colors focus:bg-card focus:text-foreground focus:outline-none", className)}
       {...props}
     />
   );
 }
 
 export function DropdownMenuSeparator({ className, ...props }: React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.Separator>) {
-  return <DropdownMenuPrimitive.Separator className={cn("-mx-1 my-1 h-px bg-white/10", className)} {...props} />;
+  return <DropdownMenuPrimitive.Separator className={cn("-mx-1 my-1 h-px bg-border", className)} {...props} />;
 }

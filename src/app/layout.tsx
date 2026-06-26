@@ -31,9 +31,25 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#020902",
-  colorScheme: "dark",
+  themeColor: "#0B0F0C",
+  colorScheme: "dark light",
 };
+
+const themeInitScript = `
+(() => {
+  try {
+    const key = "marketly-theme";
+    const stored = localStorage.getItem(key);
+    const theme = stored === "light" || stored === "dark" ? stored : "dark";
+    const root = document.documentElement;
+    root.classList.remove("dark", "light");
+    root.classList.add(theme);
+    root.style.colorScheme = theme;
+  } catch {
+    document.documentElement.classList.add("dark");
+  }
+})();
+`;
 
 export default function RootLayout({
   children,
@@ -43,9 +59,12 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${inter.variable} ${spaceGrotesk.variable} ${jetbrainsMono.variable} dark h-full antialiased`}
+      className={`${inter.variable} ${spaceGrotesk.variable} ${jetbrainsMono.variable} h-full antialiased`}
       suppressHydrationWarning
     >
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
+      </head>
       <body className="min-h-full bg-background text-foreground">
         <Providers>{children}</Providers>
       </body>

@@ -1,6 +1,8 @@
 "use client";
  
-import { Image, Loader2, MessageSquarePlus, Mic, Paperclip, PauseCircle, Send, Share2, Sparkles, Square, Trash2, Volume2, X } from "lucide-react";
+/* eslint-disable @next/next/no-img-element */
+
+import { Image as ImageIcon, Loader2, MessageSquarePlus, Mic, Paperclip, PauseCircle, Send, Share2, Sparkles, Square, Trash2, Volume2, X } from "lucide-react";
 import { useRef, useState } from "react";
  
 import { PageShell } from "@/components/layout/page-shell";
@@ -10,7 +12,6 @@ import { Card } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { ChatMessage } from "@/features/ai-assistant/components/chat-message";
 import { useAssistantChat } from "@/features/ai-assistant/hooks";
-import type { ChatAttachment } from "@/features/ai-assistant/types/chat";
  
 const ALLOWED_IMAGE_TYPES = ["image/png", "image/jpeg", "image/webp"];
 const ALLOWED_FILE_TYPES = [...ALLOWED_IMAGE_TYPES, "application/pdf", "text/plain", "text/csv"];
@@ -70,7 +71,6 @@ export function AiAssistantView() {
  
   const imageInputRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const recognitionRef = useRef<SpeechRecognition | null>(null);
   const [isListening, setIsListening] = useState(false);
  
 // const recognitionRef = useRef<unknown>(null);
@@ -183,7 +183,6 @@ recognition.onresult = (event: any) => {
     await sendMessage(override);
   }
  
-  const lastMessageId = messages.at(-1)?.id;
   const canSend = !isSending && (draft.trim().length > 0 || attachment !== null);
  
   return (
@@ -237,7 +236,7 @@ recognition.onresult = (event: any) => {
                 <StaggeredItem key={message.id}>
                   <ChatMessage
                     message={message}
-                    onSpeak={voiceEnabled && message.role === "assistant" ? (text) => void handleSpeak(text, message.id) : undefined}
+                    onSpeak={voiceEnabled && message.role === "assistant" ? (text) => handleSpeak(text, message.id) : undefined}
                   />
                 </StaggeredItem>
               ))}
@@ -305,7 +304,7 @@ recognition.onresult = (event: any) => {
  
                 {/* Image upload */}
                 <Button variant="ghost" size="icon" type="button" aria-label="Attach image" onClick={() => imageInputRef.current?.click()}>
-                  <Image className="size-4" />
+                  <ImageIcon className="size-4" />
                 </Button>
                 <input ref={imageInputRef} type="file" className="hidden" accept={ALLOWED_IMAGE_TYPES.join(",")} onChange={(e) => void handleFileSelected(e.target.files?.[0]).then(() => { e.target.value = ""; })} />
  

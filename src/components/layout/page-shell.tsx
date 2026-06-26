@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 
+import { PageHeader } from "@/components/shared/page-header";
 import { PageTransition } from "@/components/shared/page-transition";
 import { cn } from "@/lib/utils";
 
@@ -18,14 +19,8 @@ export function PageShell({
 }) {
   return (
     <PageTransition>
-      <section className={cn("mx-auto w-full max-w-[1500px] px-4 py-8 sm:px-6 lg:px-8", className)}>
-        <div className="mb-8 flex flex-col justify-between gap-5 border-b border-primary/10 pb-6 md:flex-row md:items-end">
-          <div>
-            <h1 className="terminal-title text-3xl font-bold text-white md:text-5xl">{title}</h1>
-            {description ? <p className="mt-3 max-w-3xl text-sm leading-6 text-muted md:text-base">{description}</p> : null}
-          </div>
-          {actions ? <div className="flex flex-wrap items-center gap-3">{actions}</div> : null}
-        </div>
+      <section className={cn("mx-auto w-full max-w-[1500px] px-4 py-6 sm:px-6 sm:py-8 lg:px-8", className)}>
+        <PageHeader title={title} description={description} actions={actions} />
         {children}
       </section>
     </PageTransition>

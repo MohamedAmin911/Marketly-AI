@@ -13,15 +13,15 @@ export function GrowthChart({ data }: { data?: typeof trendData }) {
       <LineChart data={chartData} margin={{ left: -18, right: 10, top: 15, bottom: 0 }}>
         <defs>
           <linearGradient id="lineGlow" x1="0" y1="0" x2="1" y2="0">
-            <stop offset="0%" stopColor="#72ff5f" />
-            <stop offset="100%" stopColor="#d7ff7a" />
+            <stop offset="0%" stopColor="var(--primary)" />
+            <stop offset="100%" stopColor="var(--secondary)" />
           </linearGradient>
         </defs>
-        <CartesianGrid stroke="rgba(114,255,95,0.08)" vertical={false} />
-        <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: "#8aa68c", fontSize: 11 }} />
-        <YAxis axisLine={false} tickLine={false} tick={{ fill: "#8aa68c", fontSize: 11 }} />
-        <Tooltip cursor={{ stroke: "rgba(114,255,95,0.25)" }} contentStyle={{ background: "#061208", border: "1px solid rgba(114,255,95,.18)", borderRadius: 8, color: "#e9ffe6" }} />
-        <Line type="monotone" dataKey="value" stroke="url(#lineGlow)" strokeWidth={3} dot={{ r: 4, fill: "#fff" }} />
+        <CartesianGrid stroke="var(--border)" vertical={false} />
+        <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: "var(--muted)", fontSize: 11 }} />
+        <YAxis axisLine={false} tickLine={false} tick={{ fill: "var(--muted)", fontSize: 11 }} />
+        <Tooltip cursor={{ stroke: "var(--primary)" }} contentStyle={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 8, color: "var(--foreground)" }} />
+        <Line type="monotone" dataKey="value" stroke="url(#lineGlow)" strokeWidth={3} dot={{ r: 4, fill: "var(--foreground)" }} />
       </LineChart>
     </ResponsiveContainer>
   );
@@ -48,14 +48,14 @@ export function PerformanceChart({ data }: { data?: AnalyticsTrendPoint[] }) {
       <BarChart data={chartData} margin={{ left: -18, right: 8, top: 15, bottom: 0 }}>
         <defs>
           <linearGradient id="barGlow" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#72ff5f" />
-            <stop offset="100%" stopColor="rgba(114,255,95,.18)" />
+            <stop offset="0%" stopColor="var(--primary)" />
+            <stop offset="100%" stopColor="var(--soft-green-surface)" />
           </linearGradient>
         </defs>
-        <CartesianGrid stroke="rgba(114,255,95,0.08)" vertical={false} />
-        <XAxis dataKey="period" axisLine={false} tickLine={false} tick={{ fill: "#8aa68c", fontSize: 11 }} />
-        <YAxis axisLine={false} tickLine={false} tick={{ fill: "#8aa68c", fontSize: 11 }} />
-        <Tooltip cursor={{ fill: "rgba(114,255,95,0.04)" }} contentStyle={{ background: "#061208", border: "1px solid rgba(114,255,95,.18)", borderRadius: 8, color: "#e9ffe6" }} />
+        <CartesianGrid stroke="var(--border)" vertical={false} />
+        <XAxis dataKey="period" axisLine={false} tickLine={false} tick={{ fill: "var(--muted)", fontSize: 11 }} />
+        <YAxis axisLine={false} tickLine={false} tick={{ fill: "var(--muted)", fontSize: 11 }} />
+        <Tooltip cursor={{ fill: "var(--soft-green-surface)" }} contentStyle={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 8, color: "var(--foreground)" }} />
         <Bar dataKey="conversions" fill="url(#barGlow)" radius={[8, 8, 0, 0]} />
       </BarChart>
     </ResponsiveContainer>
@@ -68,13 +68,13 @@ export function AnalyticsTrendChart({ data }: { data?: AnalyticsTrendPoint[] }) 
   return (
     <ResponsiveContainer width="100%" height={260}>
       <LineChart data={chartData} margin={{ left: -18, right: 10, top: 15, bottom: 0 }}>
-        <CartesianGrid stroke="rgba(114,255,95,0.08)" vertical={false} />
-        <XAxis dataKey="period" axisLine={false} tickLine={false} tick={{ fill: "#8aa68c", fontSize: 11 }} />
-        <YAxis axisLine={false} tickLine={false} tick={{ fill: "#8aa68c", fontSize: 11 }} />
-        <Tooltip cursor={{ stroke: "rgba(114,255,95,0.25)" }} contentStyle={{ background: "#061208", border: "1px solid rgba(114,255,95,.18)", borderRadius: 8, color: "#e9ffe6" }} />
-        <Line type="monotone" dataKey="ctr" name="CTR" stroke="#62ff9a" strokeWidth={3} dot={{ r: 3, fill: "#62ff9a" }} />
-        <Line type="monotone" dataKey="engagementRate" name="Engagement" stroke="#d7ff7a" strokeWidth={3} dot={{ r: 3, fill: "#d7ff7a" }} />
-        <Line type="monotone" dataKey="roi" name="ROI" stroke="#72ff5f" strokeWidth={3} dot={{ r: 3, fill: "#72ff5f" }} />
+        <CartesianGrid stroke="var(--border)" vertical={false} />
+        <XAxis dataKey="period" axisLine={false} tickLine={false} tick={{ fill: "var(--muted)", fontSize: 11 }} />
+        <YAxis axisLine={false} tickLine={false} tick={{ fill: "var(--muted)", fontSize: 11 }} />
+        <Tooltip cursor={{ stroke: "var(--primary)" }} contentStyle={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 8, color: "var(--foreground)" }} />
+        <Line type="monotone" dataKey="ctr" name="CTR" stroke="var(--primary)" strokeWidth={3} dot={{ r: 3, fill: "var(--primary)" }} />
+        <Line type="monotone" dataKey="engagementRate" name="Engagement" stroke="var(--secondary)" strokeWidth={3} dot={{ r: 3, fill: "var(--secondary)" }} />
+        <Line type="monotone" dataKey="roi" name="ROI" stroke="var(--tertiary)" strokeWidth={3} dot={{ r: 3, fill: "var(--tertiary)" }} />
       </LineChart>
     </ResponsiveContainer>
   );
