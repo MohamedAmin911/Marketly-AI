@@ -184,7 +184,7 @@ function buildAssistantMessages(
           : "Be professional, structured, and authoritative. Use confident declarative statements. No fluff.",
         // Tone
         (() => {
-          const tones = Array.isArray(input.brand.tones) ? input.brand.tones as string[] : [];
+          const tones = Array.isArray(input.brand.tone) ? input.brand.tone as string[] : (typeof input.brand.tone === "string" && input.brand.tone ? [input.brand.tone] : []);
           if (tones.length === 0) return "";
           const toneInstructions: Record<string, string> = {
             "Authoritative": "Write with confidence and expertise. Use strong, decisive language.",

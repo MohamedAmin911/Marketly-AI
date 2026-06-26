@@ -31,6 +31,7 @@ export async function createGrowthProjectViaN8n({
             brief: input.brief,
             goal: input.goal,
             industry: input.industry,
+            projectId: requestId,
             userId,
           }),
           headers: {
@@ -43,22 +44,65 @@ export async function createGrowthProjectViaN8n({
         "Growth Engine webhook timed out.",
       );
 
-      const payload = await response.json().catch(() => null);
+      const textPayload = await response.text().catch(() => "");
+      
+      // FIX: Clean up invalid prefixes like '=' that n8n might accidentally output due to template typos
+      let cleanTextPayload = textPayload.trim();
+      if (cleanTextPayload.startsWith("=")) {
+        cleanTextPayload = cleanTextPayload.substring(1).trim();
+      }
+
+      let payload: unknown = null;
+      try {
+        payload = JSON.parse(cleanTextPayload);
+      } catch {
+        payload = cleanTextPayload;
+      }
       if (!response.ok) {
+        console.error("WEBHOOK FAILED HTTP", response.status, response.statusText, payload);
         throw apiErrors.aiProvider("Growth Engine webhook failed.", {
           status: response.status,
           statusText: response.statusText,
+          payload,
         });
       }
 
-      // We assume the n8n webhook succeeded if it returns a 2xx status.
-      // Since the user's workflow saves to MongoDB directly and doesn't return the projectId,
-      // we query MongoDB for the most recently created project for this user.
+      const extractedProject = extractPayload(payload);
+
       const { GrowthProjectModel, connectToDatabase } = await import("@/server/database");
       const { Types } = await import("mongoose");
       
       await connectToDatabase();
+      console.log("================ N8N WEBHOOK RESPONSE ================");
+      console.log("Raw Response Text Snippet:", textPayload.slice(0, 1000));
+      console.log("Extracted Project keys:", extractedProject ? Object.keys(extractedProject) : "null");
+      console.log("Has Strategy:", extractedProject && "strategy" in extractedProject);
+      console.log("======================================================");
+
+      if (extractedProject && typeof extractedProject === "object" && ("strategy" in extractedProject || "campaigns" in extractedProject || "storyboards" in extractedProject)) {
+        // Strip _id and id if they were returned by n8n
+        const { _id, id, ...updateData } = extractedProject as Record<string, unknown>;
+        
+        console.log("Updating Mongo document for requestId:", requestId);
+        const updatedProject = await GrowthProjectModel.findOneAndUpdate(
+          { externalProjectId: requestId, userId },
+          {
+            $set: {
+              ...updateData,
+              status: "completed",
+            }
+          },
+          { new: true, upsert: true }
+        );
+        console.log("MongoDB update success, document ID:", updatedProject._id);
+        
+        return {
+          projectId: String(updatedProject._id),
+          success: true,
+        };
+      }
       
+      console.log("Failed to extract valid project from n8n response, returning latest project.");
       const latestProject = await GrowthProjectModel.findOne({ 
         userId: { $in: [userId, Types.ObjectId.isValid(userId) ? new Types.ObjectId(userId) : userId] } 
       })
@@ -73,13 +117,33 @@ export async function createGrowthProjectViaN8n({
   });
 }
 
-function extractPayload(payload: unknown): unknown {
-  if (Array.isArray(payload)) return extractPayload(payload[0]);
-  if (!isRecord(payload)) return payload;
-  if (isRecord(payload.json)) return payload.json;
-  if (isRecord(payload.project)) return payload.project;
-  if (isRecord(payload.data)) return payload.data;
-  return payload;
+function extractPayload(payload: unknown): Record<string, unknown> | null {
+  if (!payload || typeof payload !== "object") return null;
+  
+  if (Array.isArray(payload)) {
+    for (const item of payload) {
+      const extracted = extractPayload(item);
+      if (extracted) return extracted;
+    }
+    return null;
+  }
+
+  const obj = payload as Record<string, unknown>;
+  
+  // If the current object has the target keys, return it
+  if ("strategy" in obj || "campaigns" in obj || "storyboards" in obj) {
+    return obj;
+  }
+
+  // Otherwise, recursively search its values
+  for (const value of Object.values(obj)) {
+    if (value && typeof value === "object") {
+      const extracted = extractPayload(value);
+      if (extracted) return extracted;
+    }
+  }
+
+  return null;
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
