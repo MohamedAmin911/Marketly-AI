@@ -7,6 +7,9 @@ import {
   getPrimaryImageGenerationPreset,
   encodeImageGenerationState,
 } from "@/features/growth-engine/services/image-generation-adapter";
+import type { GrowthProjectRecord } from "@/features/growth-engine/types";
+
+type SectionStatus = "empty" | "loading" | "success" | "error";
 
 function sectionStatus(
   hasData: boolean,
@@ -46,19 +49,7 @@ export function GrowthEngineResults({
         {liveProject?.strategy ? (
           <div className="space-y-6">
             {/* Check if it's an object with swot/personas, else generic */}
-            {typeof liveProject.strategy === "object" && !Array.isArray(liveProject.strategy) && liveProject.strategy !== null && (() => {
-              const s = liveProject.strategy as Record<string, unknown>;
-              return (
-                "swot" in s ||
-                "personas" in s ||
-                "recommendations" in s ||
-                "roadmap" in s ||
-                "launchPlan" in s ||
-                "launch_plan" in s ||
-                "phases" in s ||
-                Object.keys(s).some((k) => /^phase[_\d]/.test(k))
-              );
-            })() ? (
+            {typeof liveProject.strategy === "object" && !Array.isArray(liveProject.strategy) && liveProject.strategy !== null ? (
               (() => {
                 const strategy = liveProject.strategy as Record<string, unknown>;
                 const personas = Array.isArray(strategy.personas) ? strategy.personas : [];
@@ -245,7 +236,7 @@ export function GrowthEngineResults({
                                   <ul className="grid gap-2 sm:grid-cols-2">
                                     {items.map((action: unknown, j: number) => (
                                       <li key={j} className="flex items-start gap-2 text-xs leading-5 text-muted-foreground">
-                                        <ArrowRight className="mt-0.5 size-3 shrink-0 text-primary/60" />
+                                        <ArrowRight className="mt-[3px] size-3 shrink-0 text-primary/60" />
                                         {String(action)}
                                       </li>
                                     ))}
@@ -314,7 +305,7 @@ export function GrowthEngineResults({
         emptyDescription="Campaign concepts are generated after the strategy stage."
       >
         <div className="grid gap-3 md:grid-cols-2">
-          {liveProject?.campaigns.map((campaign, i) => {
+          {liveProject?.campaigns.map((campaign: unknown, i: number) => {
             const c = campaign as Record<string, unknown>;
             const title = c.title ?? c.name ?? `Campaign ${i + 1}`;
             const objective = c.objective ?? c.description ?? c.hook ?? "";
@@ -356,7 +347,7 @@ export function GrowthEngineResults({
         emptyDescription="Storyboards are generated after campaign concepts are ready."
       >
         <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
-          {liveProject?.storyboards.flatMap((board, campIdx) => {
+          {liveProject?.storyboards.flatMap((board: unknown, campIdx: number) => {
             // Normalize board into flat array of scene objects
             let scenes: Record<string, unknown>[] = [];
             if (Array.isArray(board)) {
@@ -449,11 +440,11 @@ export function GrowthEngineResults({
                     </div>
                   ) : null}
                 </div>
-              ) : null}
-            </div>
-          );
-        });
-      })}
+              );
+            });
+          })}
+        </div>
+      </WorkflowSection>
     </div>
   );
 }
@@ -474,7 +465,34 @@ function RecommendedActions({ actions }: { actions: unknown[] }) {
         </div>
       ))}
     </div>
-  );
+  );}
+
+function toRecord(val: unknown): Record<string, unknown> | null {
+  if (typeof val === "object" && val !== null && !Array.isArray(val)) {
+    return val as Record<string, unknown>;
+  }
+  return null;
 }
 
+function arrayOfRecords(val: unknown): Record<string, unknown>[] {
+  if (Array.isArray(val)) {
+    return val.filter((item) => typeof item === "object" && item !== null && !Array.isArray(item)) as Record<string, unknown>[];
+  }
+  return [];
+}
 
+function arrayOfUnknown(val: unknown): unknown[] {
+  if (Array.isArray(val)) return val;
+  return [];
+}
+
+function stringifyValue(val: unknown): string {
+  if (typeof val === "string") return val;
+  if (typeof val === "object" && val !== null) {
+    const obj = val as Record<string, unknown>;
+    const text = obj.recommendation ?? obj.text ?? obj.title ?? obj.description ?? obj.action ?? obj.suggestion ?? obj.content;
+    if (typeof text === "string") return text;
+    return Object.values(obj).filter((v) => typeof v === "string").join(" — ") || JSON.stringify(val);
+  }
+  return String(val);
+}

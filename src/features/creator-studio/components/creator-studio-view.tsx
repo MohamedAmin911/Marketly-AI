@@ -1,8 +1,10 @@
 "use client";
 
 import { useQueryClient } from "@tanstack/react-query";
-import { Clapperboard, Monitor, Smartphone, WandSparkles } from "lucide-react";
+import { Clapperboard, Monitor, Smartphone, WandSparkles, ImageIcon, FileText, Check, Loader2, Download } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { useMemo, useState, useEffect } from "react";
+import type { ReactNode } from "react";
 
 import { PageShell } from "@/components/layout/page-shell";
 import { Button } from "@/components/ui/button";
@@ -231,7 +233,7 @@ function AspectRatioSelector({ onChange, value }: { onChange: (value: OutputAspe
     description: string;
   }> = [
     { label: "9:16", icon: Smartphone, description: "Stories and reels" },
-    { label: "16:9", icon: Monitor, description: "Banners and widescreen" },
+    { label: "16:9", icon: Monitor, description: "widescreen" },
   ];
 
   return (

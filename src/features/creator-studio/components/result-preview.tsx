@@ -29,8 +29,8 @@ export function ResultPreview({ aspectRatio, generatedImage, loading, productIma
       <div className="border-b border-border p-5 sm:p-6">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
-            <p className="font-display text-2xl font-semibold text-foreground">Live Preview</p>
-            <p className="mt-2 max-w-2xl text-sm leading-6 text-muted">Monitor source assets, selected dimensions, and the generated advertisement output.</p>
+            <p className="font-display text-2xl font-semibold text-foreground">Output</p>
+            {/* <p className="mt-2 max-w-2xl text-sm leading-6 text-muted">Monitor source assets, selected dimensions, and the generated advertisement output.</p> */}
           </div>
           <div className="flex items-center gap-3">
             <span className="rounded-lg border border-border bg-surface px-3 py-2 text-xs font-semibold text-muted">{aspectRatio}</span>
@@ -47,10 +47,10 @@ export function ResultPreview({ aspectRatio, generatedImage, loading, productIma
       </div>
 
       <div className="grid gap-5 p-5 sm:p-6">
-        <div className="grid gap-4 md:grid-cols-2">
+        {/* <div className="grid gap-4 md:grid-cols-2">
           <SourcePreview title="Product Image" imageUrl={productPreview} emptyLabel="Waiting for product" />
           <SourcePreview title="Reference Ad" imageUrl={referencePreview} emptyLabel="Waiting for reference" />
-        </div>
+        </div> */}
 
         <div
           className={cn(
