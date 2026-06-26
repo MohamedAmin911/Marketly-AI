@@ -1,5 +1,6 @@
 import { apiErrors } from "@/server/errors/api-error";
 import { validateUploadFile } from "@/server/security/uploads";
+import { getActiveProviderName } from "@/lib/services/ai-factory";
 import type { CreatorAsset } from "@/server/creator-studio/types";
 import type { CreatorGenerationInput, CreatorUploadInput } from "@/server/creator-studio/schemas";
 import { generateFluxAdvertisement } from "@/lib/api/gradio";
@@ -36,7 +37,7 @@ export async function runCreatorImagePipeline(input: CreatorGenerationInput) {
 
   const productImage = normalizeInputAsset(input.productImage, "Product");
   const referenceImage = input.referenceImage ? normalizeInputAsset(input.referenceImage, "Reference") : undefined;
-  const prompt = buildSdxlPrompt(input);
+  const prompt = buildFluxPrompt(input);
   const adapters = {
     controlNet: input.mode === "placement",
     ipAdapter: input.mode === "reference" && Boolean(referenceImage),
@@ -46,8 +47,10 @@ export async function runCreatorImagePipeline(input: CreatorGenerationInput) {
   const generatedImages: CreatorAsset[] = [];
 
   const generationPromises = Array.from({ length: input.variations }, async (_, index) => {
+    if (index > 0) {
+      await new Promise((resolve) => setTimeout(resolve, 1_000 * index));
+    }
     const rawImage = await generateFluxAdvertisement({
-      hfToken: process.env.HF_TOKEN,
       productImage: productImage.url,
       prompt,
       referenceImage: referenceImage?.url,
@@ -129,14 +132,14 @@ function normalizeInputAsset(asset: CreatorGenerationInput["productImage"], tag:
   };
 }
 
-function buildSdxlPrompt(input: CreatorGenerationInput): string {
+function buildFluxPrompt(input: CreatorGenerationInput): string {
   const adapterNotes = [
     input.mode === "placement" ? "ControlNet placement guidance enabled" : null,
     input.mode === "reference" ? "IP Adapter reference consistency enabled" : null,
   ].filter(Boolean);
 
   return [
-    "SDXL product photography prompt:",
+    "FLUX.2-Klein-LoRA-Studio product photography prompt:",
     input.prompt,
     `Lighting: ${input.lighting}`,
     `Angle: ${input.angle}`,

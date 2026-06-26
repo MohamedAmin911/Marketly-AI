@@ -1,18 +1,19 @@
 import { Types } from "mongoose";
 
-import { FLUX_ADVERTISEMENT_SPACE, generateFluxAdvertisement } from "@/lib/api/gradio";
+import { getAIProvider } from "@/lib/services/ai-factory";
+import { generateFluxAdvertisement } from "@/lib/api/gradio";
 import { updateAIMemory } from "@/server/ai/memory/update-service";
 import { connectToDatabase, GeneratedContentModel } from "@/server/database";
 import { apiErrors } from "@/server/errors/api-error";
 import { uploadRemoteImageToImageKit } from "@/server/services/imagekit-service";
 
 const OPENROUTER_MODEL = "openrouter/owl-alpha";
-const SCENE_COUNT = 3;
+const SCENE_COUNT = 1;
 const GRADIO_TIMEOUT_MS = 240_000;
 
 const STORYBOARD_GENERATION_PROMPT = `You are an elite cinematic commercial director.
 
-Generate a 3-scene luxury advertisement storyboard for the uploaded product.
+Generate a 1-scene luxury advertisement storyboard for the uploaded product.
 
 For each scene generate:
 
@@ -70,8 +71,8 @@ export async function generateCinematicStoryboard({
   productImage: File;
   userId: string;
 }): Promise<CinematicStoryboardResult> {
-  if (!process.env.OPENROUTER_API_KEY) {
-    throw new Error("OPENROUTER_API_KEY is not configured.");
+  if (!getAIProvider().isAvailable()) {
+    throw new Error(`AI provider "${getAIProvider().name}" is not configured. Check your .env.local file.`);
   }
 
   if (!Types.ObjectId.isValid(userId)) {
@@ -84,9 +85,11 @@ export async function generateCinematicStoryboard({
   const uploadedFrames: Array<{ alt: string; mimeType?: string; storageKey: string; url: string }> = [];
 
   for (const [index, draft] of drafts.entries()) {
+    if (index > 0) {
+      await new Promise((resolve) => setTimeout(resolve, 1_500));
+    }
     const imagePrompt = buildStoryboardImagePrompt(draft.imagePrompt);
     const image = await generateFluxAdvertisement({
-      hfToken: process.env.HF_TOKEN,
       productImage,
       prompt: imagePrompt,
       timeoutMs: GRADIO_TIMEOUT_MS,
@@ -128,7 +131,7 @@ export async function generateCinematicStoryboard({
     },
     generationStatus: "completed",
     generationTime: Date.now() - startedAt,
-    modelUsed: `${OPENROUTER_MODEL} + ${FLUX_ADVERTISEMENT_SPACE}`,
+    modelUsed: `${OPENROUTER_MODEL} + FLUX.2-Klein-LoRA-Studio`,
     personalizationUsed: true,
     productImage: {
       alt: productImage.name || "Storyboard product image",
@@ -175,36 +178,22 @@ async function generateStoryboardDrafts(campaignPrompt: string): Promise<SceneDr
 Campaign Prompt:
 ${campaignPrompt}`;
 
-  const response = await fetch(
-    "https://openrouter.ai/api/v1/chat/completions",
-    {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
-        "Content-Type": "application/json",
+  const result = await getAIProvider().generateChatCompletion({
+    model: OPENROUTER_MODEL,
+    messages: [
+      {
+        role: "user",
+        content: prompt,
       },
-      body: JSON.stringify({
-        model: OPENROUTER_MODEL,
-        messages: [
-          {
-            role: "user",
-            content: prompt,
-          },
-        ],
-      }),
-    },
-  );
+    ],
+    maxTokens: 1200,
+    temperature: 0.72,
+    responseFormat: "text",
+  });
 
-  const data = await response.json();
-
-  if (!response.ok) {
-    const message = typeof data?.error?.message === "string" ? data.error.message : "OpenRouter storyboard generation failed.";
-    throw new Error(message);
-  }
-
-  const content = data?.choices?.[0]?.message?.content;
-  if (typeof content !== "string") {
-    throw new Error("OpenRouter returned an empty storyboard response.");
+  const content = result.content;
+  if (!content.trim()) {
+    throw new Error("OpenAI returned an empty storyboard response.");
   }
 
   return normalizeSceneDrafts(parseJsonArray(content));
@@ -217,14 +206,14 @@ function parseJsonArray(content: string): unknown {
     return JSON.parse(trimmed);
   } catch {
     const match = trimmed.match(/\[[\s\S]*\]/);
-    if (!match) throw new Error("OpenRouter response did not include a valid JSON array.");
+    if (!match) throw new Error("OpenAI response did not include a valid JSON array.");
     return JSON.parse(match[0]);
   }
 }
 
 function normalizeSceneDrafts(value: unknown): SceneDraft[] {
   if (!Array.isArray(value)) {
-    throw new Error("OpenRouter response must be a JSON array.");
+    throw new Error("OpenAI response must be a JSON array.");
   }
 
   const scenes = value.slice(0, SCENE_COUNT).map((item, index) => {
@@ -233,12 +222,12 @@ function normalizeSceneDrafts(value: unknown): SceneDraft[] {
     return {
       imagePrompt: cleanText(scene.imagePrompt, `Luxury cinematic product storyboard scene ${index + 1}.`),
       sceneTitle: cleanText(scene.sceneTitle, `Scene ${index + 1}`),
-      script: cleanText(scene.script, "Make every detail matter."),
+      script: cleanText(scene.script , "Make every detail matter."),
     };
   });
 
   if (scenes.length !== SCENE_COUNT) {
-    throw new Error("OpenRouter must return exactly 3 storyboard scenes.");
+    throw new Error(`OpenRouter must return exactly ${SCENE_COUNT} storyboard scene.`);
   }
 
   return scenes;

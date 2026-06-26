@@ -15,7 +15,7 @@ import { SceneCard } from "@/features/storyboard/components/scene-card";
 import { useStoryboardScenes } from "@/features/storyboard/hooks/use-storyboard-scenes";
 import { cn } from "@/lib/utils";
 
-const loadingFrames = [0, 1, 2];
+const loadingFrames = [0];
 
 const styleOptions = [
   "Luxury",
@@ -39,12 +39,19 @@ export function StoryboardView() {
   const [style, setStyle] = useState<StoryboardStyle>("Luxury");
   const [aspectRatio, setAspectRatio] = useState<StoryboardAspect>("16:9");
   const [inputError, setInputError] = useState("");
+  const [videoPrompt, setVideoPrompt] = useState<string | null>(null);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
       const params = new URLSearchParams(window.location.search);
       const prompt = params.get("prompt");
-      if (prompt) setCampaignPrompt(prompt);
+      const urlVideoPrompt = params.get("videoPrompt");
+      if (prompt) {
+        setCampaignPrompt(prompt);
+      }
+      if (urlVideoPrompt) {
+        setVideoPrompt(urlVideoPrompt);
+      }
     }
   }, []);
 
@@ -77,8 +84,8 @@ export function StoryboardView() {
 
   return (
     <PageShell
-      title="Storyboard Director"
-      description="Upload a product, define the campaign, and generate cinematic storyboard frames for production-ready creative direction."
+      title="AI Cinematic Storyboard Director"
+      description="Upload a product, write the campaign intention, and generate one luxury commercial frame with cinematic script lines."
       className="relative overflow-hidden"
     >
       <div className="pointer-events-none absolute inset-x-6 top-24 h-56 grid-field opacity-25" />
@@ -180,11 +187,17 @@ export function StoryboardView() {
                 <span className="rounded-md border border-primary/25 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">{scenes.length}/3 frames</span>
               </div>
             </div>
+         
           </div>
 
-          <div className="grid gap-5 lg:grid-cols-2 2xl:grid-cols-3">
+          <div className="grid gap-5 lg:grid-cols-1">
             {scenes.map((scene, index) => (
-              <SceneCard key={`${scene.sceneTitle}-${index}`} index={index} scene={scene} />
+              <SceneCard
+                key={`${scene.sceneTitle}-${index}`}
+                index={index}
+                scene={scene}
+                videoPrompt={videoPrompt}
+              />
             ))}
 
             {isWorking ? loadingFrames.slice(scenes.length).map((frame) => <StoryboardSkeleton key={frame} index={frame} />) : null}
@@ -231,11 +244,14 @@ function EmptyStoryboard() {
   return (
     <div className="grid min-h-96 place-items-center rounded-lg border border-dashed border-border bg-card p-8 text-center shadow-[var(--panel-shadow)]">
       <div>
-        <div className="mx-auto mb-4 grid size-14 place-items-center rounded-lg border border-primary/20 bg-primary/10 text-primary">
-          <ImageIcon className="size-7" />
-        </div>
-        <h3 className="font-display text-xl font-semibold text-foreground">No storyboard frames yet</h3>
-        <p className="mt-2 max-w-md text-sm leading-6 text-muted">Upload a product, choose a style and aspect ratio, then generate a cinematic three-frame storyboard.</p>
+        <UploadCloud className="mx-auto mb-4 size-10 text-primary" />
+        <h3 className="font-display text-xl font-semibold text-white">
+          No cinematic sequence yet
+        </h3>
+        <p className="mt-2 max-w-md text-sm leading-6 text-muted">
+          Upload a product and describe the campaign moment to generate one
+          premium storyboard frame.
+        </p>
       </div>
     </div>
   );

@@ -73,20 +73,10 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { requireAuth } from "@/server/security/auth-guard";
+import { getAIProvider } from "@/lib/services/ai-factory";
 
 export const POST = async (request: NextRequest) => {
   await requireAuth(request);
-
-  const hfToken = process.env.HF_TOKEN;
-
-  if (!hfToken) {
-    return NextResponse.json(
-      {
-        error: "HF_TOKEN required for voice transcription. Add it to .env.local",
-      },
-      { status: 500 }
-    );
-  }
 
   const formData = await request.formData();
   const audio = formData.get("audio") as Blob | null;
@@ -99,37 +89,10 @@ export const POST = async (request: NextRequest) => {
   }
 
   try {
-    const audioBuffer = Buffer.from(await audio.arrayBuffer());
-
-    const res = await fetch(
-      "https://api-inference.huggingface.co/models/openai/whisper-large-v3",
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${hfToken}`,
-          "Content-Type": audio.type || "audio/webm",
-        },
-        body: audioBuffer,
-      }
-    );
-
-    if (!res.ok) {
-      const err = await res.text();
-      console.error("Hugging Face Whisper failed:", res.status, err);
-
-      return NextResponse.json(
-        { error: "Transcription failed" },
-        { status: 502 }
-      );
-    }
-
-    const data = (await res.json()) as {
-      text?: string;
-      error?: string;
-    };
+    const text = await getAIProvider().transcribeAudio(audio);
 
     return NextResponse.json({
-      text: data.text ?? "",
+      text: text ?? "",
     });
   } catch (error) {
     console.error("Voice transcription error:", error);

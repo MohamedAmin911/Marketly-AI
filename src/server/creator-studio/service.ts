@@ -265,7 +265,7 @@ async function persistCreatorGeneration(record: CreatorGenerationRecord, auth: A
     generationTime: 0,
     lighting: record.lighting,
     mode: record.mode,
-    modelUsed: "stable-diffusion-xl-preview",
+    modelUsed: "FLUX.2-Klein-LoRA-Studio",
     productImage: toAssetRef(record.productImage),
     prompt: record.prompt,
     quality: record.quality,

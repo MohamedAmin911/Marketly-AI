@@ -38,7 +38,7 @@ export async function runWithRetryAndFallback(providers: AIProvider[], request: 
 }
 
 export function choosePrimaryProvider(provider?: string): AIProviderName {
-  if (provider === "openai" || provider === "claude" || provider === "mock" || provider === "huggingface") return provider;
+  if (provider === "openai" || provider === "claude" || provider === "mock") return provider;
   return "mock";
 }
 

@@ -75,7 +75,13 @@ export function SettingsView() {
   function handleLogoUpload(file: File | undefined) {
     if (!file) return;
     const reader = new FileReader();
-    reader.onload = () => update("logoUrl", reader.result as string);
+    reader.onload = () => {
+      setLocal((prev) => ({
+        ...(prev ?? savedBrand),
+        logoUrl: reader.result as string,
+        logoTintEnabled: false,
+      }));
+    };
     reader.readAsDataURL(file);
   }
 
@@ -195,28 +201,62 @@ export function SettingsView() {
               </CardContent>
             </Card>
 
-            <div className="space-y-5">
-              <Card>
-                <CardHeader>
-                  <CardTitle>AI Personality</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  {PERSONALITY_OPTIONS.map((personality) => (
-                    <button
-                      key={personality.value}
-                      type="button"
-                      onClick={() => update("aiPersonality", personality.value)}
-                      className={cn(
-                        "w-full rounded-lg border p-4 text-left transition",
-                        brand.aiPersonality === personality.value ? "border-primary bg-primary/10 shadow-[0_0_0_3px_var(--focus-ring)]" : "border-border bg-surface hover:border-primary/45",
-                      )}
-                    >
-                      <p className="text-sm font-semibold text-foreground">{personality.label}</p>
-                      <p className="mt-1 text-xs text-muted">{personality.desc}</p>
-                    </button>
-                  ))}
-                </CardContent>
-              </Card>
+        <aside className="space-y-5">
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between w-full">
+                <CardTitle>Brand Mark</CardTitle>
+
+                {brand.logoUrl ? (
+                  <label className="flex items-center gap-2 text-xs text-muted cursor-pointer">
+                    <span>Color tint</span>
+                    <Switch
+                      checked={brand.logoTintEnabled ?? false}
+                      onCheckedChange={(v) => update("logoTintEnabled", v)}
+                      aria-label="Toggle logo color tint"
+                    />
+                  </label>
+                ) : null}
+              </div>
+            </CardHeader>
+            <CardContent className="flex flex-col items-center gap-4">
+              {brand.logoUrl ? (
+                <div className="relative size-32 rounded-lg border border-white/10 overflow-hidden cursor-pointer"
+                  style={{ backgroundColor: brand.primaryColor + "15" }}
+                  onClick={() => logoInputRef.current?.click()}>
+                  <img src={brand.logoUrl} alt="Brand logo" className="size-full object-contain p-2" />
+
+                  {brand.logoTintEnabled ? (
+                    <div
+                      className="absolute inset-0 mix-blend-color pointer-events-none"
+                      style={{
+                        background: `linear-gradient(135deg, ${brand.primaryColor}, ${brand.secondaryColor})`,
+                        maskImage: `url(${brand.logoUrl})`,
+                        maskSize: "contain",
+                        maskRepeat: "no-repeat",
+                        maskPosition: "center",
+                        WebkitMaskImage: `url(${brand.logoUrl})`,
+                        WebkitMaskSize: "contain",
+                        WebkitMaskRepeat: "no-repeat",
+                        WebkitMaskPosition: "center",
+                      }}
+                    />
+                  ) : null}
+                </div>
+              ) : (
+                <div className="grid size-32 place-items-center rounded-lg border cursor-pointer transition-colors"
+                  style={{ borderColor: brand.primaryColor + "44", background: `linear-gradient(135deg, ${brand.primaryColor}18, #00000050)` }}
+                  onClick={() => logoInputRef.current?.click()}>
+                  <div className="size-12 rotate-45 rounded-xl border border-white/20 bg-black/30" />
+                </div>
+              )}
+              <Button variant="secondary" size="sm" type="button" onClick={() => logoInputRef.current?.click()}>
+                {brand.logoUrl ? "Change logo" : "Upload logo"}
+              </Button>
+              <input ref={logoInputRef} type="file" className="hidden" accept="image/*,.svg,image/svg+xml" onChange={(e) => handleLogoUpload(e.target.files?.[0])} />
+              <p className="text-center font-mono text-[10px] uppercase tracking-[0.1em] text-muted">SVG or PNG transparent — color tint requires transparent background</p>
+            </CardContent>
+          </Card>
 
               <Card>
                 <CardHeader>

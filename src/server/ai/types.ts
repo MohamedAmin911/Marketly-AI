@@ -1,10 +1,10 @@
 import type { z } from "zod";
 
-export type AIProviderName = "mock" | "openai" | "claude" | "huggingface";
+export type AIProviderName = "huggingface" | "mock" | "openai" | "claude";
+
+export type HuggingFaceTask = "image-to-video" | "text-generation" | "text-to-image" | "text-to-video";
 
 export type AICapability = "text" | "image" | "video";
-
-export type HuggingFaceTask = "text-generation" | "text-to-image" | "image-to-video" | "text-to-video";
 
 export type AIWorkflowName =
   | "creator-studio"
@@ -36,8 +36,8 @@ export type AIModelRequest = {
   messages: AIMessage[];
   model?: string;
   responseFormat?: "json" | "text";
-  temperature?: number;
   task?: HuggingFaceTask;
+  temperature?: number;
 };
 
 export type AIModelResponse = {

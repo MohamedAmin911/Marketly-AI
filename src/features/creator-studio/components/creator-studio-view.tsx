@@ -1,10 +1,8 @@
 "use client";
 
 import { useQueryClient } from "@tanstack/react-query";
-import { Check, Clapperboard, Download, FileText, ImageIcon, Loader2, Monitor, Smartphone } from "lucide-react";
-import type { LucideIcon } from "lucide-react";
-import type { ReactNode } from "react";
-import { useMemo, useState } from "react";
+import { Clapperboard, Monitor, Smartphone, WandSparkles } from "lucide-react";
+import { useMemo, useState, useEffect } from "react";
 
 import { PageShell } from "@/components/layout/page-shell";
 import { Button } from "@/components/ui/button";
@@ -17,47 +15,19 @@ import { cn } from "@/lib/utils";
 type OutputAspectRatio = "9:16" | "16:9";
 type StepState = "complete" | "current" | "pending";
 
-const BASE_PROMPT = `The FIRST uploaded image is the target product.
+const BASE_PROMPT = `product_swap: start with the reference advertisement (Picture 2) as the base image, keeping its lighting, environment, and background. Remove the original product from Picture 2 completely and replace it with the target product (Picture 1).
 
-The SECOND uploaded image is the reference advertisement.
+FROM PICTURE 2 (strictly preserve):
+- Scene: lighting conditions, shadows, highlights, color temperature, environment, background
+- Product positioning: exact placement, rotation angle, perspective, scale
+- Atmosphere: advertisement style, text placement, overall composition
 
-Replace ONLY the original product in the SECOND image with the product from the FIRST image.
+FROM PICTURE 1 (strictly preserve identity):
+- Product structure: exact shape, proportions, physical dimensions
+- All product features: original branding, logos, materials, textures, specific design details
+- Colors: exact color palette of the target product
 
-Do NOT redesign the advertisement.
-Do NOT change the scene.
-Do NOT create a new composition.
-
-Keep the SECOND image almost identical:
-- same background
-- same road
-- same sky
-- same lighting
-- same shadows
-- same reflections
-- same camera angle
-- same composition
-- same perspective
-- same atmosphere
-- same advertisement style
-- same text/logo placement
-
-ONLY swap the original product with the product from the FIRST image.
-
-The inserted product must preserve exactly:
-- original shape
-- original proportions
-- original colors
-- original materials
-- original details
-- original branding
-
-The final image must look like the original advertisement professionally photographed with the new product naturally integrated into the exact same scene.
-
-Ultra realistic.
-Photorealistic.
-Commercial advertising photography.
-Natural reflections and shadows.
-Highly detailed.`;
+The replaced product must seamlessly match Picture 2's lighting and atmosphere while maintaining the complete identity and details from Picture 1. High quality, photorealistic, commercial advertising photography, sharp details, 4k.`;
 
 export function CreatorStudioView() {
   const queryClient = useQueryClient();
@@ -68,6 +38,15 @@ export function CreatorStudioView() {
   const [generatedImage, setGeneratedImage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const urlPrompt = params.get("prompt");
+      if (urlPrompt) {
+        setCustomPrompt(urlPrompt);
+      }
+    }
+  }, []);
 
   const finalPrompt = useMemo(() => {
     const trimmedPrompt = customPrompt.trim();

@@ -67,7 +67,7 @@ export const aiGenerationRequestSchema = z.object({
   mode: z.enum(["campaign", "image", "strategy", "video"]),
   model: z.string().min(2).max(200).optional(),
   prompt: z.string().min(8).max(4000),
-  provider: z.enum(["mock", "openai", "claude", "huggingface"]).default("mock"),
+  provider: z.enum(["huggingface", "mock", "openai", "claude"]).default("openai"),
   task: z.enum(["text-generation", "text-to-image", "image-to-video", "text-to-video"]).optional(),
   template: z.enum([
     "luxury-ads",
@@ -114,7 +114,7 @@ export const assistantChatRequestSchema = z.object({
   imageData: z.string().optional(), // base64 data URL for image analysis
   message: z.string().trim().min(1).max(4000),
   model: z.string().trim().min(2).max(200).optional(),
-  provider: z.enum(["mock", "openai", "claude", "huggingface"]).default("mock"),
+  provider: z.enum(["huggingface", "mock", "openai", "claude"]).default("openai"),
   temperature: z.coerce.number().min(0).max(2).default(0.55),
   wantAudio: z.boolean().default(false),
 });
@@ -135,7 +135,7 @@ export const assistantChatResponseSchema = z.object({
   memoryUsed: z.boolean(),
   audio: z.string().optional(),
   model: z.string(),
-  provider: z.enum(["openai", "openrouter"]),
+  provider: z.enum(["huggingface", "openai", "openrouter"]),
   recommendations: z.array(z.never()).default([]),
   response: z.string(),
   sources: z.array(assistantChatSourceSchema).default([]),

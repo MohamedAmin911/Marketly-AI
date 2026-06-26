@@ -1,8 +1,15 @@
 "use client";
 
-import { Clock3, Download, Film, Frame, ImagePlus, Loader2, Monitor, Play, RectangleVertical, RefreshCw, Sparkles, UploadCloud, WandSparkles } from "lucide-react";
-import type { LucideIcon } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import {
+  Download,
+  Film,
+  Loader2,
+  Play,
+  RefreshCw,
+  Sparkles,
+  UploadCloud,
+} from "lucide-react";
+import { useMemo, useState, useEffect } from "react";
 
 import { PageShell } from "@/components/layout/page-shell";
 import { Button } from "@/components/ui/button";
@@ -40,7 +47,36 @@ export function VideoGeneratorView() {
   const [duration, setDuration] = useState<DurationOption>("10s");
   const [aspectRatio, setAspectRatio] = useState<AspectOption>("16:9");
   const [formError, setFormError] = useState("");
-  const productPreview = useObjectUrl(productFile);
+  const productPreview = useMemo(
+    () => (productFile ? URL.createObjectURL(productFile) : ""),
+    [productFile],
+  );
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const urlPrompt = params.get("prompt");
+      const urlImage = params.get("imageUrl");
+
+      if (urlPrompt) {
+        setPrompt(urlPrompt);
+      }
+
+      if (urlImage) {
+        fetch(urlImage)
+          .then((res) => res.blob())
+          .then((blob) => {
+            let ext = "png";
+            if (blob.type === "image/jpeg") ext = "jpg";
+            else if (blob.type === "image/webp") ext = "webp";
+            
+            const file = new File([blob], `generated-scene.${ext}`, { type: blob.type });
+            setProductFile(file);
+          })
+          .catch((err) => console.error("Failed to load image from URL:", err));
+      }
+    }
+  }, []);
   const canGenerate = Boolean(productFile && prompt.trim() && !isRendering);
 
   const finalPrompt = useMemo(() => {

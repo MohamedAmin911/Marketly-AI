@@ -19,7 +19,7 @@ type ChatMessage = {
 
 type ChatProviderResult = {
   model: string;
-  provider: "openai" | "openrouter";
+  provider: "huggingface" | "openai" | "openrouter";
   text: string;
 };
 
@@ -40,11 +40,12 @@ export type AIResponseSource = {
 export type AIResponseResult = {
   actions: string[];
   answer: string;
+  audio?: string;
   cards: [];
   followUps: string[];
   memoryUsed: boolean;
   model: string;
-  provider: "openai" | "openrouter";
+  provider: "huggingface" | "openai" | "openrouter";
   recommendations: [];
   response: string;
   sources: AIResponseSource[];
@@ -310,6 +311,8 @@ async function safelySearchMemory(input: { brandId?: string; query: string; user
   }
 }
 
+const HF_CHAT_MODEL = "mistralai/Mixtral-8x7B-Instruct-v0.1";
+
 async function callAssistantModel(
   messages: ChatMessage[],
   options: {
@@ -323,7 +326,7 @@ async function callAssistantModel(
     try {
       return await requestOpenRouterChat(messages, options);
     } catch (error) {
-      if (!env.OPENAI_API_KEY && error instanceof ApiError && error.code === "RATE_LIMITED") throw error;
+      if (!env.OPENAI_API_KEY && !env.HF_TOKEN && !env.HUGGINGFACE_API_KEY && error instanceof ApiError && error.code === "RATE_LIMITED") throw error;
       failures.push(error instanceof Error ? error.message : String(error));
       logger.warn("ai.assistant.openrouter_failed", { errorMessage: failures.at(-1) });
     }
@@ -334,8 +337,23 @@ async function callAssistantModel(
       return await requestOpenAIChat(messages, options);
     } catch (error) {
       failures.push(error instanceof Error ? error.message : String(error));
-      if (error instanceof ApiError) throw error;
-      throw apiErrors.aiProvider("OpenAI assistant generation failed.", error);
+      if (!env.HF_TOKEN && !env.HUGGINGFACE_API_KEY) {
+        if (error instanceof ApiError) throw error;
+        throw apiErrors.aiProvider("OpenAI assistant generation failed.", error);
+      }
+      logger.warn("ai.assistant.openai_failed", { errorMessage: failures.at(-1) });
+    }
+  }
+
+  if (env.HF_TOKEN || env.HUGGINGFACE_API_KEY) {
+    try {
+      return await requestHuggingFaceChat(messages, options);
+    } catch (error) {
+      failures.push(error instanceof Error ? error.message : String(error));
+      logger.warn("ai.assistant.huggingface_failed", { errorMessage: failures.at(-1) });
+      if (failures.length > 0) {
+        throw apiErrors.aiProvider(`AI assistant generation failed. ${failures.join(" ")}`);
+      }
     }
   }
 
@@ -343,7 +361,56 @@ async function callAssistantModel(
     throw apiErrors.aiProvider(`AI assistant generation failed. ${failures.join(" ")}`);
   }
 
-  throw apiErrors.aiProvider("Configure OPENROUTER_API_KEY or OPENAI_API_KEY to use the AI assistant.");
+  throw apiErrors.aiProvider("Configure OPENROUTER_API_KEY, OPENAI_API_KEY, or HF_TOKEN to use the AI assistant.");
+}
+
+async function requestHuggingFaceChat(
+  messages: ChatMessage[],
+  options: {
+    model?: string;
+    temperature: number;
+  },
+): Promise<ChatProviderResult> {
+  const apiKey = env.HF_TOKEN ?? env.HUGGINGFACE_API_KEY;
+  if (!apiKey) throw apiErrors.aiProvider("Hugging Face API key is not configured.");
+
+  const model = options.model ?? HF_CHAT_MODEL;
+
+  const promptText = messages
+    .map((msg) => {
+      const prefix = msg.role === "system" ? "System:" : msg.role === "assistant" ? "Assistant:" : "User:";
+      const content = typeof msg.content === "string" ? msg.content : msg.content.map((c) => (c.type === "text" ? c.text : "")).join(" ");
+      return `${prefix} ${content}`;
+    })
+    .join("\n\n") + "\n\nAssistant:";
+
+  const response = await fetch(`https://api-inference.huggingface.co/models/${model}`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      inputs: promptText,
+      parameters: {
+        max_new_tokens: 800,
+        return_full_text: false,
+        temperature: options.temperature ?? 0.7,
+      },
+    }),
+  });
+
+  if (!response.ok) {
+    if (response.status === 429) throw apiErrors.rateLimited(60);
+    const errorBody = await response.text().catch(() => "");
+    throw apiErrors.aiProvider(`Hugging Face request failed with status ${response.status}. ${errorBody}`);
+  }
+
+  const result = await response.json() as Array<{ generated_text?: string }>;
+  const text = result[0]?.generated_text?.trim();
+  if (!text) throw apiErrors.aiProvider("Hugging Face returned an empty response.");
+
+  return { model, provider: "huggingface", text };
 }
 
 async function requestOpenRouterChat(
