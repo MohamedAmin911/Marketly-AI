@@ -184,7 +184,7 @@ export function StoryboardView() {
               <div className="flex flex-wrap gap-2">
                 <span className="rounded-md border border-border bg-surface px-3 py-1 text-xs font-semibold text-muted">{style}</span>
                 <span className="rounded-md border border-border bg-surface px-3 py-1 text-xs font-semibold text-muted">{aspectRatio}</span>
-                <span className="rounded-md border border-primary/25 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">{scenes.length}/3 frames</span>
+                {/* <span className="rounded-md border border-primary/25 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">{scenes.length}/3 frames</span> */}
               </div>
             </div>
          

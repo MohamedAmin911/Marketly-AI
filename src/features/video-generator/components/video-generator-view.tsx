@@ -8,7 +8,14 @@ import {
   RefreshCw,
   Sparkles,
   UploadCloud,
+  Monitor,
+  RectangleVertical,
+  WandSparkles,
+  ImagePlus,
+  Clock3,
+  Frame,
 } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { useMemo, useState, useEffect } from "react";
 
 import { PageShell } from "@/components/layout/page-shell";
@@ -30,7 +37,7 @@ const stylePresets = [
   "Futuristic Ad",
 ];
 
-const durationOptions = ["6s", "10s", "15s"] as const;
+const durationOptions = ["5s", "10s", "15s"] as const;
 const aspectOptions = [
   { label: "16:9", icon: Monitor, description: "Landscape" },
   { label: "9:16", icon: RectangleVertical, description: "Vertical" },
@@ -156,9 +163,9 @@ export function VideoGeneratorView() {
                 </div>
               </PanelSection>
 
-              <PanelSection title="Duration" icon={Clock3}>
+              {/* <PanelSection title="Duration" icon={Clock3}>
                 <SegmentedOptions value={duration} options={durationOptions} onChange={setDuration} />
-              </PanelSection>
+              </PanelSection> */}
 
               <PanelSection title="Aspect Ratio" icon={Frame}>
                 <div className="grid grid-cols-2 gap-2">
@@ -194,7 +201,7 @@ export function VideoGeneratorView() {
             </div>
           </aside>
 
-          <VideoPreview video={video} isRendering={isRendering} selectedStyle={selectedStyle} duration={duration} aspectRatio={aspectRatio} onDownload={downloadExport} />
+          <VideoPreview video={video} isRendering={isRendering} selectedStyle={selectedStyle} duration={"5s"} aspectRatio={aspectRatio} onDownload={downloadExport} />
         </div>
 
         <SavedRenders history={history} isLoading={isHistoryLoading} onOpen={setVideo} onDownload={downloadVideo} />

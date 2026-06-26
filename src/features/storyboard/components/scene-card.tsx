@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, Copy, Download, Loader2, Quote, X, Film } from "lucide-react";
+import { Check, Copy, Download, Loader2, Quote, X, Film, Video } from "lucide-react";
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";

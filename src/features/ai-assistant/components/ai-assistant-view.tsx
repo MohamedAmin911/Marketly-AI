@@ -73,8 +73,8 @@ export function AiAssistantView() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isListening, setIsListening] = useState(false);
  
-// const recognitionRef = useRef<unknown>(null);
-function toggleVoice() {
+  const recognitionRef = useRef<unknown>(null);
+  function toggleVoice() {
   const SR =
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (window as any).SpeechRecognition ||
