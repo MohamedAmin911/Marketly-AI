@@ -216,3 +216,17 @@ h6 {
     transition-duration: 0.01ms !important;
   }
 }
+
+.logo-dark {
+  display: block;
+}
+.logo-light {
+  display: none;
+}
+
+.light .logo-dark {
+  display: none !important;
+}
+.light .logo-light {
+  display: block !important;
+}
