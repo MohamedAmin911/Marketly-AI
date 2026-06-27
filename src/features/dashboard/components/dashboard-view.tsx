@@ -53,7 +53,7 @@ export function DashboardView() {
 
           <section aria-labelledby="dashboard-kpis">
             <SectionHeader title="Performance Snapshot" description="A quick read on workspace volume and available analytics." />
-            <div id="dashboard-kpis" className="grid gap-4 sm:grid-cols-2 xl:grid-cols-6">
+            <div id="dashboard-kpis" className="grid gap-4 sm:grid-cols-3">
               {kpis.map((kpi) => (
                 <KpiCard key={kpi.label} {...kpi} />
               ))}
@@ -68,13 +68,13 @@ export function DashboardView() {
                     <CardTitle>Growth Performance</CardTitle>
                     <p className="mt-1 text-sm leading-6 text-muted">Recent output momentum based on saved projects, campaigns, assets, storyboards, and videos.</p>
                   </div>
-                  <div className="flex gap-2" aria-label="Chart range">
+                  {/* <div className="flex gap-2" aria-label="Chart range">
                     {["7D", "30D", "90D"].map((item) => (
                       <Button key={item} variant={item === "30D" ? "default" : "secondary"} size="sm" className="h-8 min-h-8 px-3" type="button">
                         {item}
                       </Button>
                     ))}
-                  </div>
+                  </div> */}
                 </CardHeader>
                 <CardContent>
                   {data.growthTrend.length > 0 ? (
@@ -144,7 +144,6 @@ function DashboardHero({ metrics, recentGenerations }: { metrics: Metric[]; rece
             <p className="text-xs font-semibold uppercase text-muted">Workspace Pulse</p>
             <div className="mt-4 grid grid-cols-2 gap-3">
               <MiniStat label="Projects" value={projects} />
-              <MiniStat label="Campaigns" value={campaigns} />
             </div>
           </div>
 
@@ -189,7 +188,7 @@ function KpiCard({ description, icon: Icon, label, tone = "neutral", value }: Kp
   const toneClass = tone === "success" ? "text-primary" : tone === "warning" ? "text-tertiary" : tone === "danger" ? "text-red-200" : "text-muted";
 
   return (
-    <Card className="min-h-36">
+    <Card className="min-h-36 w-full">
       <CardContent className="flex h-full flex-col justify-between gap-5">
         <div className="flex items-start justify-between gap-3">
           <p className="text-xs font-semibold uppercase text-muted">{label}</p>
@@ -263,13 +262,13 @@ function buildKpis(metrics: Metric[], recentGenerations: DashboardGeneration[]):
       tone: projects?.tone,
       value: projects?.value ?? "0",
     },
-    {
-      description: campaigns?.delta ?? "Campaign records",
-      icon: Megaphone,
-      label: "Campaigns",
-      tone: campaigns?.tone,
-      value: campaigns?.value ?? "0",
-    },
+    // {
+    //   description: campaigns?.delta ?? "Campaign records",
+    //   icon: Megaphone,
+    //   label: "Campaigns",
+    //   tone: campaigns?.tone,
+    //   value: campaigns?.value ?? "0",
+    // },
     {
       description: generatedAssets?.delta ?? "Saved AI outputs",
       icon: Sparkles,
@@ -284,19 +283,19 @@ function buildKpis(metrics: Metric[], recentGenerations: DashboardGeneration[]):
       tone: videosCount > 0 ? "success" : "neutral",
       value: videosCount.toLocaleString(),
     },
-    {
-      description: ctr?.delta ?? "No analytics recorded yet",
-      icon: Gauge,
-      label: "CTR",
-      tone: ctr?.tone,
-      value: ctr?.value ?? "0%",
-    },
-    {
-      description: "ROI data is not recorded in the current summary",
-      icon: PieChart,
-      label: "ROI",
-      value: "0%",
-    },
+    // {
+    //   description: ctr?.delta ?? "No analytics recorded yet",
+    //   icon: Gauge,
+    //   label: "CTR",
+    //   tone: ctr?.tone,
+    //   value: ctr?.value ?? "0%",
+    // },
+    // {
+    //   description: "ROI data is not recorded in the current summary",
+    //   icon: PieChart,
+    //   label: "ROI",
+    //   value: "0%",
+    // },
   ];
 }
 

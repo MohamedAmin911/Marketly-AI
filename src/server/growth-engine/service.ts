@@ -28,13 +28,22 @@ export async function buildGrowthEngineProject(input: GrowthEngineRequestInput, 
       productImage = await uploadProductImage(input);
     }
 
+    // Create the initial draft shell so it exists in the database
+    // This allows n8n to update it via findOneAndUpdate or fallback logic
+    let project: Awaited<ReturnType<typeof getGrowthProjectForUser>> | null = await upsertGrowthProjectShell({
+      input,
+      productImage,
+      projectId: requestId,
+      status: "draft",
+      userId: auth.user.sub,
+    }) as Awaited<ReturnType<typeof getGrowthProjectForUser>> | null;
+
     const n8nResult = await createGrowthProjectViaN8n({
       input,
       requestId,
       userId: auth.user.sub,
     });
 
-    let project: Awaited<ReturnType<typeof getGrowthProjectForUser>> | null = null;
     try {
       project = await getGrowthProjectForUser(n8nResult.projectId, auth.user.sub);
     } catch {
@@ -81,7 +90,7 @@ export async function buildGrowthEngineProject(input: GrowthEngineRequestInput, 
       input,
       lastError: error instanceof Error ? error.message : String(error),
       productImage,
-      projectId: crypto.randomUUID(),
+      projectId: requestId,
       status: "draft",
       userId: auth.user.sub,
     });

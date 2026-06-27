@@ -80,26 +80,32 @@ export async function createGrowthProjectViaN8n({
       console.log("======================================================");
 
       if (extractedProject && typeof extractedProject === "object" && ("strategy" in extractedProject || "campaigns" in extractedProject || "storyboards" in extractedProject)) {
-        // Strip _id and id if they were returned by n8n
-        const { _id, id, ...updateData } = extractedProject as Record<string, unknown>;
+        // Strip _id, id, and userId if they were returned by n8n
+        const { _id, id, userId: n8nUserId, ...updateData } = extractedProject as Record<string, unknown>;
         
         console.log("Updating Mongo document for requestId:", requestId);
         const updatedProject = await GrowthProjectModel.findOneAndUpdate(
-          { externalProjectId: requestId, userId },
+          { 
+            externalProjectId: requestId, 
+            userId: { $in: [userId, Types.ObjectId.isValid(userId) ? new Types.ObjectId(userId) : userId] } 
+          },
           {
             $set: {
               ...updateData,
               status: "completed",
             }
           },
-          { new: true, upsert: true }
+          { new: true }
         );
-        console.log("MongoDB update success, document ID:", updatedProject._id);
-        
-        return {
-          projectId: String(updatedProject._id),
-          success: true,
-        };
+        if (updatedProject) {
+          console.log("MongoDB update success, document ID:", updatedProject._id);
+          return {
+            projectId: String(updatedProject._id),
+            success: true,
+          };
+        } else {
+          console.log("MongoDB update returned null, document might have been deleted concurrently.");
+        }
       }
       
       console.log("Failed to extract valid project from n8n response, returning latest project.");
@@ -108,6 +114,44 @@ export async function createGrowthProjectViaN8n({
       })
         .sort({ _id: -1 })
         .lean();
+
+      if (latestProject && String(latestProject.externalProjectId) !== requestId) {
+        console.log("Merging latest N8N inserted project with original request document:", requestId);
+        
+        const originalDoc = await GrowthProjectModel.findOne({ 
+          externalProjectId: requestId, 
+          userId: { $in: [userId, Types.ObjectId.isValid(userId) ? new Types.ObjectId(userId) : userId] } 
+        }).lean();
+        
+        if (originalDoc) {
+          const updated = await GrowthProjectModel.findOneAndUpdate(
+            { _id: originalDoc._id },
+            { 
+               $set: { 
+                 status: "completed",
+                 campaigns: latestProject.campaigns || [],
+                 storyboards: latestProject.storyboards || [],
+                 strategy: latestProject.strategy || null,
+                 marketingAngles: latestProject.marketingAngles || [],
+                 competitors: latestProject.competitors || [],
+                 personas: latestProject.personas || []
+               } 
+            },
+            { new: true }
+          );
+          
+          if (String(originalDoc._id) !== String(latestProject._id)) {
+            await GrowthProjectModel.deleteOne({ _id: latestProject._id });
+          }
+          
+          return {
+            projectId: String(updated?._id || originalDoc._id),
+            success: true,
+          };
+        }
+      } else if (latestProject) {
+        await GrowthProjectModel.updateOne({ _id: latestProject._id }, { $set: { status: "completed" } });
+      }
 
       return {
         projectId: String(latestProject?.projectId || latestProject?._id || ""),

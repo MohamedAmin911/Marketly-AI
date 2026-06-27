@@ -16,7 +16,7 @@ function SidebarContent() {
 
   return (
     <div className="flex h-full flex-col">
-      <div className="flex h-16 items-center justify-between border-b border-border px-4">
+      <div className="flex h-16 items-center justify-between px-4 mb-3">
         <BrandMark />
         <button className="rounded-lg p-2 text-muted transition-colors hover:bg-card hover:text-foreground lg:hidden" onClick={() => setSidebarOpen(false)} aria-label="Close navigation">
           <X className="size-5" />
