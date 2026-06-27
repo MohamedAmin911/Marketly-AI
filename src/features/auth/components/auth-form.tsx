@@ -22,7 +22,7 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
   return (
     <div>
       <div className="text-center">
-        <h1 className="font-display text-3xl font-semibold text-white">{isSignup ? "Request Access" : "Welcome Back"}</h1>
+        <h1 className="font-display text-3xl font-semibold text-white">{isSignup ? "Create Account" : "Welcome Back"}</h1>
         <p className="mt-2 text-sm text-muted">{isSignup ? "Create a workspace for your AI marketing team." : "Sign in to continue to your dashboard."}</p>
       </div>
 
@@ -94,7 +94,7 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
       <p className="mt-7 text-center text-sm text-muted">
         {isSignup ? "Already have access?" : "Don't have an account?"}{" "}
         <Link href={isSignup ? "/login" : "/signup"} className="font-semibold text-primary hover:text-cyan-glow">
-          {isSignup ? "Sign in" : "Request access"}
+          {isSignup ? "Sign in" : "Create Account"}
         </Link>
       </p>
     </div>

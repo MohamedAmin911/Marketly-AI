@@ -28,10 +28,11 @@ export function useAuthForm(mode: AuthMode) {
     try {
       if (isSignup) {
         await signup(values as SignupFormValues);
+        window.location.href = "/login";
       } else {
         await login(values as LoginFormValues);
+        window.location.href = "/dashboard";
       }
-      router.push("/dashboard");
     } catch (error) {
       setServerError(error instanceof Error ? error.message : "We could not complete authentication. Check your credentials and try again.");
     }

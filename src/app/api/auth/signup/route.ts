@@ -15,7 +15,8 @@ export const POST = createApiHandler(
     });
     const response = jsonSuccess({ user: result.user }, meta);
 
-    setAuthCookies(response, result.tokens);
+    // Do not set cookies on signup, require manual login
+    // setAuthCookies(response, result.tokens);
 
     return response;
   },

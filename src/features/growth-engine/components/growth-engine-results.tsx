@@ -175,7 +175,7 @@ export function GrowthEngineResults({
                           {personas.map((persona: Record<string, unknown>, i: number) => (
                             <div key={i} className="group flex flex-col rounded-lg border border-primary/15 bg-gradient-to-b from-primary/[0.05] to-transparent p-4">
                               <p className="font-mono text-[10px] text-primary/50">PERSONA {i + 1}</p>
-                              <p className="mt-1 font-semibold text-white group-hover:text-primary transition-colors">{String(persona.name)}</p>
+                              <p className="mt-1 font-semibold text-foreground group-hover:text-primary transition-colors">{String(persona.name)}</p>
                               <p className="mt-2 text-xs leading-5 text-muted-foreground">{String(persona.description ?? persona.bio ?? persona.role ?? persona.details ?? persona.summary ?? persona.background ?? "")}</p>
                             </div>
                           ))}
@@ -226,7 +226,7 @@ export function GrowthEngineResults({
                                 <div key={i} className="relative overflow-hidden rounded-lg border border-primary/15 bg-primary/[0.03] p-5">
                                   <div className="absolute left-0 top-0 h-full w-1 bg-primary/40" />
                                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-3 gap-2">
-                                    <h5 className="font-semibold text-white">{label}</h5>
+                                    <h5 className="font-semibold text-foreground">{label}</h5>
                                     {timeline && (
                                       <span className="inline-flex rounded-full bg-primary/10 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-primary">
                                         {timeline}
@@ -317,7 +317,7 @@ export function GrowthEngineResults({
                 className="rounded-lg border border-primary/15 bg-primary/[0.04] p-4"
               >
                 <Rocket className="mb-2 size-4 text-primary" />
-                <p className="text-sm font-semibold text-white">
+                <p className="text-sm font-semibold text-foreground">
                   {String(title)}
                 </p>
                 {platform ? (
@@ -394,7 +394,7 @@ export function GrowthEngineResults({
                     </div>
                   </div>
 
-                  <p className="text-xs font-semibold text-white/90">{title}</p>
+                  <p className="text-xs font-semibold text-foreground/90">{title}</p>
 
                   {/* Generated image if available */}
                   {imageUrl && imageUrl !== "undefined" ? (
