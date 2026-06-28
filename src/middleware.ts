@@ -16,6 +16,10 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL("/dashboard", request.url));
   }
 
+  if (pathname === "/" && (accessToken || refreshToken)) {
+    return NextResponse.redirect(new URL("/dashboard", request.url));
+  }
+
   const response = NextResponse.next();
 
   response.headers.set("X-Content-Type-Options", "nosniff");

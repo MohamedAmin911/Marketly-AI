@@ -22,7 +22,7 @@ export function Topbar() {
     try {
       await fetch("/api/auth/logout", { method: "POST" });
     } finally {
-      window.location.href = "/login";
+      window.location.href = "/";
     }
   };
 
