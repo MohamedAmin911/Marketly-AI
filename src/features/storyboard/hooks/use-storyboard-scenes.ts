@@ -27,7 +27,10 @@ export function useStoryboardScenes() {
         setScenes((current) => [...current, scene]);
       }
 
-      await queryClient.invalidateQueries({ queryKey: ["dashboard-summary"] });
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["dashboard-summary"] }),
+        queryClient.invalidateQueries({ queryKey: ["billing"] }),
+      ]);
       setIsRevealing(false);
     },
   });

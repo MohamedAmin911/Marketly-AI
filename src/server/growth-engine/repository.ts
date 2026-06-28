@@ -112,9 +112,15 @@ export async function getGrowthProjectForUser(projectId: string, userId: string)
 
   console.log("[DEBUG getGrowthProjectForUser] called with projectId=", projectId, "userId=", userId);
 
+  const userObjectId = Types.ObjectId.isValid(userId) ? new Types.ObjectId(userId) : null;
+  const userFilter = userObjectId
+    ? { userId: { $in: [userObjectId, userId] } }
+    : { userId };
+
   // Strategy 1: Find directly by the projectId field (set by n8n workflow)
   if (projectId && projectId !== "latest") {
     const byProjectId = await GrowthProjectModel.findOne({
+      ...userFilter,
       $or: [
         { projectId },
         { externalProjectId: projectId },
@@ -128,10 +134,6 @@ export async function getGrowthProjectForUser(projectId: string, userId: string)
   }
 
   // Strategy 2: Find by userId with campaign data
-  const userObjectId = Types.ObjectId.isValid(userId) ? new Types.ObjectId(userId) : null;
-  const userFilter = userObjectId
-    ? { userId: { $in: [userObjectId, userId] } }
-    : { userId };
 
   // Count all docs for this user to understand what's in DB
   const allDocs = await GrowthProjectModel.find(userFilter).select("_id projectId externalProjectId campaigns status userId").lean();

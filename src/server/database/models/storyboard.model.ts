@@ -60,7 +60,6 @@ const storyboardSchema = new Schema<IStoryboard>(
 );
 
 storyboardSchema.index({ userId: 1, projectId: 1, createdAt: -1 });
-storyboardSchema.index({ campaignId: 1 });
 addBasePlugins(storyboardSchema);
 
 export const StoryboardModel = (mongoose.models.Storyboard as Model<IStoryboard>) ?? mongoose.model<IStoryboard>("Storyboard", storyboardSchema);

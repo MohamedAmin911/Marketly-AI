@@ -26,6 +26,7 @@ export function useVideoRender() {
         queryClient.invalidateQueries({ queryKey: ["video-history"] }),
         queryClient.invalidateQueries({ queryKey: ["dashboard-summary"] }),
         queryClient.invalidateQueries({ queryKey: ["dashboard-generations"] }),
+        queryClient.invalidateQueries({ queryKey: ["billing"] }),
       ]);
     },
   });

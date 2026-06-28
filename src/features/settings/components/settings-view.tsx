@@ -34,6 +34,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useBrand, type BrandData } from "@/features/settings/hooks";
 import { cn } from "@/lib/utils";
 import { useUiStore } from "@/store/ui-store";
+import { BillingTab } from "@/features/billing/components/billing-tab";
 
 const TONE_OPTIONS = ["Authoritative", "Playful", "Minimalist", "Energetic", "Technical & Precise"];
 const INDUSTRY_OPTIONS = ["Marketing & Advertising", "B2B SaaS", "E-Commerce", "FinTech", "Healthcare", "Real Estate", "Education", "Other"];
@@ -244,13 +245,7 @@ export function SettingsView() {
         </TabsContent>
 
         <TabsContent value="billing">
-          <PlaceholderGrid
-            cards={[
-              { icon: BadgeDollarSign, title: "Current Plan", description: "Review plan limits, usage, and available upgrade paths for Marketly AI." },
-              { icon: Check, title: "Usage Summary", description: "Track generation, storage, and export activity once billing metrics are connected." },
-              { icon: KeyRound, title: "Payment & Invoices", description: "Billing methods and invoice history will appear here when available." },
-            ]}
-          />
+          <BillingTab />
         </TabsContent>
 
         <TabsContent value="integrations">

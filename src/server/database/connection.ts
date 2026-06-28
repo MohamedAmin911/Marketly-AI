@@ -32,6 +32,13 @@ export async function connectToDatabase(uri = process.env.MONGODB_URI): Promise<
   cache.conn = await cache.promise;
   logger.info("database.connected");
 
+  try {
+    const { seedDatabase } = await import("./seeder");
+    await seedDatabase();
+  } catch (err) {
+    logger.warn("database.seed.import.failed", { error: err });
+  }
+
   return cache.conn;
 }
 

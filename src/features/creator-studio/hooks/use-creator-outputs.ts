@@ -27,7 +27,10 @@ export function useCreatorOutputs() {
     onMutate: () => setError(""),
     onSuccess: async (generation) => {
       setActiveGeneration(generation);
-      await queryClient.invalidateQueries({ queryKey: ["creator-history"] });
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["creator-history"] }),
+        queryClient.invalidateQueries({ queryKey: ["billing"] })
+      ]);
     },
   });
 

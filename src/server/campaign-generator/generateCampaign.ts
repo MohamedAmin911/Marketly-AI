@@ -8,6 +8,7 @@ import { buildSocialCampaignMessages } from "@/server/campaign-generator/prompts
 import { socialCampaignOutputSchema, type SocialCampaignGenerationInput } from "@/server/campaign-generator/validators";
 import { uploadFileToImageKit } from "@/server/services/imagekit-service";
 import { validateUploadFile } from "@/server/security/uploads";
+import { CreditsService } from "@/server/services/billing/credits.service";
 
 export async function generateAndPersistCampaign(input: SocialCampaignGenerationInput, userId: string) {
   const objectId = toObjectId(userId);
@@ -15,6 +16,9 @@ export async function generateAndPersistCampaign(input: SocialCampaignGeneration
 
   await validateUploadFile(input.productImage);
   await assertImageReadable(input.productImage);
+
+  await connectToDatabase();
+  await CreditsService.deductCredits(userId, 2, "campaign_generator", "Generated social campaign");
 
   const [productAsset, textResult] = await Promise.all([
     uploadFileToImageKit({

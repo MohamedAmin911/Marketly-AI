@@ -8,42 +8,53 @@ import { Button } from "@/components/ui/button";
 
 const TIERS = [
   {
+    name: "Free",
+    price: "$0",
+    description: "Perfect for getting started and exploring AI tools.",
+    features: [
+      "50 Lifetime Credits",
+      "Ad Studio",
+      "Image Generation",
+      "Video Generation",
+    ],
+    cta: "Start Free",
+    highlight: false,
+  },
+  {
     name: "Starter",
     price: "$49",
-    description: "Perfect for solo creators and small businesses.",
+    description: "For solo creators and small businesses.",
     features: [
-      "10 AI Campaigns / month",
-      "5 Video Storyboards / month",
-      "Basic AI Image Generation",
-      "Standard Support",
+      "500 Credits / month",
+      "Everything in Free",
+      "AI Assistant",
+      "Email Support",
     ],
-    cta: "Start Free Trial",
+    cta: "Start Trial",
     highlight: false,
   },
   {
     name: "Pro",
-    price: "$149",
+    price: "$99",
     description: "For marketing teams scaling their growth.",
     features: [
-      "Unlimited AI Campaigns",
-      "Unlimited Video Storyboards",
-      "Advanced Photorealistic Images",
-      "AI Growth Engine Access",
+      "1,500 Credits / month",
+      "Growth Engine",
+      "Analytics Dashboard",
       "Priority Support",
     ],
     cta: "Get Pro",
     highlight: true,
   },
   {
-    name: "Enterprise",
-    price: "Custom",
+    name: "Business",
+    price: "$249",
     description: "Dedicated AI models for large agencies.",
     features: [
-      "Custom Brand Fine-tuning",
+      "4,000 Credits / month",
       "API Access",
+      "Commercial Rights",
       "Dedicated Account Manager",
-      "White-label Reports",
-      "SLA Guarantee",
     ],
     cta: "Contact Sales",
     highlight: false,
@@ -63,7 +74,7 @@ export function PricingSection() {
           </p>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-7xl mx-auto">
           {TIERS.map((tier, idx) => (
             <motion.div
               key={tier.name}
@@ -71,7 +82,7 @@ export function PricingSection() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-100px" }}
               transition={{ duration: 0.5, delay: idx * 0.1 }}
-              className={`relative glass-panel rounded-2xl p-8 flex flex-col ${
+              className={`relative glass-panel rounded-2xl p-6 flex flex-col ${
                 tier.highlight ? "border-primary shadow-[0_0_40px_rgba(34,197,94,0.15)] scale-105 z-10 bg-primary/[0.02]" : "border-border/50"
               }`}
             >
@@ -85,7 +96,7 @@ export function PricingSection() {
                 <h3 className="text-xl font-semibold text-foreground mb-2">{tier.name}</h3>
                 <div className="flex items-baseline gap-1 mb-2">
                   <span className="text-4xl font-bold text-foreground">{tier.price}</span>
-                  {tier.price !== "Custom" && <span className="text-muted text-sm">/mo</span>}
+                  {tier.price !== "$0" && <span className="text-muted text-sm">/mo</span>}
                 </div>
                 <p className="text-muted text-sm">{tier.description}</p>
               </div>
@@ -104,7 +115,7 @@ export function PricingSection() {
                 className={`w-full rounded-full ${tier.highlight ? "neon-gradient shadow-glow" : "bg-surface hover:bg-card border-border"}`}
                 asChild
               >
-                <Link href="/signup">{tier.cta}</Link>
+                <Link href="/dashboard">{tier.cta}</Link>
               </Button>
             </motion.div>
           ))}

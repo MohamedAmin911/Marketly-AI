@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { Types } from "mongoose";
+import { CreditsService } from "@/server/services/billing/credits.service";
 
 import { buildMemoryContext, injectMemoryGuidance } from "@/server/ai/memory/memory-builder";
 import { connectToDatabase, GeneratedContentModel } from "@/server/database";
@@ -137,7 +138,12 @@ export async function retryCreatorGeneration(generationId: string, auth: AuthCon
   );
 }
 
+
 async function runGeneration(input: CreatorGenerationInput, auth: AuthContext): Promise<CreatorGenerationRecord> {
+  // Deduct credits before generation (1 credit per image variation)
+  const creditsCost = input.variations || 1;
+  await CreditsService.deductCredits(auth.user.sub, creditsCost, "creator_studio", `Generated ${creditsCost} ad asset(s)`);
+
   const memory = await buildMemoryContext(auth.user.sub, input.brandId);
   const enrichedInput = {
     ...input,

@@ -4,12 +4,36 @@ import { AUTH_PROVIDERS, PLAN_TYPES, THEMES, USER_ROLES, USER_STATUSES, type Aut
 import type { BaseEntity, ObjectId } from "@/server/database/types";
 import { addBasePlugins, assetRefSchema, schemaOptions, softDeleteFields } from "@/server/database/schemas/fragments";
 
-export interface UsageLimits {
-  aiTokensPerMonth: number;
-  campaignsPerMonth: number;
-  imagesPerMonth: number;
-  storageGb: number;
-  videosPerMonth: number;
+export interface IUserSubscription {
+  plan: PlanType;
+  status: SubscriptionStatus | "free";
+  startedAt: Date;
+  expiresAt?: Date;
+  renewsAt?: Date;
+  billingCycle?: BillingCycle;
+  monthlyCredits: number;
+  monthlyCreditsRemaining: number;
+  purchasedCredits: number;
+}
+
+export interface IUserFeatures {
+  growthEngine: boolean;
+  analytics: boolean;
+  aiAssistant: boolean;
+  priority: boolean;
+  api: boolean;
+  commercial: boolean;
+}
+
+export interface IUserUsage {
+  totalCreditsUsed: number;
+  monthlyCreditsUsed: number;
+  purchasedCreditsUsed: number;
+  aiRequests: number;
+  growthRuns: number;
+  analyticsRuns: number;
+  projectsCreated: number;
+  lastReset?: Date;
 }
 
 export interface RefreshTokenSession {
@@ -30,7 +54,9 @@ export interface IUser extends BaseEntity {
   bio?: string;
   brands: ObjectId[];
   campaigns: ObjectId[];
-  currentPlan: PlanType;
+  subscription: IUserSubscription;
+  features: IUserFeatures;
+  usage: IUserUsage;
   email: string;
   emailVerified: boolean;
   failedLoginAttempts: number;
@@ -51,18 +77,47 @@ export interface IUser extends BaseEntity {
   subscriptionId?: ObjectId;
   theme: Theme;
   timezone: string;
-  usageLimits: UsageLimits;
   username: string;
   verificationToken?: string;
 }
 
-const usageLimitsSchema = new Schema<UsageLimits>(
+const userSubscriptionSchema = new Schema<IUserSubscription>(
   {
-    aiTokensPerMonth: { default: 50_000, min: 0, type: Number },
-    campaignsPerMonth: { default: 5, min: 0, type: Number },
-    imagesPerMonth: { default: 100, min: 0, type: Number },
-    storageGb: { default: 5, min: 0, type: Number },
-    videosPerMonth: { default: 10, min: 0, type: Number },
+    plan: { default: "free", enum: PLAN_TYPES, type: String },
+    status: { default: "free", type: String },
+    startedAt: { default: () => new Date(), type: Date },
+    expiresAt: { type: Date },
+    renewsAt: { type: Date },
+    billingCycle: { type: String },
+    monthlyCredits: { default: 50, min: 0, type: Number },
+    monthlyCreditsRemaining: { default: 50, min: 0, type: Number },
+    purchasedCredits: { default: 0, min: 0, type: Number },
+  },
+  { _id: false },
+);
+
+const userFeaturesSchema = new Schema<IUserFeatures>(
+  {
+    growthEngine: { default: false, type: Boolean },
+    analytics: { default: false, type: Boolean },
+    aiAssistant: { default: false, type: Boolean },
+    priority: { default: false, type: Boolean },
+    api: { default: false, type: Boolean },
+    commercial: { default: false, type: Boolean },
+  },
+  { _id: false },
+);
+
+const userUsageSchema = new Schema<IUserUsage>(
+  {
+    totalCreditsUsed: { default: 0, min: 0, type: Number },
+    monthlyCreditsUsed: { default: 0, min: 0, type: Number },
+    purchasedCreditsUsed: { default: 0, min: 0, type: Number },
+    aiRequests: { default: 0, min: 0, type: Number },
+    growthRuns: { default: 0, min: 0, type: Number },
+    analyticsRuns: { default: 0, min: 0, type: Number },
+    projectsCreated: { default: 0, min: 0, type: Number },
+    lastReset: { type: Date },
   },
   { _id: false },
 );
@@ -90,7 +145,9 @@ const userSchema = new Schema<IUser>(
     bio: { maxlength: 500, trim: true, type: String },
     brands: [{ ref: "Brand", type: Schema.Types.ObjectId }],
     campaigns: [{ ref: "Campaign", type: Schema.Types.ObjectId }],
-    currentPlan: { default: "free", enum: PLAN_TYPES, type: String },
+    subscription: { default: () => ({}), type: userSubscriptionSchema },
+    features: { default: () => ({}), type: userFeaturesSchema },
+    usage: { default: () => ({}), type: userUsageSchema },
     email: { lowercase: true, maxlength: 254, required: true, trim: true, type: String },
     emailVerified: { default: false, type: Boolean },
     failedLoginAttempts: { default: 0, min: 0, type: Number },
@@ -111,7 +168,6 @@ const userSchema = new Schema<IUser>(
     subscriptionId: { ref: "Subscription", type: Schema.Types.ObjectId },
     theme: { default: "dark", enum: THEMES, type: String },
     timezone: { default: "UTC", maxlength: 80, trim: true, type: String },
-    usageLimits: { default: () => ({}), type: usageLimitsSchema },
     username: { lowercase: true, maxlength: 40, minlength: 3, required: true, trim: true, type: String },
     verificationToken: { select: false, type: String },
   },
@@ -121,7 +177,7 @@ const userSchema = new Schema<IUser>(
 userSchema.index({ email: 1 }, { partialFilterExpression: { isDeleted: false }, unique: true });
 userSchema.index({ username: 1 }, { partialFilterExpression: { isDeleted: false }, unique: true });
 userSchema.index({ createdAt: -1 });
-userSchema.index({ status: 1, currentPlan: 1 });
+userSchema.index({ status: 1, "subscription.plan": 1 });
 addBasePlugins(userSchema);
 
 export const UserModel = (mongoose.models.User as Model<IUser>) ?? mongoose.model<IUser>("User", userSchema);
