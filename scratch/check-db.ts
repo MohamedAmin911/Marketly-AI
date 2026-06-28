@@ -3,10 +3,24 @@ import { serializeGrowthProject } from "../src/server/growth-engine/repository";
 
 async function run() {
   await connectToDatabase();
-  const project = await GrowthProjectModel.findOne({
-    _id: "6a2c7e85ba99ec6e3bc01fc4"
-  }).lean();
-  console.log("Project storyboards:", JSON.stringify(project?.storyboards, null, 2));
+  const mongoose = await import("mongoose");
+  
+  const brokenDoc = await GrowthProjectModel.findOne({ _id: "6a3f1e4dcfa042748e05cf04" }).lean();
+  
+  if (brokenDoc) {
+    await GrowthProjectModel.updateOne(
+      { _id: brokenDoc._id },
+      { $set: { 
+          brandName: "Heritage Collection",
+          industry: "Luxury Watches",
+          goal: "Launch new collection",
+          brief: "Exclusive 100-year anniversary collection",
+          audience: "Watch enthusiasts"
+        } 
+      }
+    );
+    console.log("Fixed broken document!");
+  }
   process.exit(0);
 }
 
