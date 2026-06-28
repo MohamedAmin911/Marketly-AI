@@ -22,6 +22,8 @@ type GenerateAdvertisementInput = {
   userId: string;
 };
 
+import { CreditsService } from "@/server/services/billing/credits.service";
+
 export async function generateProductAdvertisement({
   aspectRatio,
   productImage,
@@ -30,6 +32,9 @@ export async function generateProductAdvertisement({
   userId,
 }: GenerateAdvertisementInput) {
   const startedAt = Date.now();
+
+  await connectToDatabase();
+  await CreditsService.deductCredits(userId, 1, "creator_studio", "Generated ad variation in Ad Studio");
 
   const fluxResult = await generateFluxAdvertisement({
     productImage,

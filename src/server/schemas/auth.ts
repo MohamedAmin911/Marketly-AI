@@ -2,7 +2,7 @@ import { z } from "zod";
 
 export const loginRequestSchema = z.object({
   email: z.string().email().max(254).toLowerCase(),
-  password: z.string().min(8).max(128),
+  password: z.string().min(1).max(128),
   remember: z.boolean().optional().default(true),
 });
 

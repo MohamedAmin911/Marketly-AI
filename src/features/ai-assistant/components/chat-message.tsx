@@ -4,6 +4,8 @@
 
 import { Bot, FileText, Volume2 } from "lucide-react";
 import { useState } from "react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
@@ -35,9 +37,12 @@ export function ChatMessage({ message, onSpeak }: { message: ChatMessageType, on
             </div>
           ) : null}
 
-          <p className="text-sm leading-6 text-foreground">{message.content}</p>
+          <div className="text-sm leading-6 text-foreground prose prose-invert max-w-none prose-p:leading-6 prose-pre:bg-black/50 prose-pre:border-white/10">
+            <ReactMarkdown remarkPlugins={[remarkGfm]}>
+              {message.content}
+            </ReactMarkdown>
+          </div>
 
-          {}
           {message.audio ? (
             <audio controls src={message.audio} className="mt-2 w-full rounded-lg" />
           ) : null}

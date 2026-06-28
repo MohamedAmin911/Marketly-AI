@@ -12,14 +12,14 @@ import {
 
 import type { NavItem } from "@/types/navigation";
 
-export const NAV_ITEMS: NavItem[] = [
+export const NAV_ITEMS: (NavItem & { feature?: string })[] = [
   { title: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
   { title: "Ad Studio", href: "/creator-studio", icon: Grid2X2 },
-  { title: "AI Growth Engine", href: "/growth-engine", icon: Rocket },
+  { title: "AI Growth Engine", href: "/growth-engine", icon: Rocket, feature: "growthEngine" },
   { title: "Image Generation", href: "/images", icon: ImageIcon },
   { title: "Video Generation", href: "/videos", icon: Film },
-  { title: "AI Assistant", href: "/ai-assistant", icon: Bot },
-  { title: "Analytics", href: "/analytics", icon: BarChart3 },
+  { title: "AI Assistant", href: "/ai-assistant", icon: Bot, feature: "aiAssistant" },
+  { title: "Analytics", href: "/analytics", icon: BarChart3, feature: "analytics" },
   { title: "Settings", href: "/settings", icon: Settings },
 ];
 

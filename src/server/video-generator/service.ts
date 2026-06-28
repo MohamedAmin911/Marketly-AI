@@ -10,6 +10,7 @@ import { validateUploadFile } from "@/server/security/uploads";
 import { uploadFileToImageKit, uploadRemoteImageToImageKit } from "@/server/services/imagekit-service";
 import type { VideoGenerationInput } from "@/server/video-generator/schemas";
 import type { VideoRecord } from "@/server/video-generator/types";
+import { CreditsService } from "@/server/services/billing/credits.service";
 
 const GENERATION_TIMEOUT_MS = 300_000;
 
@@ -21,6 +22,10 @@ export async function generateProductVideo(input: VideoGenerationInput, auth: Au
   await assertImageReadable(input.productImage);
 
   const startedAt = Date.now();
+
+  await connectToDatabase();
+  await CreditsService.deductCredits(userId.toString(), 5, "video_generator", "Generated product video");
+
   const finalPrompt = buildVideoPrompt(input.prompt, input.selectedStyle);
   const [productAsset, wanResult] = await Promise.all([
     uploadFileToImageKit({

@@ -26,6 +26,7 @@ export function useCampaignAds() {
         queryClient.invalidateQueries({ queryKey: ["campaigns"] }),
         queryClient.invalidateQueries({ queryKey: ["dashboard-summary"] }),
         queryClient.invalidateQueries({ queryKey: ["dashboard-generations"] }),
+        queryClient.invalidateQueries({ queryKey: ["billing"] }),
       ]);
     },
   });

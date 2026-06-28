@@ -30,6 +30,8 @@ import { useDashboard } from "@/features/dashboard/hooks/use-dashboard";
 import type { DashboardGeneration } from "@/features/dashboard/services";
 import type { Metric } from "@/types/common";
 
+import { useBilling, type BillingInfo } from "@/features/billing/hooks/use-billing";
+
 const heroActions = [
   { href: "/creator-studio", icon: ImagePlus, label: "Generate Ad" },
   { href: "/growth-engine", icon: Rocket, label: "Build Growth Plan" },
@@ -38,6 +40,8 @@ const heroActions = [
 
 export function DashboardView() {
   const { data, isLoading, isError } = useDashboard();
+  const { billing } = useBilling();
+  
   const metrics = data?.metrics ?? [];
   const recentGenerations = data?.recentGenerations ?? [];
   const kpis = buildKpis(metrics, recentGenerations);
@@ -49,7 +53,7 @@ export function DashboardView() {
       {isError ? <ErrorState message="Dashboard data could not be loaded. Retry from the browser refresh control." /> : null}
       {data ? (
         <div className="space-y-6">
-          <DashboardHero metrics={metrics} recentGenerations={recentGenerations} />
+          <DashboardHero metrics={metrics} recentGenerations={recentGenerations} billing={billing} />
 
           <section aria-labelledby="dashboard-kpis">
             <SectionHeader title="Performance Snapshot" description="A quick read on workspace volume and available analytics." />
@@ -105,7 +109,7 @@ export function DashboardView() {
   );
 }
 
-function DashboardHero({ metrics, recentGenerations }: { metrics: Metric[]; recentGenerations: DashboardGeneration[] }) {
+function DashboardHero({ metrics, recentGenerations, billing }: { metrics: Metric[]; recentGenerations: DashboardGeneration[]; billing: BillingInfo | null | undefined }) {
   const projects = findMetric(metrics, "Projects")?.value ?? "0";
   const campaigns = findMetric(metrics, "Campaigns")?.value ?? "0";
   const latest = recentGenerations[0];
@@ -115,10 +119,17 @@ function DashboardHero({ metrics, recentGenerations }: { metrics: Metric[]; rece
       <div className="grid gap-6 p-5 sm:p-6 lg:grid-cols-[minmax(0,1fr)_24rem] lg:p-8">
         <div className="flex min-h-64 flex-col justify-between">
           <div>
-            <span className="inline-flex items-center gap-2 rounded-md border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
-              <Sparkles className="size-3.5" aria-hidden="true" />
-              Marketly AI Workspace
-            </span>
+            <div className="flex items-center gap-3">
+              <span className="inline-flex items-center gap-2 rounded-md border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
+                <Sparkles className="size-3.5" aria-hidden="true" />
+                Marketly AI Workspace
+              </span>
+              {billing?.subscription?.plan && (
+                <span className="inline-flex items-center gap-2 rounded-md border border-border bg-surface px-3 py-1 text-xs font-semibold text-muted capitalize shadow-sm">
+                  {billing.subscription.plan === "free" ? "Free" : billing.subscription.plan} Plan
+                </span>
+              )}
+            </div>
             <h2 className="mt-5 max-w-3xl font-display text-3xl font-bold text-foreground sm:text-4xl lg:text-5xl">
               Welcome back. Your growth workspace is ready.
             </h2>

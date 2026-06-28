@@ -101,7 +101,10 @@ export function CreatorStudioView() {
       }
 
       setGeneratedImage(imageUrl);
-      await queryClient.invalidateQueries({ queryKey: ["dashboard-summary"] });
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["dashboard-summary"] }),
+        queryClient.invalidateQueries({ queryKey: ["billing"] })
+      ]);
     } catch (generationError) {
       setError(generationError instanceof Error ? generationError.message : "Generation failed");
     } finally {

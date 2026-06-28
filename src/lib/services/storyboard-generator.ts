@@ -6,6 +6,7 @@ import { updateAIMemory } from "@/server/ai/memory/update-service";
 import { connectToDatabase, GeneratedContentModel } from "@/server/database";
 import { apiErrors } from "@/server/errors/api-error";
 import { uploadRemoteImageToImageKit } from "@/server/services/imagekit-service";
+import { CreditsService } from "@/server/services/billing/credits.service";
 
 const OPENROUTER_MODEL = "openrouter/owl-alpha";
 const SCENE_COUNT = 1;
@@ -80,6 +81,9 @@ export async function generateCinematicStoryboard({
   }
 
   const startedAt = Date.now();
+  await connectToDatabase();
+  await CreditsService.deductCredits(userId, 3, "storyboard_generator", "Generated cinematic storyboard");
+
   const drafts = await generateStoryboardDrafts(campaignPrompt);
   const scenes: CinematicStoryboardScene[] = [];
   const uploadedFrames: Array<{ alt: string; mimeType?: string; storageKey: string; url: string }> = [];
@@ -200,7 +204,10 @@ ${campaignPrompt}`;
 }
 
 function parseJsonArray(content: string): unknown {
-  const trimmed = content.trim();
+  // Replace literal control characters (like unescaped newlines and tabs) with spaces
+  // This fixes the "Bad control character in string literal in JSON" error
+  const sanitized = content.replace(/[\x00-\x1F]/g, " ");
+  const trimmed = sanitized.trim();
 
   try {
     return JSON.parse(trimmed);

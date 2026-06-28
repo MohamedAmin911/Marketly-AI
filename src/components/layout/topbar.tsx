@@ -1,7 +1,8 @@
 "use client";
 
-import { Menu, UserRound } from "lucide-react";
+import { Menu, UserRound, Coins } from "lucide-react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
@@ -13,10 +14,12 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useUiStore } from "@/store/ui-store";
+import { useBilling } from "@/features/billing/hooks/use-billing";
 
 export function Topbar() {
   const router = useRouter();
   const toggleSidebar = useUiStore((state) => state.toggleSidebar);
+  const { billing } = useBilling();
 
   const handleSignOut = async () => {
     try {
@@ -25,6 +28,10 @@ export function Topbar() {
       window.location.href = "/";
     }
   };
+
+  const totalCredits = billing?.subscription 
+    ? billing.subscription.monthlyCreditsRemaining + (billing.subscription.purchasedCredits || 0)
+    : 0;
 
   return (
     <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-border bg-background/82 px-4 backdrop-blur-2xl lg:px-6">
@@ -40,6 +47,12 @@ export function Topbar() {
         </Button>
       </div>
       <div className="flex items-center gap-2">
+        {billing?.subscription && (
+          <Link href="/settings?tab=billing" className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-primary/20 bg-primary/10 text-xs font-semibold text-primary transition-colors hover:bg-primary/20 mr-1">
+            <Coins className="size-3.5" />
+            {totalCredits.toLocaleString()} Credits
+          </Link>
+        )}
         <ThemeToggle />
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
