@@ -33,7 +33,7 @@ function SidebarContent() {
           return (
             <Link
               key={item.href}
-              href={isLocked ? "/settings?tab=billing" : item.href}
+              href={isLocked ? "/settings?tab=billing#plans" : item.href}
               onClick={() => setSidebarOpen(false)}
               className={cn(
                 "group relative flex min-h-11 items-center gap-3 rounded-lg border border-transparent px-3 text-sm font-medium transition-all",
@@ -55,7 +55,7 @@ function SidebarContent() {
       {(!billing || billing.subscription?.plan === "free" || billing.subscription?.plan === "starter") && (
         <div className="p-4 mt-auto mb-2">
           <Link
-            href="/settings?tab=billing"
+            href="/settings?tab=billing#plans"
             onClick={() => setSidebarOpen(false)}
             className="flex items-center justify-center gap-2 w-full py-3 px-4 rounded-xl text-sm font-semibold text-primary-foreground neon-gradient shadow-[0_0_20px_rgba(34,197,94,0.3)] hover:shadow-[0_0_30px_rgba(34,197,94,0.5)] transition-all duration-300 transform hover:-translate-y-0.5"
           >

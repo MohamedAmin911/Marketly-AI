@@ -17,7 +17,7 @@ const PARTNERS = [
 
 export function PartnersMarquee() {
   return (
-    <section className="py-12 border-y border-border/50 bg-background overflow-hidden relative">
+    <section id="partners" className="py-12 border-y border-border/50 bg-background overflow-hidden relative">
       {/* Fade edges */}
       <div className="absolute inset-y-0 left-0 w-64 md:w-96 bg-gradient-to-r from-background via-background/80 to-transparent z-20 pointer-events-none" />
       <div className="absolute inset-y-0 right-0 w-64 md:w-96 bg-gradient-to-l from-background via-background/80 to-transparent z-20 pointer-events-none" />
