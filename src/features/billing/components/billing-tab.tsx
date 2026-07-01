@@ -134,7 +134,7 @@ export function BillingTab() {
       </div>
 
       {/* Upgrade Options */}
-      <section>
+      <section id="plans" className="scroll-mt-24">
         <h3 className="mb-4 text-lg font-semibold text-foreground">Available Plans</h3>
         <div className="grid gap-5 md:grid-cols-4">
           {PLANS.map((plan) => (

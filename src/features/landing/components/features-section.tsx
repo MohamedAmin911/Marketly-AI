@@ -80,7 +80,7 @@ export function FeaturesSection() {
           {features.map((feature, idx) => {
             const isEven = idx % 2 === 0;
             return (
-              <div key={idx} className={cn("flex flex-col lg:items-center gap-12 lg:gap-20", isEven ? "lg:flex-row" : "lg:flex-row-reverse")}>
+              <div key={idx} className="grid lg:grid-cols-2 lg:items-center gap-12 lg:gap-24">
                 
                 {/* Text Side */}
                 <motion.div 
@@ -88,7 +88,7 @@ export function FeaturesSection() {
                   whileInView={{ opacity: 1, x: 0 }}
                   viewport={{ once: true, margin: "-100px" }}
                   transition={{ duration: 0.7, type: "spring", bounce: 0.3 }}
-                  className="flex-1 lg:max-w-xl"
+                  className={cn("w-full lg:max-w-xl", isEven ? "lg:justify-self-end" : "lg:order-2 lg:justify-self-start")}
                 >
                   <div className="size-16 rounded-2xl bg-primary/10 flex items-center justify-center mb-6 text-primary border border-primary/20 shadow-[0_0_30px_rgba(34,197,94,0.15)]">
                     <feature.icon className="size-8" />
@@ -104,7 +104,7 @@ export function FeaturesSection() {
                   viewport={{ once: true, margin: "-100px" }}
                   transition={{ duration: 0.7, type: "spring", bounce: 0.3, delay: 0.1 }}
                   whileHover={{ scale: 1.02, transition: { duration: 0.3 } }}
-                  className="flex-1 lg:flex-none lg:w-5/12 relative group mx-auto w-full max-w-2xl lg:max-w-none"
+                  className={cn("w-full max-w-2xl mx-auto lg:max-w-none relative group", isEven ? "lg:order-2" : "lg:order-1")}
                 >
                   <div className="absolute -inset-4 bg-primary/20 blur-3xl rounded-full opacity-0 group-hover:opacity-40 transition-opacity duration-700" />
                   <div className="relative rounded-2xl border border-border/50 bg-card/40 p-2 shadow-[var(--panel-shadow)] backdrop-blur-sm overflow-hidden">

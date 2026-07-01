@@ -19,7 +19,8 @@ import {
   Users,
   Volume2,
 } from "lucide-react";
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 
 import { PageShell } from "@/components/layout/page-shell";
 import { Badge } from "@/components/ui/badge";
@@ -59,6 +60,29 @@ export function SettingsView() {
   const [local, setLocal] = useState<BrandData | null>(null);
   const brand = local ?? savedBrand;
   const logoInputRef = useRef<HTMLInputElement>(null);
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  
+  const queryTab = searchParams.get("tab") as string;
+  const initialTab = tabs.find((t) => t.value === queryTab)?.value ?? "brand";
+  const [activeTab, setActiveTab] = useState<string>(initialTab);
+
+  // Sync state if URL changes externally
+  useEffect(() => {
+    const tabFromUrl = searchParams.get("tab");
+    if (tabFromUrl && tabs.find((t) => t.value === tabFromUrl)) {
+      setActiveTab(tabFromUrl);
+    }
+  }, [searchParams]);
+
+  function handleTabChange(value: string) {
+    setActiveTab(value);
+    
+    // Update URL without a full page reload, maintaining the hash if any
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("tab", value);
+    router.replace(`?${params.toString()}${window.location.hash}`, { scroll: false });
+  }
 
   function update(field: keyof BrandData, value: unknown) {
     setLocal((prev) => ({ ...(prev ?? savedBrand), [field]: value }));
@@ -107,7 +131,7 @@ export function SettingsView() {
         </Button>
       }
     >
-      <Tabs defaultValue="brand" className="space-y-5">
+      <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-5">
         <TabsList className="flex w-full flex-wrap gap-2">
           {tabs.map((tab) => {
             const Icon = tab.icon;
