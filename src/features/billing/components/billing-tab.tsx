@@ -79,7 +79,9 @@ export function BillingTab() {
                   size="sm" 
                   onClick={() => buyCredits(500)}
                   disabled={isBuyingCredits}
+                  className="transition-transform hover:scale-105 active:scale-95"
                 >
+                  {isBuyingCredits ? <Loader2 className="size-4 animate-spin mr-2" /> : null}
                   Buy 500 ($10)
                 </Button>
                 <Button 
@@ -87,7 +89,9 @@ export function BillingTab() {
                   size="sm" 
                   onClick={() => buyCredits(2000)}
                   disabled={isBuyingCredits}
+                  className="transition-transform hover:scale-105 active:scale-95"
                 >
+                  {isBuyingCredits ? <Loader2 className="size-4 animate-spin mr-2" /> : null}
                   Buy 2000 ($35)
                 </Button>
               </div>

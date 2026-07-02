@@ -34,7 +34,7 @@ import { useBilling, type BillingInfo } from "@/features/billing/hooks/use-billi
 
 const heroActions = [
   { href: "/creator-studio", icon: ImagePlus, label: "Generate Ad" },
-  { href: "/growth-engine", icon: Rocket, label: "Build Growth Plan" },
+  { href: "/growth-engine", icon: Rocket, label: "Build Growth Plan", feature: "growthEngine" },
   { href: "/videos", icon: Clapperboard, label: "Create Video" },
 ];
 
@@ -53,7 +53,7 @@ export function DashboardView() {
       {isError ? <ErrorState message="Dashboard data could not be loaded. Retry from the browser refresh control." /> : null}
       {data ? (
         <div className="space-y-6">
-          <DashboardHero metrics={metrics} recentGenerations={recentGenerations} billing={billing} />
+          <DashboardHero metrics={metrics} recentGenerations={recentGenerations} billing={billing} features={billing?.features} />
 
           <section aria-labelledby="dashboard-kpis">
             <SectionHeader title="Performance Snapshot" description="A quick read on workspace volume and available analytics." />
@@ -100,7 +100,7 @@ export function DashboardView() {
 
             <aside className="space-y-5" aria-label="Dashboard activity and actions">
               <RecentActivityTimeline items={timelineItems} />
-              <QuickActionsCard />
+              <QuickActionsCard features={billing?.features} />
             </aside>
           </div>
         </div>
@@ -109,10 +109,14 @@ export function DashboardView() {
   );
 }
 
-function DashboardHero({ metrics, recentGenerations, billing }: { metrics: Metric[]; recentGenerations: DashboardGeneration[]; billing: BillingInfo | null | undefined }) {
+function DashboardHero({ metrics, recentGenerations, billing, features }: { metrics: Metric[]; recentGenerations: DashboardGeneration[]; billing: BillingInfo | null | undefined; features?: Record<string, boolean> }) {
   const projects = findMetric(metrics, "Projects")?.value ?? "0";
   const campaigns = findMetric(metrics, "Campaigns")?.value ?? "0";
   const latest = recentGenerations[0];
+
+  const actions = heroActions.filter(
+    (action) => !action.feature || (features && features[action.feature])
+  );
 
   return (
     <section className="overflow-hidden rounded-lg border border-border bg-card shadow-[0_18px_60px_rgba(0,0,0,0.28)]">
@@ -139,7 +143,7 @@ function DashboardHero({ metrics, recentGenerations, billing }: { metrics: Metri
           </div>
 
           <div className="mt-8 flex flex-wrap gap-3">
-            {heroActions.map((action) => (
+            {actions.map((action) => (
               <Button key={action.href} asChild variant={action.href === "/creator-studio" ? "default" : "secondary"}>
                 <Link href={action.href}>
                   <action.icon className="size-4" />

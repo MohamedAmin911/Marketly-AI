@@ -35,12 +35,17 @@ async function fetchBillingInfo(): Promise<BillingInfo | null> {
 }
 
 async function upgradePlan(planId: string): Promise<void> {
-  const res = await fetch("/api/subscription/upgrade", {
+  const res = await fetch("/api/subscription/checkout", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ planId }),
   });
-  if (!res.ok) throw new Error("Failed to upgrade plan");
+  if (!res.ok) throw new Error("Failed to initiate checkout");
+  const json = await res.json();
+  const url = json.data?.url || json.url;
+  if (url) {
+    window.location.href = url;
+  }
 }
 
 async function buyCredits(amount: number): Promise<void> {
@@ -50,6 +55,11 @@ async function buyCredits(amount: number): Promise<void> {
     body: JSON.stringify({ amount }),
   });
   if (!res.ok) throw new Error("Failed to buy credits");
+  const json = await res.json();
+  const url = json.data?.url || json.url;
+  if (url) {
+    window.location.href = url;
+  }
 }
 
 export function useBilling() {

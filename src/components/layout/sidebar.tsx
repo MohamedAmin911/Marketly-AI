@@ -40,7 +40,7 @@ function SidebarContent() {
                 active 
                   ? "border-primary/30 bg-primary/10 text-foreground shadow-[inset_2px_0_0_var(--primary),0_0_0_1px_var(--focus-ring)]"
                   : "text-muted hover:border-border hover:bg-card hover:text-foreground",
-                isLocked && "opacity-60 cursor-not-allowed hover:bg-transparent hover:border-transparent"
+                isLocked && "opacity-60 cursor-pointer hover:opacity-100 hover:bg-transparent hover:border-transparent"
               )}
             >
               {active && !isLocked ? <span className="absolute left-0 top-2 h-7 w-1 rounded-full neon-gradient" /> : null}
