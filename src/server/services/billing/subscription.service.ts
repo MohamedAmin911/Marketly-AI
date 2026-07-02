@@ -89,7 +89,12 @@ export class SubscriptionService {
   /**
    * Upgrades or downgrades a user's plan manually (used directly or via webhook)
    */
-  static async applyPlanChange(userId: string, newPlanId: keyof typeof SUBSCRIPTION_PLANS): Promise<void> {
+  static async applyPlanChange(
+    userId: string,
+    newPlanId: keyof typeof SUBSCRIPTION_PLANS,
+    stripeCustomerId?: string,
+    stripeSubscriptionId?: string
+  ): Promise<void> {
     const session = await mongoose.startSession();
     session.startTransaction();
 
@@ -106,6 +111,9 @@ export class SubscriptionService {
       user.subscription.monthlyCreditsRemaining = planConfig.credits;
       user.features = planConfig.features;
       
+      if (stripeCustomerId) user.subscription.stripeCustomerId = stripeCustomerId;
+      if (stripeSubscriptionId) user.subscription.stripeSubscriptionId = stripeSubscriptionId;
+
       // Set billing cycle renewsAt to 1 month from now
       const renewsAt = new Date();
       renewsAt.setMonth(renewsAt.getMonth() + 1);

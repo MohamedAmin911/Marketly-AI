@@ -23,7 +23,7 @@ export const NAV_ITEMS: (NavItem & { feature?: string })[] = [
   { title: "Settings", href: "/settings", icon: Settings },
 ];
 
-export const QUICK_CREATE_ITEMS = [
+export const QUICK_CREATE_ITEMS: (Omit<NavItem, "title"> & { title: string, description: string, feature?: string })[] = [
   {
     title: "Generate Ad",
     description: "Product swap studio",
@@ -47,5 +47,6 @@ export const QUICK_CREATE_ITEMS = [
     description: "Strategy to assets",
     href: "/growth-engine",
     icon: Rocket,
+    feature: "growthEngine",
   },
 ];

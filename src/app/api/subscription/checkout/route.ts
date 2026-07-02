@@ -8,10 +8,10 @@ export const POST = createApiHandler(async ({ request }) => {
   const user = await requireUser(request);
   
   const body = await request.json();
-  const amount = body.amount;
+  const planId = body.planId;
   
-  if (!amount || typeof amount !== "number") {
-    throw new ApiError(400, "Valid amount is required");
+  if (!planId) {
+    throw new ApiError(400, "planId is required");
   }
 
   // Determine domain URL
@@ -20,10 +20,10 @@ export const POST = createApiHandler(async ({ request }) => {
   const protocol = reqHeaders.get("x-forwarded-proto") || (host.includes("localhost") ? "http" : "https");
   const domainUrl = `${protocol}://${host}`;
 
-  const session = await StripeService.createCreditsCheckoutSession(
+  const session = await StripeService.createCheckoutSession(
     user._id.toString(),
     user.email,
-    amount,
+    planId,
     domainUrl
   );
   

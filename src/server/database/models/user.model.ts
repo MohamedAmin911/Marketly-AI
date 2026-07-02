@@ -14,6 +14,8 @@ export interface IUserSubscription {
   monthlyCredits: number;
   monthlyCreditsRemaining: number;
   purchasedCredits: number;
+  stripeCustomerId?: string;
+  stripeSubscriptionId?: string;
 }
 
 export interface IUserFeatures {
@@ -92,6 +94,8 @@ const userSubscriptionSchema = new Schema<IUserSubscription>(
     monthlyCredits: { default: 50, min: 0, type: Number },
     monthlyCreditsRemaining: { default: 50, min: 0, type: Number },
     purchasedCredits: { default: 0, min: 0, type: Number },
+    stripeCustomerId: { type: String, sparse: true },
+    stripeSubscriptionId: { type: String },
   },
   { _id: false },
 );
