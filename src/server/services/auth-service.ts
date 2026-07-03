@@ -6,6 +6,8 @@ import { clearBruteForceLimit, enforceBruteForceLimit } from "@/server/security/
 import { createJwt, verifyJwt } from "@/server/security/jwt";
 import { createOpaqueToken, hashToken } from "@/server/security/tokens";
 import type { ForgotPasswordRequest, LoginRequest, ResetPasswordRequest, SignupRequest } from "@/server/schemas/auth";
+import crypto from "crypto";
+import { sendVerificationEmail } from "@/server/services/mail-service";
 
 const maxFailedLoginAttempts = 5;
 const lockoutMs = 15 * 60 * 1000;
@@ -34,6 +36,7 @@ type AuthUser = {
   status: "active" | "invited" | "suspended" | "deleted";
   tenantId: string;
   username: string;
+  verificationToken?: string;
 };
 
 export type OAuthProvider = "github" | "google";
@@ -54,15 +57,24 @@ const globalForAuth = globalThis as typeof globalThis & {
 const memoryUsers = globalForAuth.marketlyAuthUsers ?? new Map<string, AuthUser>();
 globalForAuth.marketlyAuthUsers = memoryUsers;
 
+export async function verifyEmail(token: string) {
+  const user = await findUserByVerificationToken(token);
+  if (!user) throw apiErrors.badRequest("Invalid or expired verification token.");
+
+  user.emailVerified = true;
+  user.verificationToken = undefined;
+  await persistUser(user);
+
+  return true;
+}
+
 export async function signup(input: SignupRequest, context: AuthRequestContext) {
   const existing = await findUserByEmail(input.email);
   if (existing) throw apiErrors.conflict("An account with this email already exists.");
 
   const user = await createUser(input);
-  const tokens = await issueTokens(user, context, input.remember);
 
   return {
-    tokens,
     user: toPublicUser(user),
   };
 }
@@ -76,6 +88,10 @@ export async function login(input: LoginRequest, context: AuthRequestContext) {
   if (!user || user.authProvider !== "credentials" || !verifyPassword(input.password, user.passwordHash)) {
     if (user) await recordFailedLogin(user);
     throw apiErrors.unauthorized("Invalid email or password.");
+  }
+
+  if (!user.emailVerified) {
+    throw apiErrors.unauthorized("Please verify your email address to log in.");
   }
 
   assertCanLogin(user);
@@ -226,6 +242,8 @@ async function issueTokens(user: AuthUser, context: AuthRequestContext, remember
 
 async function createUser(input: SignupRequest): Promise<AuthUser> {
   const username = createUsername(input.email);
+  const verificationToken = crypto.randomBytes(32).toString("hex");
+
   const user: AuthUser = {
     accountLockedUntil: null,
     authProvider: "credentials",
@@ -240,6 +258,7 @@ async function createUser(input: SignupRequest): Promise<AuthUser> {
     status: "active",
     tenantId: crypto.randomUUID(),
     username,
+    verificationToken,
   };
 
   if (hasDatabase()) {
@@ -254,12 +273,18 @@ async function createUser(input: SignupRequest): Promise<AuthUser> {
       role: user.role,
       status: user.status,
       username,
+      verificationToken,
     });
 
-    return { ...user, id: created._id.toString(), tenantId: created._id.toString() };
+    user.id = created._id.toString();
+    user.tenantId = created._id.toString();
+  } else {
+    memoryUsers.set(user.email, user);
   }
 
-  memoryUsers.set(user.email, user);
+  // Send verification email
+  await sendVerificationEmail(user.email, verificationToken);
+
   return user;
 }
 
@@ -336,6 +361,20 @@ async function findUserByResetToken(token: string): Promise<AuthUser | null> {
 
   await connectToDatabase();
   const user = await UserModel.findOne({ passwordResetToken: tokenHash }).select("+passwordHash +refreshTokens +passwordResetToken +passwordResetExpires").lean<IUser & { _id: unknown }>();
+
+  return user ? fromDbUser(user) : null;
+}
+
+async function findUserByVerificationToken(token: string): Promise<AuthUser | null> {
+  await ensureDemoUser();
+
+  if (!hasDatabase()) {
+    return [...memoryUsers.values()].find((user) => user.verificationToken === token) ?? null;
+  }
+
+  await connectToDatabase();
+  const query = UserModel.findOne({ verificationToken: token });
+  const user = await query.lean<IUser & { _id: unknown }>();
 
   return user ? fromDbUser(user) : null;
 }
@@ -431,6 +470,7 @@ function fromDbUser(user: IUser & { _id: unknown }): AuthUser {
     status: user.status,
     tenantId: id,
     username: user.username,
+    verificationToken: user.verificationToken,
   };
 }
 
