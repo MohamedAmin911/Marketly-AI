@@ -11,13 +11,32 @@ import { useAuthForm, type AuthMode } from "@/features/auth/hooks";
 import type { SignupFormValues } from "@/features/auth/utils/schema";
 
 export function AuthForm({ mode }: { mode: AuthMode }) {
-  const { form, isSignup, onSubmit, serverError } = useAuthForm(mode);
+  const { form, isSignup, isSuccess, onSubmit, serverError } = useAuthForm(mode);
   const [oauthError, setOauthError] = useState<string | null>(null);
   const errors = form.formState.errors;
 
   useEffect(() => {
     setOauthError(new URLSearchParams(window.location.search).get("oauthError"));
   }, []);
+
+  if (isSuccess && isSignup) {
+    return (
+      <div className="text-center space-y-6 py-6">
+        <div className="mx-auto flex size-16 items-center justify-center rounded-full bg-primary/20 text-primary">
+          <Mail className="size-8" />
+        </div>
+        <div>
+          <h1 className="font-display text-3xl font-semibold text-white">Check your email</h1>
+          <p className="mt-4 text-muted max-w-sm mx-auto">
+            We sent a verification link to <span className="font-semibold text-white">{form.getValues().email}</span>. Please check your inbox and click the link to activate your account.
+          </p>
+        </div>
+        <Button variant="outline" asChild className="mt-4">
+          <Link href="/login">Return to login</Link>
+        </Button>
+      </div>
+    );
+  }
 
   return (
     <div>
