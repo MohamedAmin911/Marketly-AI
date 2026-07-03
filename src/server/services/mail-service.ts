@@ -61,3 +61,27 @@ export async function sendVerificationEmail(email: string, token: string) {
     console.log("------------------------------------------------------------------");
   }
 }
+
+export async function sendAdminEmail(email: string, subject: string, message: string) {
+  if (transporter) {
+    try {
+      const fromEmail = gmailUser ? `"Marketly AI Admin" <${gmailUser}>` : process.env.SMTP_FROM_EMAIL || '"Marketly AI Admin" <noreply@marketly.ai>';
+      await transporter.sendMail({
+        from: fromEmail,
+        to: email,
+        subject,
+        text: message,
+      });
+      console.log(`[MailService] Sent admin email to ${email}`);
+    } catch (error) {
+      console.error("[MailService] Failed to send admin email", error);
+      throw error;
+    }
+  } else {
+    console.log("------------------------------------------------------------------");
+    console.log(`[MailService Mock Admin] To: ${email}`);
+    console.log(`[MailService Mock Admin] Subject: ${subject}`);
+    console.log(`[MailService Mock Admin] Message: \n${message}`);
+    console.log("------------------------------------------------------------------");
+  }
+}

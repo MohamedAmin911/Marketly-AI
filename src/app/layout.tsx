@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Inter, JetBrains_Mono, Space_Grotesk } from "next/font/google";
 
 import { Providers } from "./providers";
+import { GlobalToaster } from "@/components/ui/global-toaster";
 import "./globals.css";
 
 const inter = Inter({
@@ -67,6 +68,7 @@ export default function RootLayout({
       </head>
       <body className="min-h-full bg-background text-foreground">
         <Providers>{children}</Providers>
+        <GlobalToaster />
       </body>
     </html>
   );

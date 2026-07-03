@@ -21,6 +21,7 @@ export const NAV_ITEMS: (NavItem & { feature?: string })[] = [
   { title: "AI Assistant", href: "/ai-assistant", icon: Bot, feature: "aiAssistant" },
   { title: "Analytics", href: "/analytics", icon: BarChart3, feature: "analytics" },
   { title: "Settings", href: "/settings", icon: Settings },
+  { title: "Admin Panel", href: "/admin", icon: Settings, role: "admin" },
 ];
 
 export const QUICK_CREATE_ITEMS: (Omit<NavItem, "title"> & { title: string, description: string, feature?: string })[] = [

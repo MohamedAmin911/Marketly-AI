@@ -28,6 +28,7 @@ type AuthUser = {
   failedLoginAttempts: number;
   fullName: string;
   id: string;
+  lastActiveAt?: Date;
   passwordHash?: string;
   passwordResetExpires?: Date;
   passwordResetToken?: string;
@@ -462,6 +463,7 @@ function fromDbUser(user: IUser & { _id: unknown }): AuthUser {
     failedLoginAttempts: user.failedLoginAttempts,
     fullName: user.fullName,
     id,
+    lastActiveAt: user.lastActiveAt,
     passwordHash: user.passwordHash,
     passwordResetExpires: user.passwordResetExpires,
     passwordResetToken: user.passwordResetToken,

@@ -65,6 +65,7 @@ export interface IUser extends BaseEntity {
   fullName: string;
   language: string;
   lastLogin?: Date;
+  lastActiveAt?: Date;
   notificationsEnabled: boolean;
   onboardingCompleted: boolean;
   onboardingStep: number;
@@ -158,6 +159,7 @@ const userSchema = new Schema<IUser>(
     fullName: { maxlength: 140, required: true, trim: true, type: String },
     language: { default: "en", maxlength: 12, trim: true, type: String },
     lastLogin: { type: Date },
+    lastActiveAt: { type: Date },
     notificationsEnabled: { default: true, type: Boolean },
     onboardingCompleted: { default: false, type: Boolean },
     onboardingStep: { default: 0, min: 0, type: Number },
