@@ -132,7 +132,8 @@ h6 {
 :dir(rtl) h4,
 :dir(rtl) h5,
 :dir(rtl) h6,
-:dir(rtl) .font-display {
+:dir(rtl) .font-display,
+:dir(rtl) .font-mono {
   font-family: var(--font-cairo), var(--font-inter), Arial, sans-serif;
 }
 

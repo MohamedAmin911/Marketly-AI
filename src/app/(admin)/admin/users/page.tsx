@@ -12,6 +12,8 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useUiStore } from "@/store/ui-store";
 
+import { useTranslation } from "@/lib/i18n/useTranslation";
+
 async function fetchUsers(search = "") {
   const res = await fetch(`/api/admin/users?search=${encodeURIComponent(search)}`, { credentials: "include" });
   if (!res.ok) throw new Error("Failed to load");
@@ -40,6 +42,7 @@ async function contactUser({ id, subject, message }: { id: string; subject: stri
 }
 
 export default function AdminUsersPage() {
+  const { t } = useTranslation();
   const [search, setSearch] = useState("");
   const [expandedUser, setExpandedUser] = useState<string | null>(null);
   const [contactModalOpen, setContactModalOpen] = useState(false);
@@ -116,8 +119,8 @@ export default function AdminUsersPage() {
     <div className="p-8 space-y-8">
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-display font-bold text-foreground">Users & Subscriptions</h1>
-          <p className="text-muted mt-1">Manage platform users, view usage data, and enforce restrictions.</p>
+          <h1 className="text-3xl font-display font-bold text-foreground">{t("admin.usersTitle")}</h1>
+          <p className="text-muted mt-1">{t("admin.usersDesc")}</p>
         </div>
         <div className="relative w-full md:w-72">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted" />
@@ -164,10 +167,10 @@ export default function AdminUsersPage() {
                     <TableCell className="font-medium text-foreground">{user.fullName}</TableCell>
                     <TableCell className="text-muted">{user.email}</TableCell>
                     <TableCell>
-                      <Badge variant={isSuspended ? "destructive" : "default"}>{user.status}</Badge>
+                      <Badge tone={isSuspended ? "danger" : "default"}>{user.status}</Badge>
                     </TableCell>
                     <TableCell>
-                      <Badge variant={user.role === "admin" ? "default" : "secondary"}>{user.role}</Badge>
+                      <Badge tone={user.role === "admin" ? "success" : "default"}>{user.role}</Badge>
                     </TableCell>
                     <TableCell>
                       <span className="capitalize text-primary font-medium">{user.subscription?.plan || "free"}</span>
@@ -280,7 +283,7 @@ export default function AdminUsersPage() {
             ) : emailStatus === "error" ? (
               <span className="text-red-500 flex items-center text-sm font-medium mr-auto mb-2 sm:mb-0">Failed to send</span>
             ) : null}
-            <Button variant="outline" onClick={() => setContactModalOpen(false)}>Cancel</Button>
+            <Button variant="secondary" onClick={() => setContactModalOpen(false)}>Cancel</Button>
             <Button onClick={handleSendEmail} disabled={emailStatus === "loading" || !emailSubject || !emailMessage}>
               {emailStatus === "loading" ? "Sending..." : "Send Email"}
             </Button>

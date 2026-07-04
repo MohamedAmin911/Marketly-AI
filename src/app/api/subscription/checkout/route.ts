@@ -1,7 +1,7 @@
 import { createApiHandler } from "@/server/http/route-handler";
 import { requireUser } from "@/server/http/subscription-middleware";
 import { StripeService } from "@/server/services/billing/stripe.service";
-import { ApiError } from "@/server/errors/api-error";
+import { apiErrors } from "@/server/errors/api-error";
 import { headers } from "next/headers";
 
 export const POST = createApiHandler(async ({ request }) => {
@@ -11,7 +11,7 @@ export const POST = createApiHandler(async ({ request }) => {
   const planId = body.planId;
   
   if (!planId) {
-    throw new ApiError(400, "planId is required");
+    throw apiErrors.badRequest("planId is required");
   }
 
   // Determine domain URL
@@ -28,7 +28,7 @@ export const POST = createApiHandler(async ({ request }) => {
   );
   
   if (!session.url) {
-    throw new ApiError(500, "Failed to create Stripe checkout session");
+    throw apiErrors.internal("Failed to create Stripe checkout session");
   }
 
   return { success: true, url: session.url };

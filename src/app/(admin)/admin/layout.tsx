@@ -2,11 +2,13 @@ import { redirect } from "next/navigation";
 import { headers } from "next/headers";
 import { Shield } from "lucide-react";
 import { AdminNav } from "./admin-nav";
+import { AdminHeader, AdminFooter } from "./admin-header";
 import { verifyJwt } from "@/server/security/jwt";
 
 // Basic auth check for admin layout
 async function checkAdmin() {
-  const token = headers().get("cookie")?.split("; ").find(r => r.startsWith("marketly_access="))?.split("=")[1];
+  const reqHeaders = await headers();
+  const token = reqHeaders.get("cookie")?.split("; ").find(r => r.startsWith("marketly_access="))?.split("=")[1];
   
   if (!token) return false;
   try {
@@ -27,16 +29,11 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     <div className="flex h-screen w-full bg-background">
       {/* Sidebar */}
       <aside className="flex w-64 flex-col border-r border-border bg-surface">
-        <div className="flex h-16 items-center gap-2 border-b border-border px-6">
-          <Shield className="size-5 text-primary" />
-          <span className="font-bold text-foreground font-display">Marketly Admin</span>
-        </div>
+        <AdminHeader />
         
         <AdminNav />
         
-        <div className="border-t border-border p-4 text-xs text-muted text-center">
-          Admin Portal v1.0
-        </div>
+        <AdminFooter />
       </aside>
 
       {/* Main Content */}

@@ -10,6 +10,8 @@ import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
 import { useUiStore } from "@/store/ui-store";
 
+import { useTranslation } from "@/lib/i18n/useTranslation";
+
 async function createPromoCode(params: any) {
   const res = await fetch("/api/admin/promo", {
     method: "POST",
@@ -21,6 +23,7 @@ async function createPromoCode(params: any) {
 }
 
 export default function AdminPromoPage() {
+  const { t } = useTranslation();
   const [promoPercent, setPromoPercent] = useState("20");
   const [promoDuration, setPromoDuration] = useState("once");
   const [promoCodeName, setPromoCodeName] = useState("");
@@ -50,8 +53,8 @@ export default function AdminPromoPage() {
   return (
     <div className="p-8 space-y-8 max-w-4xl mx-auto">
       <header>
-        <h1 className="text-3xl font-display font-bold text-foreground">Promo Codes</h1>
-        <p className="text-muted mt-1">Generate and manage promotional discounts for Marketing campaigns.</p>
+        <h1 className="text-3xl font-display font-bold text-foreground">{t("admin.promoTitle")}</h1>
+        <p className="text-muted mt-1">{t("admin.promoDesc")}</p>
       </header>
 
       <Card>

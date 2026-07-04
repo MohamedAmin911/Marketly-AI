@@ -9,7 +9,7 @@ export const GET = createApiHandler(async ({ request }) => {
   const reqUser = await requireUser(request);
   
   // Lazily evaluate monthly reset
-  await SubscriptionService.evaluateMonthlyReset(reqUser._id as string);
+  await SubscriptionService.evaluateMonthlyReset(String(reqUser._id));
   
   // Fetch hydrated user to ensure Mongoose defaults (like subscription) are applied
   const user = await UserModel.findById(reqUser._id);

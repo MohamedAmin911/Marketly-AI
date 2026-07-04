@@ -3,12 +3,24 @@ import { Check, Circle, Loader2 } from "lucide-react";
 import type { GrowthEngineStage } from "@/features/growth-engine/types";
 import { cn } from "@/lib/utils";
 
+import { useTranslation } from "@/lib/i18n/useTranslation";
+import type { TranslationKey } from "@/lib/i18n/translations";
+
 const STAGES: GrowthEngineStage[] = [
   "Draft",
   "Strategy Generated",
   "Campaigns Generated",
   "Storyboards Generated",
 ];
+
+const getStageTranslationKey = (stage: GrowthEngineStage): TranslationKey => {
+  switch (stage) {
+    case "Draft": return "common.draft";
+    case "Strategy Generated": return "stage.strategy";
+    case "Campaigns Generated": return "stage.campaigns";
+    case "Storyboards Generated": return "stage.storyboards";
+  }
+};
 
 export function StatusTracker({
   activeStage,
@@ -19,6 +31,7 @@ export function StatusTracker({
   completedStages: GrowthEngineStage[];
   isGenerating?: boolean;
 }) {
+  const { t } = useTranslation();
   const completed = new Set(completedStages);
 
   return (
@@ -45,7 +58,7 @@ export function StatusTracker({
             >
               {isComplete ? <Check className="size-4" /> : isLoading ? <Loader2 className="size-4 animate-spin" /> : <Circle className="size-3" />}
             </span>
-            <span className="font-mono text-[11px] font-semibold uppercase leading-4">{stage}</span>
+            <span className="font-mono text-[11px] font-semibold uppercase leading-4">{t(getStageTranslationKey(stage))}</span>
           </div>
         );
       })}

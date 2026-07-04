@@ -76,7 +76,7 @@ function VerifyEmailContent() {
           <h1 className="font-display text-3xl font-semibold text-white">Verification Failed</h1>
           <p className="text-muted max-w-sm mx-auto">{errorMessage}</p>
           <div className="pt-6">
-            <Button variant="outline" asChild>
+            <Button variant="secondary" asChild>
               <Link href="/login">Return to Login</Link>
             </Button>
           </div>

@@ -3,7 +3,6 @@ import { jsonSuccess } from "@/server/http/responses";
 import { requireAuth, requireRole } from "@/server/security/auth-guard";
 import { UserModel } from "@/server/database/models/user.model";
 import { connectToDatabase } from "@/server/database";
-import { startOfDay, subDays } from "date-fns";
 
 export const GET = createApiHandler(
   async ({ meta, request }) => {

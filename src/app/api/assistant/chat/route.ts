@@ -20,7 +20,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Pre-deduct or check credits
-    await CreditsService.deductCredits(user._id as string, 0.2, "AI Assistant", "Chat Request");
+    await CreditsService.deductCredits(String(user._id), 0.2, "AI Assistant", "Chat Request");
 
     let session;
     if (sessionId) {
