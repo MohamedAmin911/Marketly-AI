@@ -1,6 +1,7 @@
 "use client";
 
 import { Textarea } from "@/components/ui/textarea";
+import { useTranslation } from "@/lib/i18n/useTranslation";
 
 type PromptBoxProps = {
   value: string;
@@ -8,16 +9,18 @@ type PromptBoxProps = {
 };
 
 export function PromptBox({ value, onChange }: PromptBoxProps) {
+  const { t } = useTranslation();
+
   return (
     <div>
       <label htmlFor="additional-instructions" className="sr-only">
-        Additional Instructions
+        {t("studio.instructions")}
       </label>
       <Textarea
         id="additional-instructions"
         value={value}
         onChange={(event) => onChange(event.target.value)}
-        placeholder="Example: preserve the exact headline, make the bottle label face camera, keep reflections natural..."
+        placeholder={t("studio.promptPlaceholder")}
         className="min-h-32"
       />
     </div>

@@ -27,7 +27,7 @@ export function MetricCard({ metric, icon: Icon }: { metric: Metric; icon: Lucid
         <div>
           <p className="font-display text-4xl font-bold text-foreground">{metric.value}</p>
           <Badge tone={metric.tone === "danger" ? "danger" : metric.tone === "warning" ? "warning" : "success"} className="mt-4">
-            <DeltaIcon className="mr-1 size-3" />
+            <DeltaIcon className="me-1 size-3" />
             {metric.delta}
           </Badge>
         </div>

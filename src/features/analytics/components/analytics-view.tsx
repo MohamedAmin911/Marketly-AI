@@ -15,6 +15,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useAnalytics, useAnalyticsIntelligence } from "@/features/analytics/hooks/use-analytics";
 import { defaultAnalyticsFilters } from "@/features/analytics/services";
 import type { AnalyticsFilterState, AnalyticsInsight, AnalyticsMetricCard, AnalyticsRecommendation } from "@/features/analytics/types";
+import { useTranslation } from "@/lib/i18n/useTranslation";
 import { cn } from "@/lib/utils";
 
 const metricIcons: Record<AnalyticsMetricCard["key"], LucideIcon> = {
@@ -42,6 +43,7 @@ const insightTypes = [
 ] as const;
 
 export function AnalyticsView() {
+  const { t } = useTranslation();
   const [filters, setFilters] = useState<AnalyticsFilterState>(defaultAnalyticsFilters);
   const { data, isFetching, isLoading, refetch } = useAnalytics(filters);
   const intelligence = useAnalyticsIntelligence();
@@ -67,17 +69,17 @@ export function AnalyticsView() {
 
   return (
     <PageShell
-      title="Analytics Dashboard"
-      description="Monitor marketing performance, spot risks and opportunities, and export reporting from the existing analytics contract."
+      title={t("analytics.title")}
+      description={t("analytics.description")}
       actions={
         <>
           <Button variant="secondary" onClick={() => refetch()} disabled={isFetching}>
             <RefreshCw className={cn("size-4", isFetching && "animate-spin")} />
-            Refresh
+            {t("common.refresh")}
           </Button>
           <Button variant="secondary" onClick={exportReport} disabled={!data}>
             <Download className="size-4" />
-            Export Report
+            {t("analytics.exportReport")}
           </Button>
         </>
       }
@@ -86,7 +88,7 @@ export function AnalyticsView() {
         <FiltersPanel data={data} filters={filters} updateFilter={updateFilter} />
 
         <section>
-          <SectionHeading title="KPI Cards" description="Core performance indicators across the selected reporting window." />
+          <SectionHeading title={t("analytics.kpiCards")} description={t("analytics.kpiCardsDesc")} />
           <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-7">
             {isLoading
               ? Array.from({ length: 7 }).map((_, index) => <Skeleton key={index} className="h-36 rounded-lg" />)
@@ -95,22 +97,22 @@ export function AnalyticsView() {
         </section>
 
         <section>
-          <SectionHeading title="Charts" description="Visual performance trends, conversion volume, and traffic source distribution." />
+          <SectionHeading title={t("analytics.charts")} description={t("analytics.chartsDesc")} />
           <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_24rem]">
-            <ChartCard title="Trend Analysis" description="CTR, ROI, and engagement rate over time." icon={BarChart3}>
-              {data?.trends.length ? <AnalyticsTrendChart data={data.trends} /> : <ChartEmptyState label="Trend data will appear when analytics events are available." />}
+            <ChartCard title={t("analytics.trendAnalysis")} description={t("analytics.trendAnalysisDesc")} icon={BarChart3}>
+              {data?.trends.length ? <AnalyticsTrendChart data={data.trends} /> : <ChartEmptyState label={t("analytics.trendEmpty")} />}
             </ChartCard>
             <TrafficSourcesCard sources={data?.sources ?? []} isLoading={isLoading} />
           </div>
           <div className="mt-5">
-            <ChartCard title="Conversions" description="Conversion volume across the selected period." icon={Target}>
-              {data?.trends.length ? <PerformanceChart data={data.trends} /> : <ChartEmptyState label="Conversion chart is waiting for report data." />}
+            <ChartCard title={t("analytics.conversions")} description={t("analytics.conversionsDesc")} icon={Target}>
+              {data?.trends.length ? <PerformanceChart data={data.trends} /> : <ChartEmptyState label={t("analytics.conversionEmpty")} />}
             </ChartCard>
           </div>
         </section>
 
         <section>
-          <SectionHeading title="AI Insights" description="Opportunity, risk, trend, and recommendation signals from the analytics intelligence layer." />
+          <SectionHeading title={t("analytics.aiInsights")} description={t("analytics.aiInsightsDesc")} />
           <div className="grid gap-4 lg:grid-cols-4">
             {intelligence.isLoading ? (
               Array.from({ length: 4 }).map((_, index) => <Skeleton key={index} className="h-44 rounded-lg" />)
@@ -140,6 +142,8 @@ function FiltersPanel({
   filters: AnalyticsFilterState;
   updateFilter: (key: keyof AnalyticsFilterState, value: string) => void;
 }) {
+  const { t } = useTranslation();
+
   return (
     <Card>
       <CardHeader>
@@ -148,27 +152,27 @@ function FiltersPanel({
             <Filter className="size-4" />
           </span>
           <div>
-            <CardTitle>Filters</CardTitle>
-            <p className="mt-1 text-sm leading-6 text-muted">Refine analytics by date range, channel, campaign, and status.</p>
+            <CardTitle>{t("analytics.filters")}</CardTitle>
+            <p className="mt-1 text-sm leading-6 text-muted">{t("analytics.filtersDesc")}</p>
           </div>
         </div>
       </CardHeader>
       <CardContent className="grid gap-3 md:grid-cols-4">
-        <FilterSelect label="Date Range" value={filters.range} onChange={(value) => updateFilter("range", value)}>
+        <FilterSelect label={t("analytics.dateRange")} value={filters.range} onChange={(value) => updateFilter("range", value)}>
           {ranges.map((range) => (
             <option key={range.value} value={range.value}>{range.label}</option>
           ))}
         </FilterSelect>
-        <FilterSelect label="Channel" value={filters.channel} onChange={(value) => updateFilter("channel", value)}>
-          <option value="all">All channels</option>
+        <FilterSelect label={t("analytics.channel")} value={filters.channel} onChange={(value) => updateFilter("channel", value)}>
+          <option value="all">{t("analytics.allChannels")}</option>
           {data?.filterOptions.channels.map((channel) => <option key={channel} value={channel}>{channel}</option>)}
         </FilterSelect>
-        <FilterSelect label="Campaign" value={filters.campaign} onChange={(value) => updateFilter("campaign", value)}>
-          <option value="all">All campaigns</option>
+        <FilterSelect label={t("analytics.campaign")} value={filters.campaign} onChange={(value) => updateFilter("campaign", value)}>
+          <option value="all">{t("analytics.allCampaigns")}</option>
           {data?.filterOptions.campaigns.map((campaign) => <option key={campaign} value={campaign}>{campaign}</option>)}
         </FilterSelect>
-        <FilterSelect label="Status" value={filters.status} onChange={(value) => updateFilter("status", value)}>
-          <option value="all">All statuses</option>
+        <FilterSelect label={t("analytics.status")} value={filters.status} onChange={(value) => updateFilter("status", value)}>
+          <option value="all">{t("analytics.allStatuses")}</option>
           {data?.filterOptions.statuses.map((status) => <option key={status} value={status}>{status}</option>)}
         </FilterSelect>
       </CardContent>
@@ -210,14 +214,16 @@ function AnalyticsKpiCard({ metric }: { metric: AnalyticsMetricCard }) {
 }
 
 function TrafficSourcesCard({ isLoading, sources }: { isLoading: boolean; sources: [string, number][] }) {
+  const { t } = useTranslation();
+
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Traffic Sources</CardTitle>
+        <CardTitle>{t("analytics.trafficSources")}</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         {isLoading ? Array.from({ length: 4 }).map((_, index) => <Skeleton key={index} className="h-10 rounded-lg" />) : null}
-        {!isLoading && sources.length === 0 ? <ChartEmptyState label="Traffic source data is not available yet." /> : null}
+        {!isLoading && sources.length === 0 ? <ChartEmptyState label={t("analytics.trafficEmpty")} /> : null}
         {sources.map(([label, value]) => (
           <div key={label} className="rounded-lg border border-border bg-surface p-3">
             <div className="mb-2 flex justify-between gap-3 text-sm">
@@ -250,6 +256,8 @@ function ChartCard({ children, description, icon: Icon, title }: { children: Rea
 }
 
 function InsightCard({ icon: Icon, insight, title }: { icon: LucideIcon; insight?: AnalyticsInsight; title: string }) {
+  const { t } = useTranslation();
+
   return (
     <Card>
       <CardHeader>
@@ -267,7 +275,7 @@ function InsightCard({ icon: Icon, insight, title }: { icon: LucideIcon; insight
             <p className="mt-3 text-xs leading-5 text-primary">{insight.evidence}</p>
           </>
         ) : (
-          <EmptyMini label={`No ${title.toLowerCase()} insight available yet.`} />
+          <EmptyMini label={t("analytics.noInsight", { type: title.toLowerCase() })} />
         )}
       </CardContent>
     </Card>
@@ -275,11 +283,13 @@ function InsightCard({ icon: Icon, insight, title }: { icon: LucideIcon; insight
 }
 
 function RecommendationInsight({ recommendation }: { recommendation?: AnalyticsRecommendation }) {
+  const { t } = useTranslation();
+
   return (
     <Card>
       <CardHeader>
         <div>
-          <CardTitle className="text-lg">Recommendation</CardTitle>
+          <CardTitle className="text-lg">{t("analytics.recommendation")}</CardTitle>
           {recommendation ? <p className="mt-1 text-sm leading-6 text-muted">{recommendation.title}</p> : null}
         </div>
         <Sparkles className="size-5 text-primary" />
@@ -292,7 +302,7 @@ function RecommendationInsight({ recommendation }: { recommendation?: AnalyticsR
             <p className="mt-3 text-xs leading-5 text-primary">{recommendation.evidence}</p>
           </>
         ) : (
-          <EmptyMini label="No recommendation available yet." />
+          <EmptyMini label={t("analytics.noRecommendation")} />
         )}
       </CardContent>
     </Card>
@@ -300,16 +310,18 @@ function RecommendationInsight({ recommendation }: { recommendation?: AnalyticsR
 }
 
 function ReportsSection({ data, isLoading }: { data: ReturnType<typeof useAnalytics>["data"]; isLoading: boolean }) {
+  const { t } = useTranslation();
+
   return (
     <section>
-      <SectionHeading title="Reports Section" description="Executive summary, report findings, anomalies, and campaign-level rows." />
+      <SectionHeading title={t("analytics.reportsSection")} description={t("analytics.reportsSectionDesc")} />
       <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_24rem]">
         <Card>
           <CardHeader>
-            <CardTitle>Report</CardTitle>
+            <CardTitle>{t("analytics.report")}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            {isLoading ? <Skeleton className="h-32 rounded-lg" /> : <p className="text-sm leading-6 text-foreground">{data?.report.executiveSummary ?? "Report is loading."}</p>}
+            {isLoading ? <Skeleton className="h-32 rounded-lg" /> : <p className="text-sm leading-6 text-foreground">{data?.report.executiveSummary ?? t("analytics.reportLoading")}</p>}
             {data?.report.sections.map((section) => (
               <div key={section.title}>
                 <h3 className="mb-2 text-xs font-semibold uppercase text-primary">{section.title}</h3>
@@ -324,7 +336,7 @@ function ReportsSection({ data, isLoading }: { data: ReturnType<typeof useAnalyt
         </Card>
         <Card>
           <CardHeader>
-            <CardTitle>Data Quality</CardTitle>
+            <CardTitle>{t("analytics.dataQuality")}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             {(data?.contract.anomaliesDetected.length ? data.contract.anomaliesDetected : ["No invalid, incomplete, or inconsistent analytics detected."]).map((item) => (
@@ -333,7 +345,7 @@ function ReportsSection({ data, isLoading }: { data: ReturnType<typeof useAnalyt
           </CardContent>
         </Card>
       </div>
-      <div className="mt-5">{data ? <DataTable title="Campaign Reports" campaigns={data.campaigns} /> : <Skeleton className="h-64 rounded-lg" />}</div>
+      <div className="mt-5">{data ? <DataTable title={t("analytics.campaignReports")} campaigns={data.campaigns} /> : <Skeleton className="h-64 rounded-lg" />}</div>
     </section>
   );
 }

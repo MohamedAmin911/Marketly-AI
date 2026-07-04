@@ -1,6 +1,6 @@
 "use client";
 
-import { Clapperboard, Film, ImageIcon, Loader2, Monitor, Palette, RectangleVertical, Sparkles, UploadCloud, WandSparkles } from "lucide-react";
+import { Clapperboard, Film, Loader2, Monitor, Palette, RectangleVertical, Sparkles, UploadCloud, WandSparkles } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import type { ReactNode } from "react";
 import { useEffect, useMemo, useState } from "react";
@@ -13,6 +13,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
 import { SceneCard } from "@/features/storyboard/components/scene-card";
 import { useStoryboardScenes } from "@/features/storyboard/hooks/use-storyboard-scenes";
+import { useTranslation } from "@/lib/i18n/useTranslation";
 import { cn } from "@/lib/utils";
 
 const loadingFrames = [0];
@@ -33,6 +34,7 @@ type StoryboardStyle = (typeof styleOptions)[number];
 type StoryboardAspect = (typeof aspectOptions)[number]["label"];
 
 export function StoryboardView() {
+  const { t } = useTranslation();
   const { generate, generationError, isGenerating, isRevealing, scenes } = useStoryboardScenes();
   const [productImage, setProductImage] = useState<File | null>(null);
   const [campaignPrompt, setCampaignPrompt] = useState("Create a luxury cinematic campaign that makes the product feel precise, desirable, and iconic.");
@@ -84,8 +86,8 @@ export function StoryboardView() {
 
   return (
     <PageShell
-      title="AI Cinematic Storyboard Director"
-      description="Upload a product, write the campaign intention, and generate one luxury commercial frame with cinematic script lines."
+      title={t("storyboard.title")}
+      description={t("storyboard.description")}
       className="relative overflow-hidden"
     >
       <div className="pointer-events-none absolute inset-x-6 top-24 h-56 grid-field opacity-25" />
@@ -97,31 +99,31 @@ export function StoryboardView() {
               <Clapperboard className="size-5" />
             </div>
             <div>
-              <p className="font-display text-xl font-semibold text-foreground">Director Inputs</p>
-              <p className="text-xs text-muted">Product, prompt, style, and frame format.</p>
+              <p className="font-display text-xl font-semibold text-foreground">{t("storyboard.directorInputs")}</p>
+              <p className="text-xs text-muted">{t("storyboard.directorInputsDesc")}</p>
             </div>
           </div>
 
           <div className="space-y-5">
-            <InputPanelSection title="Product Upload" icon={UploadCloud}>
-              <FormField label="Product image" id="storyboard-product-image">
+            <InputPanelSection title={t("storyboard.productUpload")} icon={UploadCloud}>
+              <FormField label={t("growth.productImage")} id="storyboard-product-image">
                 <UploadArea label={productImage ? productImage.name : "Upload product image"} onFileSelect={setProductImage} />
               </FormField>
             </InputPanelSection>
 
-            <InputPanelSection title="Campaign Prompt" icon={Film}>
-              <FormField label="Prompt" id="storyboard-campaign-prompt">
+            <InputPanelSection title={t("storyboard.campaignPrompt")} icon={Film}>
+              <FormField label={t("storyboard.prompt")} id="storyboard-campaign-prompt">
                 <Textarea
                   id="storyboard-campaign-prompt"
                   value={campaignPrompt}
                   onChange={(event) => setCampaignPrompt(event.target.value)}
                   className="min-h-40 resize-none"
-                  placeholder="Describe the commercial story, mood, product promise, or campaign moment..."
+                  placeholder={t("storyboard.placeholder")}
                 />
               </FormField>
             </InputPanelSection>
 
-            <InputPanelSection title="Style Selection" icon={Palette}>
+            <InputPanelSection title={t("storyboard.styleSelection")} icon={Palette}>
               <div className="grid grid-cols-2 gap-2">
                 {styleOptions.map((option) => (
                   <Button
@@ -138,7 +140,7 @@ export function StoryboardView() {
               </div>
             </InputPanelSection>
 
-            <InputPanelSection title="Aspect Ratio" icon={Monitor}>
+            <InputPanelSection title={t("storyboard.aspectRatio")} icon={Monitor}>
               <div className="grid grid-cols-2 gap-2">
                 {aspectOptions.map((option) => {
                   const Icon = option.icon;
@@ -150,7 +152,7 @@ export function StoryboardView() {
                       type="button"
                       variant="secondary"
                       onClick={() => setAspectRatio(option.label)}
-                      className={cn("h-auto justify-start px-3 py-3 text-left", selected && "border-primary/60 bg-primary/10 text-foreground shadow-[0_0_0_3px_var(--focus-ring)]")}
+                      className={cn("h-auto justify-start px-3 py-3 text-start", selected && "border-primary/60 bg-primary/10 text-foreground shadow-[0_0_0_3px_var(--focus-ring)]")}
                     >
                       <Icon className="size-5 shrink-0 text-primary" />
                       <span>
@@ -167,7 +169,7 @@ export function StoryboardView() {
 
             <Button className="h-12 w-full" type="button" onClick={submitGeneration} disabled={isWorking}>
               {isWorking ? <Loader2 className="size-4 animate-spin" /> : <WandSparkles className="size-4" />}
-              {isWorking ? "Directing Storyboard" : "Generate Storyboard"}
+              {isWorking ? t("storyboard.directing") : t("storyboard.generate")}
             </Button>
           </div>
         </aside>
@@ -177,9 +179,9 @@ export function StoryboardView() {
             <div className="flex flex-wrap items-end justify-between gap-3">
               <div>
                 <h2 id="cinematic-storyboard-title" className="font-display text-2xl font-semibold text-foreground">
-                  Storyboard Frames Grid
+                  {t("storyboard.framesGrid")}
                 </h2>
-                <p className="mt-2 text-sm leading-6 text-muted">Generated frames include visual direction, voice-over, inferred camera direction, and lighting notes.</p>
+                <p className="mt-2 text-sm leading-6 text-muted">{t("storyboard.framesGridDesc")}</p>
               </div>
               <div className="flex flex-wrap gap-2">
                 <span className="rounded-md border border-border bg-surface px-3 py-1 text-xs font-semibold text-muted">{style}</span>
@@ -241,16 +243,17 @@ function StoryboardSkeleton({ index }: { index: number }) {
 }
 
 function EmptyStoryboard() {
+  const { t } = useTranslation();
+
   return (
     <div className="grid min-h-96 place-items-center rounded-lg border border-dashed border-border bg-card p-8 text-center shadow-[var(--panel-shadow)]">
       <div>
         <UploadCloud className="mx-auto mb-4 size-10 text-primary" />
         <h3 className="font-display text-xl font-semibold text-white">
-          No cinematic sequence yet
+          {t("storyboard.noSequence")}
         </h3>
         <p className="mt-2 max-w-md text-sm leading-6 text-muted">
-          Upload a product and describe the campaign moment to generate one
-          premium storyboard frame.
+          {t("storyboard.noSequenceDesc")}
         </p>
       </div>
     </div>

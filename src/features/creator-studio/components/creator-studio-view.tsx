@@ -1,7 +1,7 @@
 "use client";
 
 import { useQueryClient } from "@tanstack/react-query";
-import { Clapperboard, Monitor, Smartphone, WandSparkles, ImageIcon, FileText, Check, Loader2, Download } from "lucide-react";
+import { Clapperboard, Monitor, Smartphone, ImageIcon, FileText, Check, Loader2, Download } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { useMemo, useState, useEffect } from "react";
 import type { ReactNode } from "react";
@@ -12,6 +12,7 @@ import { GenerateButton } from "@/features/creator-studio/components/generate-bu
 import { ImageUploadCard } from "@/features/creator-studio/components/image-upload-card";
 import { PromptBox } from "@/features/creator-studio/components/prompt-box";
 import { ResultPreview } from "@/features/creator-studio/components/result-preview";
+import { useTranslation } from "@/lib/i18n/useTranslation";
 import { cn } from "@/lib/utils";
 
 type OutputAspectRatio = "9:16" | "16:9";
@@ -32,6 +33,7 @@ FROM PICTURE 1 (strictly preserve identity):
 The replaced product must seamlessly match Picture 2's lighting and atmosphere while maintaining the complete identity and details from Picture 1. High quality, photorealistic, commercial advertising photography, sharp details, 4k.`;
 
 export function CreatorStudioView() {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const [productImage, setProductImage] = useState<File | null>(null);
   const [referenceImage, setReferenceImage] = useState<File | null>(null);
@@ -69,7 +71,7 @@ export function CreatorStudioView() {
 
   async function generateAdvertisement() {
     if (!productImage || !referenceImage) {
-      setError("Upload both a product image and a reference advertisement before generating.");
+      setError(t("studio.uploadBothError"));
       return;
     }
 
@@ -114,8 +116,8 @@ export function CreatorStudioView() {
 
   return (
     <PageShell
-      title="Ad Studio"
-      description="Upload a product and reference ad, add placement direction, then generate a polished commercial variation."
+      title={t("studio.title")}
+      description={t("studio.description")}
       className="relative overflow-hidden"
     >
       <div className="pointer-events-none absolute inset-x-6 top-20 h-56 grid-field opacity-25" />
@@ -130,25 +132,25 @@ export function CreatorStudioView() {
                 <Clapperboard className="size-5" />
               </div>
               <div>
-                <p className="font-display text-xl font-semibold text-foreground">Creative Inputs</p>
-                <p className="text-xs text-muted">Product, reference, instructions, and output frame.</p>
+                <p className="font-display text-xl font-semibold text-foreground">{t("studio.creativeInputs")}</p>
+                <p className="text-xs text-muted">{t("studio.creativeInputsDesc")}</p>
               </div>
             </div>
 
             <div className="space-y-6">
-              <PanelSection title="Product Image" description="The exact product to insert into the reference ad." icon={ImageIcon}>
-                <ImageUploadCard eyebrow="Product Image" hint="Upload a clean product image with visible branding." image={productImage} onImageChange={setProductImage} compact />
+              <PanelSection title={t("studio.productImage")} description={t("studio.productImageDesc")} icon={ImageIcon}>
+                <ImageUploadCard eyebrow={t("studio.productImage")} hint={t("studio.productImageHint")} image={productImage} onImageChange={setProductImage} compact />
               </PanelSection>
 
-              <PanelSection title="Reference Ad" description="The composition, lighting, and campaign style to preserve." icon={ImageIcon}>
-                <ImageUploadCard eyebrow="Reference Advertisement" hint="Upload the existing ad scene to recreate." image={referenceImage} onImageChange={setReferenceImage} compact />
+              <PanelSection title={t("studio.referenceAd")} description={t("studio.referenceAdDesc")} icon={ImageIcon}>
+                <ImageUploadCard eyebrow={t("studio.referenceAd")} hint={t("studio.referenceAdHint")} image={referenceImage} onImageChange={setReferenceImage} compact />
               </PanelSection>
 
-              <PanelSection title="Instructions" description="Optional brand, placement, or finish direction." icon={FileText}>
+              <PanelSection title={t("studio.instructions")} description={t("studio.instructionsDesc")} icon={FileText}>
                 <PromptBox value={customPrompt} onChange={setCustomPrompt} />
               </PanelSection>
 
-              <PanelSection title="Output Dimensions" description="Choose the final ad format before generation." icon={Monitor}>
+              <PanelSection title={t("studio.outputDimensions")} description={t("studio.outputDimensionsDesc")} icon={Monitor}>
                 <AspectRatioSelector value={aspectRatio} onChange={setAspectRatio} />
               </PanelSection>
 
@@ -160,7 +162,7 @@ export function CreatorStudioView() {
                   <Button asChild variant="secondary" className="w-full">
                     <a href={generatedImage} download={`marketly-ai-advertisement-${aspectRatio.replace(":", "x")}.png`}>
                       <Download className="size-4" />
-                      Export Advertisement
+                      {t("studio.exportAd")}
                     </a>
                   </Button>
                 ) : null}
@@ -203,8 +205,10 @@ function PanelSection({
 }
 
 function WorkflowStepper({ steps }: { steps: Array<{ label: string; state: StepState }> }) {
+  const { t } = useTranslation();
+
   return (
-    <section className="rounded-lg border border-border bg-card p-4 shadow-[var(--panel-shadow)]" aria-label="Ad Studio workflow">
+    <section className="rounded-lg border border-border bg-card p-4 shadow-[var(--panel-shadow)]" aria-label={t("studio.workflow")}>
       <ol className="grid gap-3 sm:grid-cols-5">
         {steps.map((step, index) => (
           <li key={step.label} className="flex items-center gap-3 rounded-lg border border-border bg-surface p-3">
@@ -219,8 +223,8 @@ function WorkflowStepper({ steps }: { steps: Array<{ label: string; state: StepS
               {step.state === "complete" ? <Check className="size-4" /> : step.state === "current" && step.label === "Generate" ? <Loader2 className="size-4 animate-spin" /> : index + 1}
             </span>
             <span className="min-w-0">
-              <span className="block truncate text-sm font-semibold text-foreground">{step.label}</span>
-              <span className="block text-xs capitalize text-muted">{step.state}</span>
+              <span className="block truncate text-sm font-semibold text-foreground">{translateWorkflowLabel(step.label, t)}</span>
+              <span className="block text-xs capitalize text-muted">{step.state === "complete" ? t("common.saved") : step.state === "current" ? t("common.ready") : t("common.needed")}</span>
             </span>
           </li>
         ))}
@@ -230,13 +234,14 @@ function WorkflowStepper({ steps }: { steps: Array<{ label: string; state: StepS
 }
 
 function AspectRatioSelector({ onChange, value }: { onChange: (value: OutputAspectRatio) => void; value: OutputAspectRatio }) {
+  const { t } = useTranslation();
   const options: Array<{
     label: OutputAspectRatio;
     icon: typeof Smartphone;
     description: string;
   }> = [
-    { label: "9:16", icon: Smartphone, description: "Stories and reels" },
-    { label: "16:9", icon: Monitor, description: "widescreen" },
+    { label: "9:16", icon: Smartphone, description: t("studio.storiesReels") },
+    { label: "16:9", icon: Monitor, description: t("studio.widescreen") },
   ];
 
   return (
@@ -252,7 +257,7 @@ function AspectRatioSelector({ onChange, value }: { onChange: (value: OutputAspe
             variant="secondary"
             onClick={() => onChange(option.label)}
             className={cn(
-              "h-auto justify-start rounded-lg px-4 py-3 text-left",
+              "h-auto justify-start rounded-lg px-4 py-3 text-start",
               selected && "border-primary/70 bg-primary/10 text-foreground shadow-[0_0_0_3px_var(--focus-ring)]",
             )}
           >
@@ -287,12 +292,23 @@ function getWorkflowSteps({
   const hasGenerated = Boolean(generatedImage);
 
   return [
-    { label: "Upload Product", state: hasProduct ? "complete" : "current" },
-    { label: "Upload Reference", state: hasReference ? "complete" : hasProduct ? "current" : "pending" },
+    { label: hasProduct ? "Product Image" : "Upload Product", state: hasProduct ? "complete" : "current" },
+    { label: hasReference ? "Reference Ad" : "Upload Reference", state: hasReference ? "complete" : hasProduct ? "current" : "pending" },
     { label: "Instructions", state: hasInstructions ? "complete" : hasProduct && hasReference ? "current" : "pending" },
     { label: "Generate", state: hasGenerated ? "complete" : loading ? "current" : hasProduct && hasReference ? "current" : "pending" },
     { label: "Export", state: hasGenerated ? "current" : "pending" },
   ] satisfies Array<{ label: string; state: StepState }>;
+}
+
+function translateWorkflowLabel(label: string, t: ReturnType<typeof useTranslation>["t"]) {
+  if (label === "Product Image") return t("studio.productImage");
+  if (label === "Upload Product") return t("studio.uploadProduct");
+  if (label === "Reference Ad") return t("studio.referenceAd");
+  if (label === "Upload Reference") return t("studio.uploadReference");
+  if (label === "Instructions") return t("studio.instructions");
+  if (label === "Generate") return t("common.generate");
+  if (label === "Export") return t("common.export");
+  return label;
 }
 
 function extractGeneratedImageUrl(result: unknown): string | null {

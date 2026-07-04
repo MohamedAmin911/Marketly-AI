@@ -10,9 +10,11 @@ import remarkGfm from "remark-gfm";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import type { ChatMessage as ChatMessageType } from "@/features/ai-assistant/types/chat";
+import { useTranslation } from "@/lib/i18n/useTranslation";
 import { cn } from "@/lib/utils";
 
 export function ChatMessage({ message, onSpeak }: { message: ChatMessageType, onSpeak?: (text: string) => Promise<void> }) {
+  const { t } = useTranslation();
   const isUser = message.role === "user";
   const isImage = message.attachment?.mimeType.startsWith("image/");
 
@@ -20,7 +22,7 @@ export function ChatMessage({ message, onSpeak }: { message: ChatMessageType, on
     <article className={cn("flex", isUser ? "justify-end" : "justify-start")}>
       <div className={cn("flex max-w-[46rem] gap-3", isUser && "flex-row-reverse")}>
         <div className="grid size-10 shrink-0 place-items-center rounded-full border border-primary/25 bg-primary/15 text-primary" aria-hidden="true">
-          {isUser ? <span className="text-xs font-bold">You</span> : <Bot className="size-4" />}
+          {isUser ? <span className="text-xs font-bold">{t("assistant.you")}</span> : <Bot className="size-4" />}
         </div>
         <Card className={cn("p-4", isUser && "bg-white/[0.08]")}>
           {message.attachment ? (
@@ -58,7 +60,7 @@ export function ChatMessage({ message, onSpeak }: { message: ChatMessageType, on
               <div className="mt-4 grid gap-3 sm:grid-cols-3">
                 {message.card.metrics.map((metric, index) => (
                   <div key={metric} className="rounded-xl border border-white/10 bg-white/[0.04] p-3">
-                    <Badge tone={index === 1 ? "warning" : "default"}>{index === 1 ? "Budget shift" : "-12% ROI"}</Badge>
+                    <Badge tone={index === 1 ? "warning" : "default"}>{index === 1 ? t("assistant.budgetShift") : "-12% ROI"}</Badge>
                     <p className="mt-2 text-xs leading-5 text-muted">{metric}</p>
                   </div>
                 ))}
@@ -72,6 +74,7 @@ export function ChatMessage({ message, onSpeak }: { message: ChatMessageType, on
 }
 
 function SpeakButton({ onSpeak, text }: { onSpeak: (text: string) => Promise<void>; text: string }) {
+  const { t } = useTranslation();
   const [isSpeaking, setSpeaking] = useState(false);
 
   async function handleClick() {
@@ -91,7 +94,7 @@ function SpeakButton({ onSpeak, text }: { onSpeak: (text: string) => Promise<voi
       className="mt-3 inline-flex items-center gap-2 rounded-lg border border-border bg-surface px-3 py-2 text-xs font-semibold text-muted transition hover:border-primary/45 hover:text-primary disabled:cursor-wait disabled:opacity-70"
     >
       <Volume2 className="size-3.5" />
-      {isSpeaking ? "Preparing audio" : "Speak"}
+      {isSpeaking ? t("assistant.preparingAudio") : t("assistant.speak")}
     </button>
   );
 }

@@ -1,3 +1,5 @@
+"use client";
+
 import { Activity, AlertTriangle, ArrowRight, Lightbulb, LineChart, Milestone, Rocket, ShieldAlert, Target, Users, Zap, ImageIcon, Video, WandSparkles } from "lucide-react";
 import Link from "next/link";
 
@@ -8,6 +10,7 @@ import {
   encodeImageGenerationState,
 } from "@/features/growth-engine/services/image-generation-adapter";
 import type { GrowthProjectRecord } from "@/features/growth-engine/types";
+import { useTranslation } from "@/lib/i18n/useTranslation";
 
 type SectionStatus = "empty" | "loading" | "success" | "error";
 
@@ -29,6 +32,7 @@ export function GrowthEngineResults({
   liveProject: GrowthProjectRecord | null;
   submitting?: boolean;
 }) {
+  const { t } = useTranslation();
   const strategy = toRecord(liveProject?.strategy);
   const swot = toRecord(strategy?.swot);
   const personas = arrayOfRecords(strategy?.personas).length ? arrayOfRecords(strategy?.personas) : liveProject?.personas ?? [];
@@ -40,11 +44,11 @@ export function GrowthEngineResults({
   return (
     <div className="space-y-5">
       <WorkflowSection
-        title="Strategy Overview"
-        description="Positioning, market context, and generated strategic direction."
+        title={t("growth.strategyOverview")}
+        description={t("growth.strategyOverviewDesc")}
         status={sectionStatus(hasStrategySummary, submitting, undefined)}
-        emptyTitle="No Strategy Yet"
-        emptyDescription="Submit the brand brief to generate the first strategic pass."
+        emptyTitle={t("growth.noStrategy")}
+        emptyDescription={t("growth.noStrategyDesc")}
       >
         {liveProject?.strategy ? (
           <div className="space-y-6">
@@ -104,8 +108,7 @@ export function GrowthEngineResults({
                     {strategy.swot && (
                       <div className="space-y-3">
                         <h4 className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-primary/80">
-                          <Activity className="size-4 text-primary" /> SWOT
-                          Analysis
+                          <Activity className="size-4 text-primary" /> {t("growth.swotAnalysis")}
                         </h4>
                         <div className="grid gap-3 sm:grid-cols-2">
                           {[
@@ -168,13 +171,12 @@ export function GrowthEngineResults({
                     {personas.length > 0 && (
                       <div className="space-y-3">
                         <h4 className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-primary/80">
-                          <Users className="size-4 text-primary" /> Target
-                          Personas
+                          <Users className="size-4 text-primary" /> {t("growth.targetPersonas")}
                         </h4>
                         <div className="grid gap-3 md:grid-cols-3">
                           {personas.map((persona: Record<string, unknown>, i: number) => (
                             <div key={i} className="group flex flex-col rounded-lg border border-primary/15 bg-gradient-to-b from-primary/[0.05] to-transparent p-4">
-                              <p className="font-mono text-[10px] text-primary/50">PERSONA {i + 1}</p>
+                              <p className="font-mono text-[10px] text-primary/50">{t("growth.persona", { number: i + 1 })}</p>
                               <p className="mt-1 font-semibold text-foreground group-hover:text-primary transition-colors">{String(persona.name)}</p>
                               <p className="mt-2 text-xs leading-5 text-muted-foreground">{String(persona.description ?? persona.bio ?? persona.role ?? persona.details ?? persona.summary ?? persona.background ?? "")}</p>
                             </div>
@@ -188,7 +190,7 @@ export function GrowthEngineResults({
                       <div className="space-y-3">
                         <h4 className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-primary/80">
                           <Lightbulb className="size-4 text-primary" />{" "}
-                          Strategic Recommendations
+                          {t("analytics.recommendation")}
                         </h4>
                         <div className="rounded-lg border border-primary/10 bg-primary/[0.02] p-5">
                           <ul className="space-y-3">
@@ -210,8 +212,7 @@ export function GrowthEngineResults({
                     {launchPlan.length > 0 && (
                       <div className="space-y-3">
                         <h4 className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-primary/80">
-                          <Milestone className="size-4 text-primary" /> Launch
-                          Timeline
+                          <Milestone className="size-4 text-primary" /> {t("growth.launchTimeline")}
                         </h4>
                         <div className="space-y-3">
                           {launchPlan.map((phase: Record<string, unknown>, i: number) => {
@@ -224,7 +225,7 @@ export function GrowthEngineResults({
                                 : [];
                               return (
                                 <div key={i} className="relative overflow-hidden rounded-lg border border-primary/15 bg-primary/[0.03] p-5">
-                                  <div className="absolute left-0 top-0 h-full w-1 bg-primary/40" />
+                                  <div className="absolute start-0 top-0 h-full w-1 bg-primary/40" />
                                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-3 gap-2">
                                     <h5 className="font-semibold text-foreground">{label}</h5>
                                     {timeline && (
@@ -298,11 +299,11 @@ export function GrowthEngineResults({
       </WorkflowSection>
 
       <WorkflowSection
-        title="Campaign Concepts"
-        description="Campaign hooks, platforms, objectives, and creative angles."
+        title={t("growth.campaignConcepts")}
+        description={t("growth.campaignConceptsDesc")}
         status={sectionStatus(campaigns.length > 0, submitting, undefined)}
-        emptyTitle="No Campaign Concepts Yet"
-        emptyDescription="Campaign concepts are generated after the strategy stage."
+        emptyTitle={t("growth.noCampaignConcepts")}
+        emptyDescription={t("growth.noCampaignConceptsDesc")}
       >
         <div className="grid gap-3 md:grid-cols-2">
           {liveProject?.campaigns.map((campaign: unknown, i: number) => {
@@ -340,11 +341,11 @@ export function GrowthEngineResults({
       </WorkflowSection>
 
       <WorkflowSection
-        title="Storyboards"
-        description="Scene-level creative direction with image prompts."
+        title={t("growth.storyboards")}
+        description={t("growth.storyboardsDesc")}
         status={sectionStatus(storyboards.length > 0, submitting, undefined)}
-        emptyTitle="No Storyboards Yet"
-        emptyDescription="Storyboards are generated after campaign concepts are ready."
+        emptyTitle={t("growth.noStoryboards")}
+        emptyDescription={t("growth.noStoryboardsDesc")}
       >
         <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
           {liveProject?.storyboards.flatMap((board: unknown, campIdx: number) => {
@@ -378,7 +379,7 @@ export function GrowthEngineResults({
                   {/* Header */}
                   <div className="flex items-center justify-between">
                     <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.1em] text-primary">
-                      Camp {campIdx + 1} · Scene {String(num)}
+                      {t("growth.campaign", { number: campIdx + 1 })} · {t("growth.scene", { number: String(num) })}
                     </p>
                     <div className="flex items-center gap-2">
                       {duration ? (
@@ -389,7 +390,7 @@ export function GrowthEngineResults({
                         className="inline-flex items-center gap-1.5 rounded-full bg-primary/20 px-3 py-1 text-[10px] font-bold text-primary hover:bg-primary/30 transition-colors"
                       >
                         <WandSparkles className="size-3" />
-                        Generate Scene
+                        {t("growth.generateScene")}
                       </Link>
                     </div>
                   </div>
@@ -408,7 +409,7 @@ export function GrowthEngineResults({
                   {imagePrompt && imagePrompt !== "undefined" ? (
                     <div>
                       <div className="flex items-center gap-2 mb-1">
-                        <p className="text-[10px] font-bold uppercase tracking-widest text-primary/80">Image Prompt</p>
+                        <p className="text-[10px] font-bold uppercase tracking-widest text-primary/80">{t("growth.imagePrompt")}</p>
                       </div>
                       <p className="text-xs leading-5 text-muted">{imagePrompt}</p>
                     </div>
@@ -418,7 +419,7 @@ export function GrowthEngineResults({
                   {videoPrompt && videoPrompt !== "undefined" ? (
                     <div>
                       <div className="flex items-center gap-2 mb-1">
-                        <p className="text-[10px] font-bold uppercase tracking-widest text-primary/80">Video Prompt</p>
+                        <p className="text-[10px] font-bold uppercase tracking-widest text-primary/80">{t("growth.videoPrompt")}</p>
                       </div>
                       <p className="text-xs leading-5 text-muted">{videoPrompt}</p>
                     </div>
@@ -427,7 +428,7 @@ export function GrowthEngineResults({
                   {/* Audio */}
                   {audio && audio !== "undefined" ? (
                     <div>
-                      <p className="text-[10px] font-bold uppercase tracking-widest text-primary/80">Audio</p>
+                      <p className="text-[10px] font-bold uppercase tracking-widest text-primary/80">{t("growth.audio")}</p>
                       <p className="mt-1 text-xs leading-5 text-muted">{audio}</p>
                     </div>
                   ) : null}
@@ -435,7 +436,7 @@ export function GrowthEngineResults({
                   {/* Text Overlay */}
                   {textOverlay && textOverlay !== "undefined" ? (
                     <div>
-                      <p className="text-[10px] font-bold uppercase tracking-widest text-primary/80">Text Overlay</p>
+                      <p className="text-[10px] font-bold uppercase tracking-widest text-primary/80">{t("growth.textOverlay")}</p>
                       <p className="mt-1 text-xs leading-5 text-muted italic">{textOverlay}</p>
                     </div>
                   ) : null}
@@ -461,7 +462,7 @@ function RecommendedActions({ actions }: { actions: unknown[] }) {
             <p className="text-xs font-semibold uppercase text-primary">Action {index + 1}</p>
             <p className="mt-1 text-sm leading-6 text-foreground">{stringifyValue(action)}</p>
           </div>
-          <ArrowRight className="ml-auto mt-1 size-4 shrink-0 text-muted" />
+          <ArrowRight className="ms-auto mt-1 size-4 shrink-0 text-muted rtl:rotate-180" />
         </div>
       ))}
     </div>

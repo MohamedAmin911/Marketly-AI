@@ -4,6 +4,7 @@ import { UploadCloud } from "lucide-react";
 import type { DragEvent } from "react";
 import { useCallback, useId, useState } from "react";
 
+import { useTranslation } from "@/lib/i18n/useTranslation";
 import { cn } from "@/lib/utils";
 
 type UploadDropzoneProps = {
@@ -15,12 +16,13 @@ type UploadDropzoneProps = {
 };
 
 export function UploadDropzone({
-  label = "Drag & drop product image",
-  description = "PNG, JPG or WEBP up to 10MB",
+  label,
+  description,
   accept = "image/png,image/jpeg,image/webp",
   onFileSelect,
   className,
 }: UploadDropzoneProps) {
+  const { t } = useTranslation();
   const [isDragging, setDragging] = useState(false);
   const [fileName, setFileName] = useState<string | null>(null);
   const inputId = useId();
@@ -69,8 +71,8 @@ export function UploadDropzone({
       <span className="mb-3 grid size-11 place-items-center rounded-lg border border-primary/20 bg-primary/10 text-primary">
         <UploadCloud className="size-5" aria-hidden="true" />
       </span>
-      <span className="text-sm font-semibold text-foreground">{fileName ?? label}</span>
-      <span className="mt-1 text-xs text-muted">{description}</span>
+      <span className="text-sm font-semibold text-foreground">{fileName ?? label ?? t("studio.dragDropProductImage")}</span>
+      <span className="mt-1 text-xs text-muted">{description ?? t("studio.fileTypes")}</span>
     </label>
   );
 }

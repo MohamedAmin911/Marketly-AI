@@ -5,6 +5,7 @@ import { TooltipProvider } from "@radix-ui/react-tooltip";
 import { useState, type ReactNode } from "react";
 
 import { ThemeProvider } from "@/components/theme/theme-provider";
+import { TranslationProvider } from "@/lib/i18n/useTranslation";
 
 export function Providers({ children }: { children: ReactNode }) {
   const [queryClient] = useState(
@@ -31,7 +32,9 @@ export function Providers({ children }: { children: ReactNode }) {
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
-        <TooltipProvider delayDuration={150}>{children}</TooltipProvider>
+        <TranslationProvider>
+          <TooltipProvider delayDuration={150}>{children}</TooltipProvider>
+        </TranslationProvider>
       </ThemeProvider>
     </QueryClientProvider>
   );

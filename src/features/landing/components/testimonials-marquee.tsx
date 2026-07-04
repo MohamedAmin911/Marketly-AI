@@ -3,45 +3,55 @@
 import { motion } from "framer-motion";
 import { Star } from "lucide-react";
 
+import type { TranslationKey } from "@/lib/i18n/translations";
+import { useTranslation } from "@/lib/i18n/useTranslation";
+
 const TESTIMONIALS = [
   {
     name: "Sarah Jenkins",
     role: "CMO at Stripe",
-    content: "Marketly AI replaced our entire creative agency. We now generate ad copy and storyboards in 5 minutes instead of 5 days.",
+    contentKey: "landing.testimonial1",
     logo: "https://img.logo.dev/stripe.com?token=pk_LnYu_mYyRBCS-_8nhWeJaw",
   },
   {
     name: "David Chen",
     role: "Growth Lead at Vercel",
-    content: "The AI Growth Engine is mind-blowing. It gave us a 3-month launch plan that was better than what our $10k/mo consultants provided.",
+    contentKey: "landing.testimonial2",
     logo: "https://img.logo.dev/vercel.com?token=pk_LnYu_mYyRBCS-_8nhWeJaw",
   },
   {
     name: "Elena Rodriguez",
     role: "E-commerce Founder",
-    content: "I use the Image Generator daily for product shots. The photorealism is unmatched and saves us thousands on photography.",
+    contentKey: "landing.testimonial3",
     logo: "https://img.logo.dev/shopify.com?token=pk_LnYu_mYyRBCS-_8nhWeJaw",
   },
   {
     name: "Michael Chang",
     role: "Digital Marketing Director",
-    content: "The video storyboarding feature allows our team to pitch concepts to executives visually before spending a dime on production.",
+    contentKey: "landing.testimonial4",
     logo: "https://img.logo.dev/netflix.com?token=pk_LnYu_mYyRBCS-_8nhWeJaw",
   },
   {
     name: "Jessica Walsh",
     role: "Social Media Manager",
-    content: "Generating campaigns across TikTok, Insta, and LinkedIn simultaneously has 10x'd my output. The tone matching is scary good.",
+    contentKey: "landing.testimonial5",
     logo: "https://img.logo.dev/spotify.com?token=pk_LnYu_mYyRBCS-_8nhWeJaw",
   },
-];
+] satisfies Array<{
+  contentKey: TranslationKey;
+  logo: string;
+  name: string;
+  role: string;
+}>;
 
 export function TestimonialsMarquee() {
+  const { t } = useTranslation();
+
   return (
     <section className="py-24 overflow-hidden relative bg-background">
       <div className="text-center max-w-2xl mx-auto mb-16 px-6">
         <h2 className="font-display text-3xl md:text-5xl font-bold mb-6 text-foreground">
-          Loved by modern <span className="text-primary">growth teams</span>
+          {t("landing.testimonialsTitle")} <span className="text-primary">{t("landing.testimonialsHighlight")}</span>
         </h2>
       </div>
 
@@ -72,7 +82,7 @@ export function TestimonialsMarquee() {
                 </div>
               </div>
               <p className="text-foreground text-sm leading-relaxed flex-1">
-                "{testimonial.content}"
+                &ldquo;{t(testimonial.contentKey)}&rdquo;
               </p>
               <div>
                 <p className="font-semibold text-foreground text-sm">{testimonial.name}</p>

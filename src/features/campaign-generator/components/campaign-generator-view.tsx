@@ -14,6 +14,7 @@ import { PageShell } from "@/components/layout/page-shell";
 import { Button } from "@/components/ui/button";
 import { CampaignCard } from "@/features/campaign-generator/components/campaign-card";
 import { useCampaignAds } from "@/features/campaign-generator/hooks/use-campaign-ads";
+import { useTranslation } from "@/lib/i18n/useTranslation";
 import { cn } from "@/lib/utils";
 
 const moods = [
@@ -26,16 +27,8 @@ const moods = [
   "Warm Gold",
   "Cyberpunk Neon",
 ];
-const ideaExamples = [
-  "Product being unboxed by a stylish hand",
-  "Floating luxury product setup",
-  "Product inside futuristic glass chamber",
-  "Cinematic desk setup",
-  "Dark cyberpunk showcase",
-  "Minimal premium flatlay",
-];
-
 export function CampaignGeneratorView() {
+  const { t } = useTranslation();
   const { campaign, copyPost, downloadCopy, error, generate, isGenerating } =
     useCampaignAds();
   const [mode, setMode] = useState<"auto" | "custom">("auto");
@@ -49,11 +42,11 @@ export function CampaignGeneratorView() {
 
   async function submitGeneration() {
     if (!productFile) {
-      setFormError("Upload a product reference image first.");
+      setFormError(t("campaign.uploadReferenceError"));
       return;
     }
     if (!theme.trim()) {
-      setFormError("Enter a design theme or aesthetic.");
+      setFormError(t("campaign.themeError"));
       return;
     }
 
@@ -75,20 +68,20 @@ export function CampaignGeneratorView() {
             active={mode === "auto"}
             onClick={() => setMode("auto")}
           >
-            Auto Scenarios
+            {t("campaign.autoScenarios")}
           </SegmentButton>
           <SegmentButton
             active={mode === "custom"}
             onClick={() => setMode("custom")}
           >
-            Custom Ideas
+            {t("campaign.customIdeas")}
           </SegmentButton>
         </div>
 
         <div className="glass-panel mx-auto grid max-w-[1560px] gap-10 rounded-[32px] p-8 xl:grid-cols-[360px_minmax(0,1fr)] xl:p-10">
           <aside>
             <p className="mb-5 text-center font-mono text-xs font-bold uppercase tracking-[0.34em] text-white/45">
-              Product Reference
+              {t("campaign.productReference")}
             </p>
             <label className="group relative grid aspect-square cursor-pointer place-items-center overflow-hidden rounded-2xl border border-dashed border-primary/70 bg-black/30 shadow-[0_0_46px_rgba(114,255,95,0.08)] transition hover:border-primary hover:shadow-glow">
               <input
@@ -104,16 +97,16 @@ export function CampaignGeneratorView() {
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
                   src={URL.createObjectURL(productFile)}
-                  alt="Product reference"
+                  alt={t("campaign.productReference")}
                   className="size-full object-cover opacity-90"
                 />
               ) : (
                 <div className="text-center">
                   <UploadCloud className="mx-auto mb-5 size-12 text-white/70" />
                   <p className="text-base font-medium text-white/70">
-                    Upload Image
+                    {t("campaign.uploadImage")}
                   </p>
-                  <p className="mt-2 text-sm text-white/40">or drag and drop</p>
+                  <p className="mt-2 text-sm text-white/40">{t("campaign.dragDrop")}</p>
                 </div>
               )}
             </label>
@@ -124,13 +117,13 @@ export function CampaignGeneratorView() {
               <div>
                 <h1 className="font-display text-3xl font-bold tracking-[-0.02em] text-white">
                   {mode === "auto"
-                    ? "Social Media Campaign Studio"
-                    : "Custom Idea Studio"}
+                    ? t("campaign.socialStudio")
+                    : t("campaign.customStudio")}
                 </h1>
                 <p className="mt-3 text-base text-white/45">
                   {mode === "auto"
-                    ? "AI will generate 6 unique Social Media feed posts based on professional use cases."
-                    : "Describe up to 6 custom ideas to generate specialized campaign posts."}
+                    ? t("campaign.socialDesc")
+                    : t("campaign.customDesc")}
                 </p>
               </div>
               <Button
@@ -145,28 +138,28 @@ export function CampaignGeneratorView() {
                   <Sparkles className="size-5" />
                 )}
                 {mode === "auto"
-                  ? "Generate 6 Feed Posts"
-                  : "Generate 6 Custom Posts"}
+                  ? t("campaign.generateFeedPosts")
+                  : t("campaign.generateCustomPosts")}
               </Button>
             </div>
 
             <label className="block rounded-2xl border border-white/10 bg-white/[0.055] p-5 backdrop-blur">
               <span className="mb-3 flex items-center gap-2 font-mono text-[10px] font-bold uppercase tracking-[0.22em] text-primary">
                 <ImageUp className="size-4" />
-                Design Theme & Aesthetics
+                {t("campaign.designTheme")}
               </span>
               <textarea
                 value={theme}
                 onChange={(event) => setTheme(event.target.value)}
                 className="min-h-24 w-full resize-none bg-transparent text-base leading-7 text-white outline-none placeholder:text-white/25"
-                placeholder="Specify aesthetics (e.g., 'Luxury marble surfaces with soft rim lighting' or 'Minimalist geometric shadows')"
+                placeholder={t("campaign.themePlaceholder")}
               />
             </label>
 
             {mode === "auto" ? (
               <section className="mt-8">
                 <p className="mb-4 font-mono text-xs font-bold uppercase tracking-[0.22em] text-white/35">
-                  Quick Mood Preset
+                  {t("campaign.quickMoodPreset")}
                 </p>
                 <div className="flex flex-wrap gap-3">
                   {moods.map((mood) => (
@@ -180,7 +173,7 @@ export function CampaignGeneratorView() {
                           "border-primary bg-primary text-[#021003] shadow-glow",
                       )}
                     >
-                      {mood}
+                      {translateMood(mood, t)}
                     </button>
                   ))}
                 </div>
@@ -190,7 +183,7 @@ export function CampaignGeneratorView() {
                 {customIdeas.map((idea, index) => (
                   <label key={index} className="block">
                     <span className="mb-2 block font-mono text-[10px] font-bold uppercase tracking-[0.18em] text-white/35">
-                      Custom Idea {index + 1}
+                      {t("campaign.customIdea", { number: index + 1 })}
                     </span>
                     <textarea
                       value={idea}
@@ -202,7 +195,7 @@ export function CampaignGeneratorView() {
                         )
                       }
                       className="min-h-20 w-full resize-none rounded-2xl border border-white/10 bg-black/25 px-4 py-4 text-sm leading-5 text-white outline-none transition placeholder:text-white/28 focus:border-primary/60 focus:shadow-[0_0_30px_rgba(114,255,95,0.12)]"
-                      placeholder={`e.g. "${ideaExamples[index]}..."`}
+                      placeholder={t("campaign.ideaPlaceholder", { example: translateIdeaExample(index, t) })}
                     />
                   </label>
                 ))}
@@ -222,15 +215,15 @@ export function CampaignGeneratorView() {
             <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
               <div>
                 <p className="font-mono text-xs font-bold uppercase tracking-[0.24em] text-primary">
-                  Generated Concepts
+                  {t("campaign.generatedConcepts")}
                 </p>
                 <h2 className="mt-2 font-display text-2xl font-semibold text-white">
-                  6 Social Media Feed Posts
+                  {t("campaign.feedPosts")}
                 </h2>
               </div>
               <Button variant="secondary" type="button" onClick={downloadCopy}>
                 <Download className="size-4" />
-                Export Posts
+                {t("campaign.exportPosts")}
               </Button>
             </div>
             <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
@@ -247,6 +240,31 @@ export function CampaignGeneratorView() {
       </div>
     </PageShell>
   );
+}
+
+function translateMood(mood: string, t: ReturnType<typeof useTranslation>["t"]) {
+  if (mood === "Original") return t("campaign.moodOriginal");
+  if (mood === "Minimalist White") return t("campaign.moodMinimalistWhite");
+  if (mood === "Dark Luxury") return t("campaign.moodDarkLuxury");
+  if (mood === "Pastel Pop") return t("campaign.moodPastelPop");
+  if (mood === "Nature Green") return t("campaign.moodNatureGreen");
+  if (mood === "Ocean Blue") return t("campaign.moodOceanBlue");
+  if (mood === "Warm Gold") return t("campaign.moodWarmGold");
+  if (mood === "Cyberpunk Neon") return t("campaign.moodCyberpunkNeon");
+  return mood;
+}
+
+function translateIdeaExample(index: number, t: ReturnType<typeof useTranslation>["t"]) {
+  const keys = [
+    "campaign.ideaExample1",
+    "campaign.ideaExample2",
+    "campaign.ideaExample3",
+    "campaign.ideaExample4",
+    "campaign.ideaExample5",
+    "campaign.ideaExample6",
+  ] as const;
+
+  return t(keys[index] ?? "campaign.ideaExample1");
 }
 
 function SegmentButton({

@@ -6,10 +6,8 @@ import {
   CalendarClock,
   Clapperboard,
   FolderKanban,
-  Gauge,
   ImagePlus,
   Megaphone,
-  PieChart,
   Rocket,
   Sparkles,
   TrendingUp,
@@ -31,32 +29,34 @@ import type { DashboardGeneration } from "@/features/dashboard/services";
 import type { Metric } from "@/types/common";
 
 import { useBilling, type BillingInfo } from "@/features/billing/hooks/use-billing";
+import { useTranslation } from "@/lib/i18n/useTranslation";
 
 const heroActions = [
-  { href: "/creator-studio", icon: ImagePlus, label: "Generate Ad" },
-  { href: "/growth-engine", icon: Rocket, label: "Build Growth Plan", feature: "growthEngine" },
-  { href: "/videos", icon: Clapperboard, label: "Create Video" },
-];
+  { href: "/creator-studio", icon: ImagePlus, labelKey: "quick.generateAd" },
+  { href: "/growth-engine", icon: Rocket, labelKey: "dashboard.buildGrowthPlan", feature: "growthEngine" },
+  { href: "/videos", icon: Clapperboard, labelKey: "dashboard.createVideo" },
+] as const;
 
 export function DashboardView() {
   const { data, isLoading, isError } = useDashboard();
   const { billing } = useBilling();
+  const { t } = useTranslation();
   
   const metrics = data?.metrics ?? [];
   const recentGenerations = data?.recentGenerations ?? [];
-  const kpis = buildKpis(metrics, recentGenerations);
+  const kpis = buildKpis(metrics, recentGenerations, t);
   const timelineItems = recentGenerations.slice(0, 5);
 
   return (
-    <PageShell title="Dashboard" description="Your AI marketing command center for projects, campaigns, creative output, and growth signals.">
+    <PageShell title={t("dashboard.title")} description={t("dashboard.description")}>
       {isLoading ? <PanelSkeleton /> : null}
-      {isError ? <ErrorState message="Dashboard data could not be loaded. Retry from the browser refresh control." /> : null}
+      {isError ? <ErrorState message={t("dashboard.dataLoadError")} /> : null}
       {data ? (
         <div className="space-y-6">
           <DashboardHero metrics={metrics} recentGenerations={recentGenerations} billing={billing} features={billing?.features} />
 
           <section aria-labelledby="dashboard-kpis">
-            <SectionHeader title="Performance Snapshot" description="A quick read on workspace volume and available analytics." />
+            <SectionHeader title={t("dashboard.performanceSnapshot")} description={t("dashboard.performanceSnapshotDesc")} />
             <div id="dashboard-kpis" className="grid gap-4 sm:grid-cols-3">
               {kpis.map((kpi) => (
                 <KpiCard key={kpi.label} {...kpi} />
@@ -69,8 +69,8 @@ export function DashboardView() {
               <Card>
                 <CardHeader>
                   <div>
-                    <CardTitle>Growth Performance</CardTitle>
-                    <p className="mt-1 text-sm leading-6 text-muted">Recent output momentum based on saved projects, campaigns, assets, storyboards, and videos.</p>
+                    <CardTitle>{t("dashboard.growthPerformance")}</CardTitle>
+                    <p className="mt-1 text-sm leading-6 text-muted">{t("dashboard.growthPerformanceDesc")}</p>
                   </div>
                   {/* <div className="flex gap-2" aria-label="Chart range">
                     {["7D", "30D", "90D"].map((item) => (
@@ -87,8 +87,8 @@ export function DashboardView() {
                     <div className="grid min-h-60 place-items-center rounded-lg border border-dashed border-border bg-surface text-center">
                       <div>
                         <TrendingUp className="mx-auto mb-3 size-7 text-primary" aria-hidden="true" />
-                        <p className="font-display text-lg font-semibold text-foreground">No growth trend yet</p>
-                        <p className="mt-1 max-w-sm text-sm leading-6 text-muted">Create campaigns or assets to populate performance history.</p>
+                        <p className="font-display text-lg font-semibold text-foreground">{t("dashboard.noGrowthTrend")}</p>
+                        <p className="mt-1 max-w-sm text-sm leading-6 text-muted">{t("dashboard.noGrowthTrendDesc")}</p>
                       </div>
                     </div>
                   )}
@@ -98,7 +98,7 @@ export function DashboardView() {
               <RecentGenerationsCard items={recentGenerations} />
             </div>
 
-            <aside className="space-y-5" aria-label="Dashboard activity and actions">
+            <aside className="space-y-5" aria-label={t("dashboard.activityActions")}>
               <RecentActivityTimeline items={timelineItems} />
               <QuickActionsCard features={billing?.features} />
             </aside>
@@ -110,8 +110,8 @@ export function DashboardView() {
 }
 
 function DashboardHero({ metrics, recentGenerations, billing, features }: { metrics: Metric[]; recentGenerations: DashboardGeneration[]; billing: BillingInfo | null | undefined; features?: Record<string, boolean> }) {
+  const { t } = useTranslation();
   const projects = findMetric(metrics, "Projects")?.value ?? "0";
-  const campaigns = findMetric(metrics, "Campaigns")?.value ?? "0";
   const latest = recentGenerations[0];
 
   const actions = heroActions.filter(
@@ -126,19 +126,19 @@ function DashboardHero({ metrics, recentGenerations, billing, features }: { metr
             <div className="flex items-center gap-3">
               <span className="inline-flex items-center gap-2 rounded-md border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
                 <Sparkles className="size-3.5" aria-hidden="true" />
-                Marketly AI Workspace
+                {t("dashboard.workspace")}
               </span>
               {billing?.subscription?.plan && (
                 <span className="inline-flex items-center gap-2 rounded-md border border-border bg-surface px-3 py-1 text-xs font-semibold text-muted capitalize shadow-sm">
-                  {billing.subscription.plan === "free" ? "Free" : billing.subscription.plan} Plan
+                  {billing.subscription.plan === "free" ? t("dashboard.freePlan") : `${billing.subscription.plan} ${t("dashboard.plan")}`}
                 </span>
               )}
             </div>
             <h2 className="mt-5 max-w-3xl font-display text-3xl font-bold text-foreground sm:text-4xl lg:text-5xl">
-              Welcome back. Your growth workspace is ready.
+              {t("dashboard.heroTitle")}
             </h2>
             <p className="mt-4 max-w-2xl text-sm leading-6 text-muted sm:text-base">
-              Continue building campaigns, generating assets, and tracking what your team has produced from one focused dashboard.
+              {t("dashboard.heroDescription")}
             </p>
           </div>
 
@@ -147,7 +147,7 @@ function DashboardHero({ metrics, recentGenerations, billing, features }: { metr
               <Button key={action.href} asChild variant={action.href === "/creator-studio" ? "default" : "secondary"}>
                 <Link href={action.href}>
                   <action.icon className="size-4" />
-                  {action.label}
+                  {t(action.labelKey)}
                 </Link>
               </Button>
             ))}
@@ -156,16 +156,16 @@ function DashboardHero({ metrics, recentGenerations, billing, features }: { metr
 
         <div className="grid content-between gap-4 rounded-lg border border-border bg-surface p-4">
           <div>
-            <p className="text-xs font-semibold uppercase text-muted">Workspace Pulse</p>
+            <p className="text-xs font-semibold uppercase text-muted">{t("dashboard.workspacePulse")}</p>
             <div className="mt-4 grid grid-cols-2 gap-3">
-              <MiniStat label="Projects" value={projects} />
+              <MiniStat label={t("dashboard.projects")} value={projects} />
             </div>
           </div>
 
           <div className="rounded-lg border border-border bg-card p-4">
             <p className="flex items-center gap-2 text-xs font-semibold uppercase text-muted">
               <CalendarClock className="size-3.5 text-primary" aria-hidden="true" />
-              Latest generation
+              {t("dashboard.latestGeneration")}
             </p>
             {latest ? (
               <>
@@ -173,7 +173,7 @@ function DashboardHero({ metrics, recentGenerations, billing, features }: { metr
                 <p className="mt-1 text-xs text-muted">{latest.type}</p>
               </>
             ) : (
-              <p className="mt-3 text-sm leading-6 text-muted">No saved generations yet. Start with a quick action.</p>
+              <p className="mt-3 text-sm leading-6 text-muted">{t("dashboard.noSavedGenerations")}</p>
             )}
           </div>
         </div>
@@ -221,10 +221,12 @@ function KpiCard({ description, icon: Icon, label, tone = "neutral", value }: Kp
 }
 
 function RecentActivityTimeline({ items }: { items: DashboardGeneration[] }) {
+  const { language, t } = useTranslation();
+
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Recent Activity</CardTitle>
+        <CardTitle>{t("dashboard.recentActivity")}</CardTitle>
         <Activity className="size-4 text-muted" aria-hidden="true" />
       </CardHeader>
       <CardContent>
@@ -235,14 +237,14 @@ function RecentActivityTimeline({ items }: { items: DashboardGeneration[] }) {
 
               return (
                 <li key={`${item.type}-${item.id}`} className="relative grid grid-cols-[2.25rem_1fr] gap-3">
-                  {index < items.length - 1 ? <span className="absolute left-[1.0625rem] top-9 h-[calc(100%-.75rem)] w-px bg-border" aria-hidden="true" /> : null}
+                  {index < items.length - 1 ? <span className="absolute start-[1.0625rem] top-9 h-[calc(100%-.75rem)] w-px bg-border" aria-hidden="true" /> : null}
                   <span className="relative z-10 grid size-9 place-items-center rounded-lg border border-primary/20 bg-primary/10 text-primary">
                     <Icon className="size-4" aria-hidden="true" />
                   </span>
                   <div className="min-w-0 rounded-lg border border-border bg-surface p-3">
                     <p className="truncate text-sm font-semibold text-foreground">{item.title}</p>
                     <p className="mt-1 text-xs text-muted">{item.type}</p>
-                    <p className="mt-2 text-xs text-secondary">{formatActivityDate(item.createdAt)}</p>
+                    <p className="mt-2 text-xs text-secondary">{formatActivityDate(item.createdAt, language, t)}</p>
                   </div>
                 </li>
               );
@@ -252,8 +254,8 @@ function RecentActivityTimeline({ items }: { items: DashboardGeneration[] }) {
           <div className="grid min-h-48 place-items-center rounded-lg border border-dashed border-border bg-surface text-center">
             <div>
               <Activity className="mx-auto mb-3 size-6 text-primary" aria-hidden="true" />
-              <p className="font-display text-lg font-semibold text-foreground">No recent activity</p>
-              <p className="mt-1 max-w-xs text-sm leading-6 text-muted">Your saved work will appear here as you create it.</p>
+              <p className="font-display text-lg font-semibold text-foreground">{t("dashboard.noRecentActivity")}</p>
+              <p className="mt-1 max-w-xs text-sm leading-6 text-muted">{t("dashboard.noRecentActivityDesc")}</p>
             </div>
           </div>
         )}
@@ -262,18 +264,16 @@ function RecentActivityTimeline({ items }: { items: DashboardGeneration[] }) {
   );
 }
 
-function buildKpis(metrics: Metric[], recentGenerations: DashboardGeneration[]): KpiCardProps[] {
+function buildKpis(metrics: Metric[], recentGenerations: DashboardGeneration[], t: ReturnType<typeof useTranslation>["t"]): KpiCardProps[] {
   const projects = findMetric(metrics, "Projects");
-  const campaigns = findMetric(metrics, "Campaigns");
   const generatedAssets = findMetric(metrics, "Generated Assets");
-  const ctr = findMetric(metrics, "CTR");
   const videosCount = recentGenerations.filter((item) => item.isVideo || item.type.toLowerCase().includes("video")).length;
 
   return [
     {
-      description: projects?.delta ?? "Active workspace projects",
+      description: projects?.delta ?? t("dashboard.activeWorkspaceProjects"),
       icon: FolderKanban,
-      label: "Projects",
+      label: t("dashboard.projects"),
       tone: projects?.tone,
       value: projects?.value ?? "0",
     },
@@ -285,16 +285,16 @@ function buildKpis(metrics: Metric[], recentGenerations: DashboardGeneration[]):
     //   value: campaigns?.value ?? "0",
     // },
     {
-      description: generatedAssets?.delta ?? "Saved AI outputs",
+      description: generatedAssets?.delta ?? t("dashboard.savedAiOutputs"),
       icon: Sparkles,
-      label: "Generated Assets",
+      label: t("dashboard.generatedAssets"),
       tone: generatedAssets?.tone,
       value: generatedAssets?.value ?? "0",
     },
     {
-      description: videosCount > 0 ? "Recent saved videos" : "No recent videos yet",
+      description: videosCount > 0 ? t("dashboard.recentSavedVideos") : t("dashboard.noRecentVideos"),
       icon: Clapperboard,
-      label: "Videos",
+      label: t("dashboard.videos"),
       tone: videosCount > 0 ? "success" : "neutral",
       value: videosCount.toLocaleString(),
     },
@@ -327,12 +327,12 @@ function iconForGeneration(item: DashboardGeneration): LucideIcon {
   return Sparkles;
 }
 
-function formatActivityDate(value?: string) {
-  if (!value) return "Date unavailable";
+function formatActivityDate(value: string | undefined, language: string, t: ReturnType<typeof useTranslation>["t"]) {
+  if (!value) return t("dashboard.dateUnavailable");
   const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "Date unavailable";
+  if (Number.isNaN(date.getTime())) return t("dashboard.dateUnavailable");
 
-  return new Intl.DateTimeFormat("en", {
+  return new Intl.DateTimeFormat(language, {
     dateStyle: "medium",
     timeStyle: "short",
   }).format(date);

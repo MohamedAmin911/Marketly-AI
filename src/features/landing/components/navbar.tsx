@@ -5,8 +5,12 @@ import { motion } from "framer-motion";
 
 import { BrandMark } from "@/components/layout/brand-mark";
 import { Button } from "@/components/ui/button";
+import { LanguageToggle } from "@/components/language-toggle";
+import { useTranslation } from "@/lib/i18n/useTranslation";
 
 export function LandingNavbar() {
+  const { t } = useTranslation();
+
   return (
     <motion.nav
       initial={{ y: -100, opacity: 0 }}
@@ -29,10 +33,11 @@ export function LandingNavbar() {
 
       <div className="flex items-center gap-4">
         <Link href="/login" className="text-sm font-medium text-muted hover:text-foreground transition-colors">
-          Sign In
+          {t("auth.signIn")}
         </Link>
+        <LanguageToggle />
         <Button asChild className="rounded-full shadow-glow neon-gradient">
-          <Link href="/signup">Get Started</Link>
+          <Link href="/signup">{t("landing.getStarted")}</Link>
         </Button>
       </div>
     </motion.nav>

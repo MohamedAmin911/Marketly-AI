@@ -12,8 +12,10 @@ import { FormField } from "@/components/ui/form-field";
 import { Input } from "@/components/ui/input";
 import { requestPasswordReset, resetPassword } from "@/features/auth/services/auth-service";
 import { forgotPasswordSchema, resetPasswordSchema, type ForgotPasswordFormValues, type ResetPasswordFormValues } from "@/features/auth/utils/schema";
+import { useTranslation } from "@/lib/i18n/useTranslation";
 
 export function ForgotPasswordForm() {
+  const { t } = useTranslation();
   const [message, setMessage] = useState("");
   const [resetToken, setResetToken] = useState<string | null>(null);
   const form = useForm<ForgotPasswordFormValues>({
@@ -27,43 +29,43 @@ export function ForgotPasswordForm() {
 
     try {
       const result = await requestPasswordReset(values);
-      setMessage("If an account exists, a password reset link has been prepared.");
+      setMessage(t("auth.resetPrepared"));
       setResetToken(result.resetToken ?? null);
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Password reset request failed.");
+      setMessage(error instanceof Error ? error.message : t("auth.resetRequestFailed"));
     }
   });
 
   return (
     <div>
       <div className="text-center">
-        <h1 className="font-display text-3xl font-semibold text-white">Reset Password</h1>
-        <p className="mt-2 text-sm text-muted">Enter your email and we will prepare a secure reset flow.</p>
+        <h1 className="font-display text-3xl font-semibold text-white">{t("auth.resetPassword")}</h1>
+        <p className="mt-2 text-sm text-muted">{t("auth.resetPasswordDesc")}</p>
       </div>
 
       <form className="mt-7 space-y-4" onSubmit={onSubmit} noValidate>
-        <FormField label="Email address" error={form.formState.errors.email?.message} id="email">
+        <FormField label={t("auth.email")} error={form.formState.errors.email?.message} id="email">
           <Input {...form.register("email")} aria-invalid={Boolean(form.formState.errors.email)} id="email" placeholder="name@company.com" type="email" autoComplete="email" />
         </FormField>
 
         {message ? <p className="rounded-lg border border-white/10 bg-white/[0.04] p-3 text-sm text-muted">{message}</p> : null}
         {resetToken ? (
           <Link className="block rounded-lg border border-primary/30 bg-primary/10 p-3 text-sm text-primary" href={`/reset-password?token=${encodeURIComponent(resetToken)}`}>
-            Continue with local dev reset token
+            {t("auth.continueDevToken")}
           </Link>
         ) : null}
 
         <Button className="w-full" type="submit" disabled={form.formState.isSubmitting}>
           {form.formState.isSubmitting ? <Loader2 className="size-4 animate-spin" /> : null}
-          Send Reset Link
+          {t("auth.sendResetLink")}
           <ArrowRight className="size-4" />
         </Button>
       </form>
 
       <p className="mt-7 text-center text-sm text-muted">
-        Remembered it?{" "}
+        {t("auth.remembered")}{" "}
         <Link href="/login" className="font-semibold text-primary hover:text-cyan-glow">
-          Sign in
+          {t("auth.signIn")}
         </Link>
       </p>
     </div>
@@ -71,6 +73,7 @@ export function ForgotPasswordForm() {
 }
 
 export function ResetPasswordForm() {
+  const { t } = useTranslation();
   const router = useRouter();
   const searchParams = useSearchParams();
   const token = searchParams.get("token") ?? "";
@@ -87,28 +90,28 @@ export function ResetPasswordForm() {
       await resetPassword({ ...values, token });
       router.push("/login");
     } catch (error) {
-      setServerError(error instanceof Error ? error.message : "Password reset failed.");
+      setServerError(error instanceof Error ? error.message : t("auth.resetFailed"));
     }
   });
 
   return (
     <div>
       <div className="text-center">
-        <h1 className="font-display text-3xl font-semibold text-white">Choose New Password</h1>
-        <p className="mt-2 text-sm text-muted">Use a strong password with uppercase, lowercase, and a number.</p>
+        <h1 className="font-display text-3xl font-semibold text-white">{t("auth.chooseNewPassword")}</h1>
+        <p className="mt-2 text-sm text-muted">{t("auth.chooseNewPasswordDesc")}</p>
       </div>
 
       <form className="mt-7 space-y-4" onSubmit={onSubmit} noValidate>
-        <FormField label="New password" error={form.formState.errors.password?.message} id="password">
+        <FormField label={t("auth.newPassword")} error={form.formState.errors.password?.message} id="password">
           <Input {...form.register("password")} aria-invalid={Boolean(form.formState.errors.password)} id="password" type="password" autoComplete="new-password" />
         </FormField>
 
-        {!token ? <p className="rounded-lg border border-red-300/20 bg-red-400/10 p-3 text-sm text-red-100">Reset token is missing.</p> : null}
+        {!token ? <p className="rounded-lg border border-red-300/20 bg-red-400/10 p-3 text-sm text-red-100">{t("auth.resetTokenMissing")}</p> : null}
         {serverError ? <p className="rounded-lg border border-red-300/20 bg-red-400/10 p-3 text-sm text-red-100">{serverError}</p> : null}
 
         <Button className="w-full" type="submit" disabled={form.formState.isSubmitting || !token}>
           {form.formState.isSubmitting ? <Loader2 className="size-4 animate-spin" /> : null}
-          Reset Password
+          {t("auth.resetPassword")}
           <ArrowRight className="size-4" />
         </Button>
       </form>

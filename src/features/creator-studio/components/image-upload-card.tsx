@@ -6,6 +6,7 @@ import { ImagePlus, X } from "lucide-react";
 import { useEffect, useId, useState } from "react";
 
 import { Button } from "@/components/ui/button";
+import { useTranslation } from "@/lib/i18n/useTranslation";
 import { cn } from "@/lib/utils";
 
 type ImageUploadCardProps = {
@@ -17,6 +18,7 @@ type ImageUploadCardProps = {
 };
 
 export function ImageUploadCard({ compact = false, eyebrow, hint, image, onImageChange }: ImageUploadCardProps) {
+  const { t } = useTranslation();
   const inputId = useId();
   const [isDragging, setIsDragging] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -80,7 +82,7 @@ export function ImageUploadCard({ compact = false, eyebrow, hint, image, onImage
           <>
             <img src={previewUrl} alt={`${eyebrow} preview`} className="absolute inset-0 size-full object-cover transition-transform duration-500 group-hover:scale-[1.03]" />
             <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
-            <div className="absolute bottom-3 left-3 right-3 rounded-lg border border-white/10 bg-black/35 px-3 py-2 backdrop-blur-md">
+            <div className="absolute inset-x-3 bottom-3 rounded-lg border border-white/10 bg-black/35 px-3 py-2 backdrop-blur-md">
               <p className="truncate text-sm font-semibold text-white">{image?.name}</p>
               <p className="text-xs text-muted">{image ? `${Math.max(image.size / 1024 / 1024, 0.01).toFixed(2)} MB` : null}</p>
             </div>
@@ -90,8 +92,8 @@ export function ImageUploadCard({ compact = false, eyebrow, hint, image, onImage
             <div className="mx-auto grid size-12 place-items-center rounded-lg border border-primary/20 bg-primary/10 text-primary">
               <ImagePlus className="size-6" />
             </div>
-            <p className="mt-4 text-sm font-semibold text-foreground">Drop image here or click to upload</p>
-            <p className="mt-1 text-xs text-muted">PNG, JPG, or WebP</p>
+            <p className="mt-4 text-sm font-semibold text-foreground">{t("studio.dropImage")}</p>
+            <p className="mt-1 text-xs text-muted">{t("studio.fileTypes")}</p>
           </div>
         )}
       </label>

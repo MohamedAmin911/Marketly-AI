@@ -14,6 +14,7 @@ import { GrowthEngineResults } from "@/features/growth-engine/components/growth-
 import { StatusTracker } from "@/features/growth-engine/components/status-tracker";
 import { getGrowthProject, submitGrowthEngineWorkflow } from "@/features/growth-engine/services";
 import type { GrowthEngineForm, GrowthEngineStage, GrowthProjectRecord } from "@/features/growth-engine/types";
+import { useTranslation } from "@/lib/i18n/useTranslation";
 import { cn } from "@/lib/utils";
 
 function stageFromStatus(status: GrowthProjectRecord["status"]): GrowthEngineStage {
@@ -46,6 +47,7 @@ function completedStagesFromProject(project: GrowthProjectRecord): GrowthEngineS
 const POLL_INTERVAL_MS = 5_000;
 
 export function GrowthEngineView() {
+  const { t } = useTranslation();
   const [form, setForm] = useState<GrowthEngineForm>({
     brandBrief: "",
     brandName: "",
@@ -120,7 +122,7 @@ export function GrowthEngineView() {
   }
 
   return (
-    <PageShell title="AI Growth Engine" description="Turn a focused brand brief into strategy, personas, campaign concepts, storyboards, and recommended next actions.">
+    <PageShell title={t("growth.title")} description={t("growth.description")}>
       <div className="grid gap-6 xl:grid-cols-[26rem_minmax(0,1fr)]">
         <aside className="self-start xl:sticky xl:top-24">
           <Card>
@@ -130,31 +132,31 @@ export function GrowthEngineView() {
                   <BriefcaseBusiness className="size-5" />
                 </span>
                 <div>
-                  <CardTitle>Brand Brief Form</CardTitle>
-                  <CardDescription>Describe the market, audience, and goal for the AI growth pipeline.</CardDescription>
+                  <CardTitle>{t("growth.brandBriefForm")}</CardTitle>
+                  <CardDescription>{t("growth.brandBriefFormDesc")}</CardDescription>
                 </div>
               </div>
             </CardHeader>
             <CardContent className="space-y-5">
               <div className="grid gap-4">
-                <FormField label="Brand name" id="ge-brand-name">
-                  <Input id="ge-brand-name" placeholder="Acme Corp" value={form.brandName} onChange={(e) => updateField("brandName", e.target.value)} />
+                <FormField label={t("growth.brandName")} id="ge-brand-name">
+                  <Input id="ge-brand-name" placeholder={t("growth.brandNamePlaceholder")} value={form.brandName} onChange={(e) => updateField("brandName", e.target.value)} />
                 </FormField>
-                <FormField label="Industry" id="ge-industry">
-                  <Input id="ge-industry" placeholder="SaaS, E-commerce, FinTech..." value={form.industry} onChange={(e) => updateField("industry", e.target.value)} />
+                <FormField label={t("growth.industry")} id="ge-industry">
+                  <Input id="ge-industry" placeholder={t("growth.industryPlaceholder")} value={form.industry} onChange={(e) => updateField("industry", e.target.value)} />
                 </FormField>
-                <FormField label="Target audience" id="ge-audience">
-                  <Input id="ge-audience" placeholder="Gen-Z creators, enterprise CTOs..." value={form.targetAudience} onChange={(e) => updateField("targetAudience", e.target.value)} />
+                <FormField label={t("growth.targetAudience")} id="ge-audience">
+                  <Input id="ge-audience" placeholder={t("growth.audiencePlaceholder")} value={form.targetAudience} onChange={(e) => updateField("targetAudience", e.target.value)} />
                 </FormField>
-                <FormField label="Marketing goal" id="ge-goal">
-                  <Input id="ge-goal" placeholder="Product launch, brand awareness..." value={form.marketingGoal} onChange={(e) => updateField("marketingGoal", e.target.value)} />
+                <FormField label={t("growth.marketingGoal")} id="ge-goal">
+                  <Input id="ge-goal" placeholder={t("growth.goalPlaceholder")} value={form.marketingGoal} onChange={(e) => updateField("marketingGoal", e.target.value)} />
                 </FormField>
-                <FormField label="Brand brief" id="ge-brief">
-                  <Textarea id="ge-brief" rows={5} placeholder="Describe your offer, positioning, value props, objections, and what makes the brand different..." value={form.brandBrief} onChange={(e) => updateField("brandBrief", e.target.value)} />
+                <FormField label={t("growth.brandBrief")} id="ge-brief">
+                  <Textarea id="ge-brief" rows={5} placeholder={t("growth.briefPlaceholder")} value={form.brandBrief} onChange={(e) => updateField("brandBrief", e.target.value)} />
                 </FormField>
               </div>
 
-              <FormField label="Product image" id="ge-product-image">
+              <FormField label={t("growth.productImage")} id="ge-product-image">
                 <label
                   htmlFor="ge-product-image"
                   className="flex min-h-32 cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-border bg-surface p-4 text-center text-xs text-muted transition hover:border-primary/50 hover:bg-soft-green-surface focus-within:ring-2 focus-within:ring-primary/70"
@@ -168,7 +170,7 @@ export function GrowthEngineView() {
                       <span>{Math.max(form.productImage.size / 1024 / 1024, 0.01).toFixed(2)} MB</span>
                     </>
                   ) : (
-                    <span>Click to upload product image</span>
+                    <span>{t("growth.clickUploadProduct")}</span>
                   )}
                   <input id="ge-product-image" type="file" accept="image/*" className="sr-only" onChange={(e) => updateField("productImage", e.target.files?.[0] ?? null)} />
                 </label>
@@ -183,14 +185,14 @@ export function GrowthEngineView() {
 
               <Button className="w-full" type="button" onClick={handleSubmit} disabled={!canSubmit}>
                 {submitting ? <Loader2 className="size-4 animate-spin" /> : <Sparkles className="size-4" />}
-                {submitting ? "Generating Strategy..." : "Launch Growth Engine"}
+                {submitting ? t("growth.generatingStrategy") : t("growth.launch")}
               </Button>
 
               <div className="grid gap-3 rounded-lg border border-border bg-surface p-4">
-                <p className="text-xs font-semibold uppercase text-muted">Brief Quality</p>
-                <BriefQualityItem icon={Building2} label="Brand" ready={Boolean(form.brandName.trim() && form.industry.trim())} />
-                <BriefQualityItem icon={Users} label="Audience" ready={Boolean(form.targetAudience.trim())} />
-                <BriefQualityItem icon={Target} label="Goal" ready={Boolean(form.marketingGoal.trim())} />
+                <p className="text-xs font-semibold uppercase text-muted">{t("growth.briefQuality")}</p>
+                <BriefQualityItem icon={Building2} label={t("growth.brand")} ready={Boolean(form.brandName.trim() && form.industry.trim())} />
+                <BriefQualityItem icon={Users} label={t("growth.audience")} ready={Boolean(form.targetAudience.trim())} />
+                <BriefQualityItem icon={Target} label={t("growth.goal")} ready={Boolean(form.marketingGoal.trim())} />
               </div>
             </CardContent>
           </Card>
@@ -200,8 +202,8 @@ export function GrowthEngineView() {
           <Card>
             <CardHeader>
               <div>
-                <CardTitle>Generated Strategy</CardTitle>
-                <CardDescription>Pipeline progress and generated strategic assets for the current brand brief.</CardDescription>
+                <CardTitle>{t("growth.generatedStrategy")}</CardTitle>
+                <CardDescription>{t("growth.generatedStrategyDesc")}</CardDescription>
               </div>
             </CardHeader>
             <CardContent>
@@ -217,6 +219,8 @@ export function GrowthEngineView() {
 }
 
 function BriefQualityItem({ icon: Icon, label, ready }: { icon: typeof Building2; label: string; ready: boolean }) {
+  const { t } = useTranslation();
+
   return (
     <div className="flex items-center justify-between gap-3 rounded-lg border border-border bg-card px-3 py-2">
       <span className="flex items-center gap-2 text-sm text-foreground">
@@ -224,7 +228,7 @@ function BriefQualityItem({ icon: Icon, label, ready }: { icon: typeof Building2
         {label}
       </span>
       <span className={cn("rounded-md border px-2 py-1 text-[10px] font-semibold uppercase", ready ? "border-primary/30 bg-primary/10 text-primary" : "border-border bg-surface text-muted")}>
-        {ready ? "Ready" : "Needed"}
+        {ready ? t("common.ready") : t("common.needed")}
       </span>
     </div>
   );

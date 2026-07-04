@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Inter, JetBrains_Mono, Space_Grotesk } from "next/font/google";
+import { Cairo, Inter, JetBrains_Mono, Space_Grotesk } from "next/font/google";
 
 import { Providers } from "./providers";
 import { GlobalToaster } from "@/components/ui/global-toaster";
@@ -20,6 +20,12 @@ const spaceGrotesk = Space_Grotesk({
 const jetbrainsMono = JetBrains_Mono({
   variable: "--font-jetbrains-mono",
   subsets: ["latin"],
+  display: "swap",
+});
+
+const cairo = Cairo({
+  variable: "--font-cairo",
+  subsets: ["arabic", "latin"],
   display: "swap",
 });
 
@@ -52,6 +58,22 @@ const themeInitScript = `
 })();
 `;
 
+const languageInitScript = `
+(() => {
+  try {
+    const key = "marketly-language";
+    const stored = localStorage.getItem(key);
+    const language = stored === "ar" ? "ar" : "en";
+    const dir = language === "ar" ? "rtl" : "ltr";
+    document.documentElement.lang = language;
+    document.documentElement.dir = dir;
+  } catch {
+    document.documentElement.lang = "en";
+    document.documentElement.dir = "ltr";
+  }
+})();
+`;
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -60,11 +82,13 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${inter.variable} ${spaceGrotesk.variable} ${jetbrainsMono.variable} h-full antialiased`}
+      dir="ltr"
+      className={`${inter.variable} ${spaceGrotesk.variable} ${jetbrainsMono.variable} ${cairo.variable} h-full antialiased`}
       suppressHydrationWarning
     >
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
+        <script dangerouslySetInnerHTML={{ __html: languageInitScript }} />
       </head>
       <body className="min-h-full bg-background text-foreground">
         <Providers>{children}</Providers>

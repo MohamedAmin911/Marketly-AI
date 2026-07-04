@@ -12,6 +12,7 @@ import { Card } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { ChatMessage } from "@/features/ai-assistant/components/chat-message";
 import { useAssistantChat } from "@/features/ai-assistant/hooks";
+import { useTranslation } from "@/lib/i18n/useTranslation";
  
 const ALLOWED_IMAGE_TYPES = ["image/png", "image/jpeg", "image/webp"];
 const ALLOWED_FILE_TYPES = [...ALLOWED_IMAGE_TYPES, "application/pdf", "text/plain", "text/csv"];
@@ -63,6 +64,7 @@ async function readPdfAsText(file: File): Promise<string> {
 }
  
 export function AiAssistantView() {
+  const { t } = useTranslation();
   const {
     activeSessionId, attachment, deleteSession, draft, isLoadingHistory,
     isSending, loadSession, messages, sendMessage, sessions,
@@ -186,22 +188,22 @@ recognition.onresult = (event: any) => {
   const canSend = !isSending && (draft.trim().length > 0 || attachment !== null);
  
   return (
-    <PageShell title="AI Assistant" description="Ask Marketly AI to analyze data, generate campaigns, or predict channel trends.">
+    <PageShell title={t("assistant.title")} description={t("assistant.description")}>
       <div className="mx-auto flex max-w-6xl gap-4">
  
         {/* ── Sessions Sidebar ── */}
         <aside className="hidden w-52 shrink-0 lg:flex lg:flex-col lg:gap-2">
           <Button variant="secondary" size="sm" className="w-full justify-start gap-2" onClick={() => void startNewChat()}>
             <MessageSquarePlus className="size-4" />
-            New Chat
+            {t("assistant.newChat")}
           </Button>
           <div className="mt-1 space-y-0.5 overflow-y-auto max-h-[70vh]">
             {isLoadingHistory ? (
               <div className="flex items-center gap-2 px-2 py-2 text-xs text-muted">
-                <Loader2 className="size-3 animate-spin" /> Loading…
+                <Loader2 className="size-3 animate-spin" /> {t("common.loading")}...
               </div>
             ) : sessions.length === 0 ? (
-              <p className="px-2 py-1 text-xs text-muted">No previous chats.</p>
+              <p className="px-2 py-1 text-xs text-muted">{t("assistant.noPreviousChats")}</p>
             ) : (
               sessions.map((session) => (
                 <div
@@ -213,8 +215,8 @@ recognition.onresult = (event: any) => {
                   <button
                     type="button"
                     onClick={(e) => { e.stopPropagation(); void deleteSession(session._id); }}
-                    className="ml-1 hidden shrink-0 rounded p-0.5 hover:text-red-400 group-hover:block"
-                    aria-label="Delete"
+                    className="ms-1 hidden shrink-0 rounded p-0.5 hover:text-red-400 group-hover:block"
+                    aria-label={t("assistant.delete")}
                   >
                     <Trash2 className="size-3" />
                   </button>
@@ -228,7 +230,7 @@ recognition.onresult = (event: any) => {
         <div className="flex min-w-0 flex-1 flex-col gap-5">
           {isLoadingHistory ? (
             <div className="flex items-center justify-center py-12 text-sm text-muted">
-              <Loader2 className="mr-2 size-4 animate-spin" /> Loading conversation…
+              <Loader2 className="me-2 size-4 animate-spin" /> {t("assistant.loadingConversation")}
             </div>
           ) : (
             <StaggeredList className="space-y-5" aria-live="polite">
@@ -244,24 +246,24 @@ recognition.onresult = (event: any) => {
           )}
  
           {/* Quick action buttons */}
-          <div className="flex flex-wrap gap-2" aria-label="Suggested prompts">
+          <div className="flex flex-wrap gap-2" aria-label={t("assistant.suggestedPrompts")}>
             {promptActions.map(({ label, icon: Icon, prompt }) => (
               <Button key={label} variant="secondary" size="sm" type="button" onClick={() => void handleSend(prompt)}>
                 <Icon className="size-3" />
-                {label}
+                {translatePromptAction(label, t)}
               </Button>
             ))}
           </div>
  
           <Card className="p-3">
-            <label className="sr-only" htmlFor="assistant-draft">Message Marketly AI</label>
+            <label className="sr-only" htmlFor="assistant-draft">{t("assistant.messageLabel")}</label>
             <Textarea
               id="assistant-draft"
               value={draft}
               onChange={(e) => setDraft(e.target.value)}
               onKeyDown={handleKeyDown}
               className="min-h-24 border-0 bg-transparent"
-              placeholder="Ask Marketly AI… or attach a file for analysis (Ctrl+Enter to send)"
+              placeholder={t("assistant.placeholder")}
             />
  
             {attachment ? (
@@ -277,7 +279,7 @@ recognition.onresult = (event: any) => {
                   <p className="truncate text-xs font-medium text-foreground">{attachment.name}</p>
                   <p className="text-xs text-muted">{(attachment.size / 1024).toFixed(0)} KB</p>
                 </div>
-                <button type="button" onClick={() => setAttachment(null)} className="shrink-0 rounded-full p-1 text-muted hover:text-foreground" aria-label="Remove">
+                <button type="button" onClick={() => setAttachment(null)} className="shrink-0 rounded-full p-1 text-muted hover:text-foreground" aria-label={t("assistant.removeAttachment")}>
                   <X className="size-4" />
                 </button>
               </div>
@@ -303,20 +305,20 @@ recognition.onresult = (event: any) => {
                 </Button>
  
                 {/* Image upload */}
-                <Button variant="ghost" size="icon" type="button" aria-label="Attach image" onClick={() => imageInputRef.current?.click()}>
+                <Button variant="ghost" size="icon" type="button" aria-label={t("assistant.attachImage")} onClick={() => imageInputRef.current?.click()}>
                   <ImageIcon className="size-4" />
                 </Button>
                 <input ref={imageInputRef} type="file" className="hidden" accept={ALLOWED_IMAGE_TYPES.join(",")} onChange={(e) => void handleFileSelected(e.target.files?.[0]).then(() => { e.target.value = ""; })} />
  
                 {/* File upload */}
-                <Button variant="ghost" size="icon" type="button" aria-label="Attach file" onClick={() => fileInputRef.current?.click()}>
+                <Button variant="ghost" size="icon" type="button" aria-label={t("assistant.attachFile")} onClick={() => fileInputRef.current?.click()}>
                   <Paperclip className="size-4" />
                 </Button>
                 <input ref={fileInputRef} type="file" className="hidden" accept={ALLOWED_FILE_TYPES.join(",")} onChange={(e) => void handleFileSelected(e.target.files?.[0]).then(() => { e.target.value = ""; })} />
               </div>
  
               <Button onClick={() => void handleSend()} type="button" disabled={!canSend}>
-                {isSending ? "Thinking" : "Send"}
+                {isSending ? t("common.thinking") : t("common.send")}
                 {isSending ? <Loader2 className="size-4 animate-spin" /> : <Send className="size-4" />}
               </Button>
             </div>
@@ -325,4 +327,11 @@ recognition.onresult = (event: any) => {
       </div>
     </PageShell>
   );
+}
+
+function translatePromptAction(label: string, t: ReturnType<typeof useTranslation>["t"]) {
+  if (label === "Draft proposal") return t("assistant.draftProposal");
+  if (label === "Share meta metrics") return t("assistant.shareMetrics");
+  if (label === "Pause LinkedIn campaign") return t("assistant.pauseLinkedIn");
+  return label;
 }

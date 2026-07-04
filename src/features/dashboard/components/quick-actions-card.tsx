@@ -3,10 +3,10 @@ import Link from "next/link";
 import { ActionCard } from "@/components/shared/action-card";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { QUICK_CREATE_ITEMS } from "@/lib/constants/navigation";
-
-import type { BillingInfo } from "@/features/billing/hooks/use-billing";
+import { useTranslation } from "@/lib/i18n/useTranslation";
 
 export function QuickActionsCard({ features }: { features?: Record<string, boolean> }) {
+  const { t } = useTranslation();
   const items = QUICK_CREATE_ITEMS.filter(
     (item) => !item.feature || (features && features[item.feature])
   );
@@ -14,12 +14,16 @@ export function QuickActionsCard({ features }: { features?: Record<string, boole
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Quick Actions</CardTitle>
+        <CardTitle>{t("quick.title")}</CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
         {items.map((item) => (
           <Link key={item.title} href={item.href} className="block focus-visible:outline-none">
-            <ActionCard title={item.title} description={item.description} icon={item.icon} />
+            <ActionCard
+              title={t(item.translationKey)}
+              description={t(item.descriptionKey)}
+              icon={item.icon}
+            />
           </Link>
         ))}
       </CardContent>

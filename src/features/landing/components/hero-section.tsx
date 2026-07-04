@@ -6,8 +6,11 @@ import { motion } from "framer-motion";
 import { Sparkles, ArrowRight } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { useTranslation } from "@/lib/i18n/useTranslation";
 
 export function HeroSection() {
+  const { t } = useTranslation();
+
   return (
     <section className="relative pt-36 pb-20 lg:pt-48 lg:pb-32 overflow-hidden">
       {/* Background Glows */}
@@ -32,7 +35,7 @@ export function HeroSection() {
           className="inline-flex items-center gap-2 px-3 py-1 mb-8 text-xs font-semibold uppercase tracking-widest text-primary bg-primary/10 rounded-full border border-primary/20"
         >
           <Sparkles className="size-3" />
-          The Future of Marketing
+          {t("landing.future")}
         </motion.div>
 
         <motion.h1
@@ -41,7 +44,7 @@ export function HeroSection() {
           transition={{ duration: 0.6, delay: 0.2 }}
           className="max-w-4xl mx-auto font-display text-5xl md:text-7xl font-bold tracking-tight text-foreground leading-[1.1]"
         >
-          Scale your growth with <span className="gradient-text">AI-powered marketing</span>
+          {t("landing.heroTitleStart")} <span className="gradient-text">{t("landing.heroTitleHighlight")}</span>
         </motion.h1>
 
         <motion.p
@@ -50,8 +53,7 @@ export function HeroSection() {
           transition={{ duration: 0.6, delay: 0.3 }}
           className="max-w-2xl mx-auto mt-6 text-lg md:text-xl text-muted leading-relaxed"
         >
-          Generate entire campaigns, storyboards, and ad creatives in seconds. 
-          Stop guessing and start shipping high-converting content with your new AI marketing team.
+          {t("landing.heroDescription")}
         </motion.p>
 
         <motion.div
@@ -62,11 +64,11 @@ export function HeroSection() {
         >
           <Button size="lg" asChild className="rounded-full px-8 text-base shadow-glow neon-gradient">
             <Link href="/signup">
-              Start Building Free <ArrowRight className="size-4 ml-2" />
+              {t("landing.startBuildingFree")} <ArrowRight className="ms-2 size-4 rtl:rotate-180" />
             </Link>
           </Button>
           <Button size="lg" variant="secondary" asChild className="rounded-full px-8 text-base bg-surface hover:bg-card border-border">
-            <Link href="#features">Explore Features</Link>
+            <Link href="#features">{t("landing.exploreFeatures")}</Link>
           </Button>
         </motion.div>
 

@@ -4,8 +4,8 @@ import { useBilling } from "@/features/billing/hooks/use-billing";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { BadgeDollarSign, Check, Loader2, Zap } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { useTranslation } from "@/lib/i18n/useTranslation";
 
 const PLANS = [
   { id: "free", name: "Free", price: "$0", features: ["Ad Studio", "Image Generation", "Video Generation"] },
@@ -15,6 +15,7 @@ const PLANS = [
 ];
 
 export function BillingTab() {
+  const { t } = useTranslation();
   const { billing, isLoading, upgradePlan, isUpgrading, buyCredits, isBuyingCredits } = useBilling();
 
   if (isLoading) {
@@ -29,13 +30,13 @@ export function BillingTab() {
     return (
       <Card>
         <CardContent className="p-10 text-center text-muted">
-          Failed to load billing information.
+          {t("billing.failedLoad")}
         </CardContent>
       </Card>
     );
   }
 
-  const { subscription, usage } = billing;
+  const { subscription } = billing;
   const currentPlanIndex = PLANS.findIndex(p => p.id === subscription.plan);
   
   const creditsPercentage = subscription.monthlyCredits > 0 
@@ -50,14 +51,14 @@ export function BillingTab() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Zap className="size-5 text-primary" />
-              Credits Usage
+              {t("billing.creditsUsage")}
             </CardTitle>
-            <CardDescription>Track your monthly credits and purchased top-ups.</CardDescription>
+            <CardDescription>{t("billing.creditsUsageDesc")}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
               <div className="mb-2 flex items-center justify-between text-sm">
-                <span className="font-medium text-foreground">Monthly Credits</span>
+                <span className="font-medium text-foreground">{t("billing.monthlyCredits")}</span>
                 <span className="text-muted">{subscription.monthlyCreditsRemaining} / {subscription.monthlyCredits}</span>
               </div>
               <Progress value={creditsPercentage} className="h-2" />
@@ -66,33 +67,33 @@ export function BillingTab() {
             <div className="pt-4 border-t border-border">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-foreground">Purchased Credits</p>
-                  <p className="text-xs text-muted">Never expire. Used when monthly credits run out.</p>
+                  <p className="text-sm font-medium text-foreground">{t("billing.purchasedCredits")}</p>
+                  <p className="text-xs text-muted">{t("billing.purchasedCreditsDesc")}</p>
                 </div>
                 <div className="text-right">
                   <p className="text-lg font-bold text-primary">{subscription.purchasedCredits}</p>
                 </div>
               </div>
               <div className="mt-4 grid grid-cols-2 gap-2">
-                <Button 
-                  variant="outline" 
-                  size="sm" 
+                <Button
+                  variant="secondary"
+                  size="sm"
                   onClick={() => buyCredits(500)}
                   disabled={isBuyingCredits}
                   className="transition-transform hover:scale-105 active:scale-95"
                 >
-                  {isBuyingCredits ? <Loader2 className="size-4 animate-spin mr-2" /> : null}
-                  Buy 500 ($10)
+                  {isBuyingCredits ? <Loader2 className="me-2 size-4 animate-spin" /> : null}
+                  {t("billing.buyCredits", { amount: 500, price: "$10" })}
                 </Button>
-                <Button 
-                  variant="default" 
-                  size="sm" 
+                <Button
+                  variant="default"
+                  size="sm"
                   onClick={() => buyCredits(2000)}
                   disabled={isBuyingCredits}
                   className="transition-transform hover:scale-105 active:scale-95"
                 >
-                  {isBuyingCredits ? <Loader2 className="size-4 animate-spin mr-2" /> : null}
-                  Buy 2000 ($35)
+                  {isBuyingCredits ? <Loader2 className="me-2 size-4 animate-spin" /> : null}
+                  {t("billing.buyCredits", { amount: 2000, price: "$35" })}
                 </Button>
               </div>
             </div>
@@ -104,14 +105,14 @@ export function BillingTab() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <BadgeDollarSign className="size-5 text-primary" />
-              Current Plan
+              {t("billing.currentPlan")}
             </CardTitle>
-            <CardDescription>Your workspace is on the <strong className="text-foreground capitalize">{subscription.plan}</strong> plan.</CardDescription>
+            <CardDescription>{t("billing.currentPlanDesc", { plan: translatePlanName(subscription.plan, t) })}</CardDescription>
           </CardHeader>
           <CardContent>
             {subscription.renewsAt && (
               <p className="text-sm text-muted mb-4">
-                Renews on {new Date(subscription.renewsAt).toLocaleDateString()}
+                {t("billing.renewsOn", { date: new Date(subscription.renewsAt).toLocaleDateString() })}
               </p>
             )}
             
@@ -119,7 +120,7 @@ export function BillingTab() {
               {PLANS.find(p => p.id === subscription.plan)?.features.map((feature, i) => (
                 <div key={i} className="flex items-center gap-2 text-sm text-foreground">
                   <Check className="size-4 text-primary" />
-                  {feature}
+                  {translatePlanFeature(feature, t)}
                 </div>
               ))}
             </div>
@@ -129,8 +130,8 @@ export function BillingTab() {
                 const nextPlan = PLANS[currentPlanIndex + 1];
                 if (nextPlan) upgradePlan(nextPlan.id);
               }} disabled={isUpgrading}>
-                {isUpgrading ? <Loader2 className="size-4 animate-spin mr-2" /> : null}
-                Upgrade to {PLANS[currentPlanIndex + 1]?.name}
+                {isUpgrading ? <Loader2 className="me-2 size-4 animate-spin" /> : null}
+                {t("billing.upgradeTo", { plan: translatePlanName(PLANS[currentPlanIndex + 1]?.name ?? "", t) })}
               </Button>
             )}
           </CardContent>
@@ -139,12 +140,12 @@ export function BillingTab() {
 
       {/* Upgrade Options */}
       <section id="plans" className="scroll-mt-24">
-        <h3 className="mb-4 text-lg font-semibold text-foreground">Available Plans</h3>
+        <h3 className="mb-4 text-lg font-semibold text-foreground">{t("billing.availablePlans")}</h3>
         <div className="grid gap-5 md:grid-cols-4">
           {PLANS.map((plan) => (
             <Card key={plan.id} className={subscription.plan === plan.id ? "border-primary" : ""}>
               <CardHeader>
-                <CardTitle>{plan.name}</CardTitle>
+                <CardTitle>{translatePlanName(plan.name, t)}</CardTitle>
                 <CardDescription className="text-xl font-bold text-foreground mt-2">{plan.price}</CardDescription>
               </CardHeader>
               <CardContent>
@@ -152,17 +153,17 @@ export function BillingTab() {
                   {plan.features.map((f, i) => (
                     <li key={i} className="flex items-start gap-2">
                       <Check className="size-4 text-primary shrink-0" />
-                      <span>{f}</span>
+                      <span>{translatePlanFeature(f, t)}</span>
                     </li>
                   ))}
                 </ul>
-                <Button 
-                  variant={subscription.plan === plan.id ? "outline" : "secondary"} 
+                <Button
+                  variant="secondary"
                   className="w-full"
                   disabled={subscription.plan === plan.id || isUpgrading}
                   onClick={() => upgradePlan(plan.id)}
                 >
-                  {subscription.plan === plan.id ? "Current Plan" : "Upgrade"}
+                  {subscription.plan === plan.id ? t("billing.currentPlan") : t("billing.upgrade")}
                 </Button>
               </CardContent>
             </Card>
@@ -171,4 +172,30 @@ export function BillingTab() {
       </section>
     </div>
   );
+}
+
+function translatePlanName(plan: string, t: ReturnType<typeof useTranslation>["t"]) {
+  const normalized = plan.toLowerCase();
+  if (normalized === "free") return t("billing.free");
+  if (normalized === "starter") return t("billing.starter");
+  if (normalized === "pro") return t("billing.pro");
+  if (normalized === "business") return t("billing.business");
+  return plan;
+}
+
+function translatePlanFeature(feature: string, t: ReturnType<typeof useTranslation>["t"]) {
+  if (feature === "Everything in Free") return t("billing.featureEverythingFree");
+  if (feature === "AI Assistant") return t("nav.aiAssistant");
+  if (feature === "Ad Studio") return t("nav.adStudio");
+  if (feature === "Image Generation") return t("nav.imageGeneration");
+  if (feature === "Video Generation") return t("nav.videoGeneration");
+  if (feature === "Growth Engine") return t("nav.growthEngine");
+  if (feature === "Analytics") return t("nav.analytics");
+  if (feature === "Priority Support") return t("billing.prioritySupport");
+  if (feature === "API Access") return t("billing.apiAccess");
+
+  const creditsMatch = feature.match(/^(\d+) Credits\/mo$/);
+  if (creditsMatch) return t("billing.featureCredits", { amount: creditsMatch[1] });
+
+  return feature;
 }

@@ -5,7 +5,6 @@
 import {
   BadgeDollarSign,
   Building2,
-  Check,
   Globe,
   ImageIcon,
   KeyRound,
@@ -23,6 +22,7 @@ import { useRef, useState, useEffect } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 
 import { PageShell } from "@/components/layout/page-shell";
+import { LanguageToggle } from "@/components/language-toggle";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -33,17 +33,13 @@ import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { useBrand, type BrandData } from "@/features/settings/hooks";
+import { useTranslation } from "@/lib/i18n/useTranslation";
 import { cn } from "@/lib/utils";
 import { useUiStore } from "@/store/ui-store";
 import { BillingTab } from "@/features/billing/components/billing-tab";
 
 const TONE_OPTIONS = ["Authoritative", "Playful", "Minimalist", "Energetic", "Technical & Precise"];
 const INDUSTRY_OPTIONS = ["Marketing & Advertising", "B2B SaaS", "E-Commerce", "FinTech", "Healthcare", "Real Estate", "Education", "Other"];
-const PERSONALITY_OPTIONS = [
-  { value: "formal", label: "Formal", desc: "Professional and structured" },
-  { value: "casual", label: "Casual", desc: "Friendly and conversational" },
-  { value: "technical", label: "Technical", desc: "Data-driven and precise" },
-] as const;
 
 const tabs = [
   { value: "brand", label: "Brand Identity", icon: Building2 },
@@ -54,6 +50,7 @@ const tabs = [
 ] as const;
 
 export function SettingsView() {
+  const { t } = useTranslation();
   const themeMode = useUiStore((state) => state.themeMode);
   const setThemeMode = useUiStore((state) => state.setThemeMode);
   const { brand: savedBrand, isLoading, isSaving, saved, save } = useBrand();
@@ -112,7 +109,7 @@ export function SettingsView() {
 
   if (isLoading) {
     return (
-      <PageShell title="Settings" description="Configure workspace preferences and brand defaults.">
+      <PageShell title={t("settings.title")} description={t("settings.loadingDesc")}>
         <div className="flex items-center justify-center py-20">
           <Loader2 className="size-6 animate-spin text-primary" />
         </div>
@@ -122,12 +119,12 @@ export function SettingsView() {
 
   return (
     <PageShell
-      title="Settings"
-      description="Manage brand identity, AI behavior, team workspace details, billing context, and integrations."
+      title={t("settings.title")}
+      description={t("settings.description")}
       actions={
         <Button type="button" onClick={() => save(brand)} disabled={isSaving}>
           {isSaving ? <Loader2 className="size-4 animate-spin" /> : <Save className="size-4" />}
-          {saved ? "Saved" : "Save settings"}
+          {saved ? t("common.saved") : t("settings.saveSettings")}
         </Button>
       }
     >
@@ -138,7 +135,7 @@ export function SettingsView() {
             return (
               <TabsTrigger key={tab.value} value={tab.value} className="flex items-center gap-2">
                 <Icon className="size-4" />
-                {tab.label}
+                {translateSettingsTab(tab.label, t)}
               </TabsTrigger>
             );
           })}
@@ -151,30 +148,30 @@ export function SettingsView() {
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <ImageIcon className="size-5 text-primary" />
-                    Core Details
+                    {t("settings.coreDetails")}
                   </CardTitle>
-                  <CardDescription>Brand information used across campaign, ad, and strategy generation.</CardDescription>
+                  <CardDescription>{t("settings.coreDetailsDesc")}</CardDescription>
                 </CardHeader>
                 <CardContent className="grid gap-4 md:grid-cols-2">
-                  <FormField label="Brand name" id="brand-name">
+                  <FormField label={t("growth.brandName")} id="brand-name">
                     <Input id="brand-name" value={brand.name} onChange={(event) => update("name", event.target.value)} placeholder="Acme Corp" />
                   </FormField>
-                  <FormField label="Tagline / niche" id="tagline">
+                  <FormField label={t("settings.tagline")} id="tagline">
                     <Input id="tagline" value={brand.tagline} onChange={(event) => update("tagline", event.target.value)} placeholder="High-End FinTech" />
                   </FormField>
-                  <FormField label="Industry" id="industry" className="md:col-span-2">
+                  <FormField label={t("growth.industry")} id="industry" className="md:col-span-2">
                     <Select id="industry" value={brand.industry} onChange={(event) => update("industry", event.target.value)}>
-                      <option value="">Select industry...</option>
+                      <option value="">{t("settings.selectIndustry")}</option>
                       {INDUSTRY_OPTIONS.map((option) => (
                         <option key={option} value={option}>{option}</option>
                       ))}
                     </Select>
                   </FormField>
-                  <FormField label="Elevator pitch" id="elevator-pitch" className="md:col-span-2">
-                    <Textarea id="elevator-pitch" value={brand.elevatorPitch} onChange={(event) => update("elevatorPitch", event.target.value)} placeholder="We provide..." />
+                  <FormField label={t("settings.elevatorPitch")} id="elevator-pitch" className="md:col-span-2">
+                    <Textarea id="elevator-pitch" value={brand.elevatorPitch} onChange={(event) => update("elevatorPitch", event.target.value)} placeholder={t("settings.pitchPlaceholder")} />
                   </FormField>
-                  <FormField label="Ideal customer" id="target-audience" className="md:col-span-2">
-                    <Textarea id="target-audience" value={brand.targetAudience} onChange={(event) => update("targetAudience", event.target.value)} placeholder="Operations and growth leaders..." className="min-h-[96px]" />
+                  <FormField label={t("settings.idealCustomer")} id="target-audience" className="md:col-span-2">
+                    <Textarea id="target-audience" value={brand.targetAudience} onChange={(event) => update("targetAudience", event.target.value)} placeholder={t("settings.customerPlaceholder")} className="min-h-[96px]" />
                   </FormField>
                 </CardContent>
               </Card>
@@ -183,7 +180,7 @@ export function SettingsView() {
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Globe className="size-5 text-primary" />
-                    Social & Web
+                    {t("settings.socialWeb")}
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="grid gap-4 md:grid-cols-2">
@@ -210,16 +207,16 @@ export function SettingsView() {
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Volume2 className="size-5 text-primary" />
-                    Voice & Tone Matrix
+                    {t("settings.voiceTone")}
                   </CardTitle>
-                  <CardDescription>Choose the tone traits Marketly should reflect in generated content.</CardDescription>
+                  <CardDescription>{t("settings.voiceToneDesc")}</CardDescription>
                 </CardHeader>
                 <CardContent className="grid gap-3 sm:grid-cols-2">
                   {TONE_OPTIONS.map((tone) => (
                     <label key={tone} className="flex cursor-pointer items-center justify-between rounded-lg border border-border bg-surface p-4">
                       <span>
                         <span className="block text-sm font-semibold text-foreground">{tone}</span>
-                        <span className="mt-1 block text-xs text-muted">Use this voice in copy and campaign concepts.</span>
+                        <span className="mt-1 block text-xs text-muted">{t("settings.useVoice")}</span>
                       </span>
                       <Switch checked={brand.tones.includes(tone)} onCheckedChange={() => toggleTone(tone)} aria-label={`${tone} tone`} />
                     </label>
@@ -231,20 +228,16 @@ export function SettingsView() {
             <aside className="space-y-5">
               <Card>
                 <CardHeader>
-                  <CardTitle>Language</CardTitle>
+                  <CardTitle>{t("settings.language")}</CardTitle>
                 </CardHeader>
-                <CardContent className="grid grid-cols-2 gap-2">
-                  {(["en", "ar"] as const).map((lang) => (
-                    <Button key={lang} type="button" variant="secondary" onClick={() => update("language", lang)} className={cn(brand.language === lang && "border-primary bg-primary/10 text-primary")}>
-                      {lang === "en" ? "English" : "Arabic"}
-                    </Button>
-                  ))}
+                <CardContent>
+                  <LanguageToggle />
                 </CardContent>
               </Card>
 
               <Card>
                 <CardHeader>
-                  <CardTitle>Theme Preset</CardTitle>
+                  <CardTitle>{t("settings.themePreset")}</CardTitle>
                 </CardHeader>
                 <CardContent className="flex flex-wrap gap-2">
                   {(["dark", "dim", "contrast"] as const).map((mode) => (
@@ -261,9 +254,9 @@ export function SettingsView() {
         <TabsContent value="team">
           <PlaceholderGrid
             cards={[
-              { icon: Users, title: "Workspace Members", description: "Invite collaborators and assign creative, analytics, or admin responsibilities." },
-              { icon: Mail, title: "Invitations", description: "Pending invitations and role requests will be managed from this workspace." },
-              { icon: ShieldCheck, title: "Access Controls", description: "Use roles to keep campaign generation, billing, and settings permissions organized." },
+              { icon: Users, title: t("settings.workspaceMembers"), description: t("settings.workspaceMembersDesc") },
+              { icon: Mail, title: t("settings.invitations"), description: t("settings.invitationsDesc") },
+              { icon: ShieldCheck, title: t("settings.accessControls"), description: t("settings.accessControlsDesc") },
             ]}
           />
         </TabsContent>
@@ -286,6 +279,15 @@ export function SettingsView() {
   );
 }
 
+function translateSettingsTab(label: string, t: ReturnType<typeof useTranslation>["t"]) {
+  if (label === "Brand Identity") return t("settings.brandIdentity");
+  if (label === "AI Preferences") return t("settings.aiPreferences");
+  if (label === "Team") return t("settings.team");
+  if (label === "Billing") return t("settings.billing");
+  if (label === "Integrations") return t("settings.integrations");
+  return label;
+}
+
 function BrandMarkCard({
   brand,
   inputRef,
@@ -295,11 +297,13 @@ function BrandMarkCard({
   inputRef: React.RefObject<HTMLInputElement | null>;
   onUpload: (file: File | undefined) => void;
 }) {
+  const { t } = useTranslation();
+
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Brand Mark</CardTitle>
-        <CardDescription>Upload a transparent logo for previews and brand memory.</CardDescription>
+        <CardTitle>{t("settings.brandMark")}</CardTitle>
+        <CardDescription>{t("settings.brandMarkDesc")}</CardDescription>
       </CardHeader>
       <CardContent className="flex flex-col items-center gap-4">
         <button
@@ -312,31 +316,33 @@ function BrandMarkCard({
           ) : (
             <div className="text-center">
               <ImageIcon className="mx-auto mb-2 size-7 text-primary" />
-              <span className="text-xs text-muted">Upload logo</span>
+              <span className="text-xs text-muted">{t("settings.uploadLogo")}</span>
             </div>
           )}
         </button>
         <Button variant="secondary" size="sm" type="button" onClick={() => inputRef.current?.click()}>
-          {brand.logoUrl ? "Change logo" : "Upload logo"}
+          {brand.logoUrl ? t("settings.changeLogo") : t("settings.uploadLogo")}
         </Button>
         <input ref={inputRef} type="file" className="hidden" accept="image/*,.svg,image/svg+xml" onChange={(event) => onUpload(event.target.files?.[0])} />
-        <p className="text-center text-xs text-muted">SVG or PNG transparent</p>
+        <p className="text-center text-xs text-muted">{t("settings.logoHint")}</p>
       </CardContent>
     </Card>
   );
 }
 
 function BrandColorsCard({ brand, update }: { brand: BrandData; update: (field: keyof BrandData, value: unknown) => void }) {
+  const { t } = useTranslation();
+
   return (
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Palette className="size-5 text-primary" />
-          Brand Colors
+          {t("settings.brandColors")}
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        {([["Primary", "primaryColor"], ["Secondary", "secondaryColor"], ["Accent", "accentColor"]] as const).map(([label, field]) => (
+        {([[t("settings.primary"), "primaryColor"], [t("settings.secondary"), "secondaryColor"], [t("settings.accent"), "accentColor"]] as const).map(([label, field]) => (
           <FormField key={field} label={label}>
             <div className="flex items-center gap-3 rounded-lg border border-border bg-surface p-2">
               <input type="color" value={brand[field]} onChange={(event) => update(field, event.target.value)} className="size-9 cursor-pointer rounded-md border-0 bg-transparent p-0" />
@@ -350,6 +356,8 @@ function BrandColorsCard({ brand, update }: { brand: BrandData; update: (field: 
 }
 
 function PlaceholderGrid({ cards }: { cards: Array<{ description: string; icon: typeof Users; title: string }> }) {
+  const { t } = useTranslation();
+
   return (
     <div className="grid gap-5 md:grid-cols-3">
       {cards.map((card) => {
@@ -364,7 +372,7 @@ function PlaceholderGrid({ cards }: { cards: Array<{ description: string; icon: 
               <CardDescription>{card.description}</CardDescription>
             </CardHeader>
             <CardContent>
-              <Badge>Coming soon</Badge>
+              <Badge>{t("common.comingSoon")}</Badge>
             </CardContent>
           </Card>
         );

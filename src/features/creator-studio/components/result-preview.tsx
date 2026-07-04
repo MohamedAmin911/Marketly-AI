@@ -7,6 +7,7 @@ import { useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { LoadingOverlay } from "@/features/creator-studio/components/loading-overlay";
+import { useTranslation } from "@/lib/i18n/useTranslation";
 import { cn } from "@/lib/utils";
 
 type ResultPreviewProps = {
@@ -18,6 +19,7 @@ type ResultPreviewProps = {
 };
 
 export function ResultPreview({ aspectRatio, generatedImage, loading, productImage, referenceImage }: ResultPreviewProps) {
+  const { t } = useTranslation();
   const isVertical = aspectRatio === "9:16";
   const productPreview = useObjectUrl(productImage);
   const referencePreview = useObjectUrl(referenceImage);
@@ -29,7 +31,7 @@ export function ResultPreview({ aspectRatio, generatedImage, loading, productIma
       <div className="border-b border-border p-5 sm:p-6">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
-            <p className="font-display text-2xl font-semibold text-foreground">Output</p>
+            <p className="font-display text-2xl font-semibold text-foreground">{t("studio.output")}</p>
             {/* <p className="mt-2 max-w-2xl text-sm leading-6 text-muted">Monitor source assets, selected dimensions, and the generated advertisement output.</p> */}
           </div>
           <div className="flex items-center gap-3">
@@ -38,7 +40,7 @@ export function ResultPreview({ aspectRatio, generatedImage, loading, productIma
               <Button asChild variant="secondary">
                 <a href={generatedImage} download={`marketly-ai-advertisement-${aspectRatio.replace(":", "x")}.png`}>
                   <Download className="size-4" />
-                  Export
+                  {t("common.export")}
                 </a>
               </Button>
             ) : null}
@@ -48,8 +50,8 @@ export function ResultPreview({ aspectRatio, generatedImage, loading, productIma
 
       <div className="grid gap-5 p-5 sm:p-6">
         {/* <div className="grid gap-4 md:grid-cols-2">
-          <SourcePreview title="Product Image" imageUrl={productPreview} emptyLabel="Waiting for product" />
-          <SourcePreview title="Reference Ad" imageUrl={referencePreview} emptyLabel="Waiting for reference" />
+          <SourcePreview title={t("studio.productImage")} imageUrl={productPreview} emptyLabel={t("studio.waitingProduct")} />
+          <SourcePreview title={t("studio.referenceAd")} imageUrl={referencePreview} emptyLabel={t("studio.waitingReference")} />
         </div> */}
 
         <div
@@ -60,9 +62,9 @@ export function ResultPreview({ aspectRatio, generatedImage, loading, productIma
         >
           {generatedImage ? (
             <div className="relative size-full animate-[page-enter_240ms_ease-out_both]">
-              <img src={generatedImage} alt="Generated advertisement" className="absolute inset-0 size-full object-contain" />
+              <img src={generatedImage} alt={t("studio.generatedAd")} className="absolute inset-0 size-full object-contain" />
               <div className="pointer-events-none absolute inset-x-0 top-0 flex justify-between bg-gradient-to-b from-black/65 to-transparent p-4">
-                <span className="rounded-lg border border-white/10 bg-black/35 px-3 py-1 text-xs font-semibold text-white backdrop-blur">Generated Advertisement</span>
+                <span className="rounded-lg border border-white/10 bg-black/35 px-3 py-1 text-xs font-semibold text-white backdrop-blur">{t("studio.generatedAd")}</span>
               </div>
             </div>
           ) : (
@@ -71,8 +73,8 @@ export function ResultPreview({ aspectRatio, generatedImage, loading, productIma
                 <div className="mx-auto grid size-16 place-items-center rounded-lg border border-primary/20 bg-primary/10 text-primary">
                   <Sparkles className="size-7" />
                 </div>
-                <p className="mt-5 font-display text-2xl font-semibold text-foreground">Your ad will render here</p>
-                <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-muted">Complete product and reference uploads, then generate a polished advertisement in the selected format.</p>
+                <p className="mt-5 font-display text-2xl font-semibold text-foreground">{t("studio.renderHere")}</p>
+                <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-muted">{t("studio.renderHereDesc")}</p>
               </div>
             </div>
           )}
@@ -83,11 +85,13 @@ export function ResultPreview({ aspectRatio, generatedImage, loading, productIma
 }
 
 function SourcePreview({ emptyLabel, imageUrl, title }: { emptyLabel: string; imageUrl: string | null; title: string }) {
+  const { t } = useTranslation();
+
   return (
     <div className="overflow-hidden rounded-lg border border-border bg-surface">
       <div className="flex items-center justify-between border-b border-border px-3 py-2">
         <p className="text-xs font-semibold uppercase text-muted">{title}</p>
-        <span className={cn("text-xs font-medium", imageUrl ? "text-primary" : "text-muted")}>{imageUrl ? "Ready" : "Pending"}</span>
+        <span className={cn("text-xs font-medium", imageUrl ? "text-primary" : "text-muted")}>{imageUrl ? t("common.ready") : t("common.pending")}</span>
       </div>
       <div className="relative grid aspect-video place-items-center bg-card">
         {imageUrl ? (

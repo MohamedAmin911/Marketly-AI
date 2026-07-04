@@ -25,6 +25,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
 import { useVideoRender } from "@/features/video-generator/hooks";
 import type { VideoRecord } from "@/features/video-generator/types";
+import { useTranslation } from "@/lib/i18n/useTranslation";
 import { cn } from "@/lib/utils";
 
 const stylePresets = [
@@ -47,6 +48,7 @@ type DurationOption = (typeof durationOptions)[number];
 type AspectOption = (typeof aspectOptions)[number]["label"];
 
 export function VideoGeneratorView() {
+  const { t } = useTranslation();
   const { downloadExport, downloadVideo, error, history, isHistoryLoading, isRendering, setVideo, startRender, video } = useVideoRender();
   const [productFile, setProductFile] = useState<File | null>(null);
   const [prompt, setPrompt] = useState("");
@@ -107,13 +109,13 @@ export function VideoGeneratorView() {
 
   return (
     <PageShell
-      title="Video Generator"
-      description="Upload a product image, choose a visual direction, and render short product videos for campaigns and social placements."
+      title={t("video.title")}
+      description={t("video.description")}
       className="max-w-[1480px]"
       actions={
         <Button variant="secondary" type="button" onClick={downloadExport} disabled={!video?.videoUrl}>
           <Download className="size-4" />
-          Download Video
+          {t("video.downloadVideo")}
         </Button>
       }
     >
@@ -125,29 +127,29 @@ export function VideoGeneratorView() {
                 <Film className="size-5" />
               </span>
               <div>
-                <p className="font-display text-xl font-semibold text-foreground">Render Inputs</p>
-                <p className="text-xs text-muted">Product, prompt, style, timing, and format.</p>
+                <p className="font-display text-xl font-semibold text-foreground">{t("video.renderInputs")}</p>
+                <p className="text-xs text-muted">{t("video.renderInputsDesc")}</p>
               </div>
             </div>
 
             <div className="space-y-5">
-              <PanelSection title="Product Upload" icon={UploadCloud}>
+              <PanelSection title={t("storyboard.productUpload")} icon={UploadCloud}>
                 <ProductUpload productFile={productFile} previewUrl={productPreview} onSelect={setProductFile} />
               </PanelSection>
 
-              <PanelSection title="Prompt" icon={WandSparkles}>
-                <FormField label="Video prompt" id="video-generator-prompt">
+              <PanelSection title={t("video.prompt")} icon={WandSparkles}>
+                <FormField label={t("video.videoPrompt")} id="video-generator-prompt">
                   <Textarea
                     id="video-generator-prompt"
                     value={prompt}
                     onChange={(event) => setPrompt(event.target.value)}
                     className="min-h-36 resize-none"
-                    placeholder="Cinematic luxury product reveal with dramatic lighting, slow camera orbit, and premium commercial finish..."
+                    placeholder={t("video.promptPlaceholder")}
                   />
                 </FormField>
               </PanelSection>
 
-              <PanelSection title="Style Presets" icon={Sparkles}>
+              <PanelSection title={t("video.stylePresets")} icon={Sparkles}>
                 <div className="grid grid-cols-2 gap-2">
                   {stylePresets.map((style) => (
                     <Button
@@ -155,7 +157,7 @@ export function VideoGeneratorView() {
                       type="button"
                       variant="secondary"
                       onClick={() => setSelectedStyle(style)}
-                      className={cn("h-auto justify-start px-3 py-2 text-left text-xs", selectedStyle === style && "border-primary/60 bg-primary/10 text-foreground shadow-[0_0_0_3px_var(--focus-ring)]")}
+                      className={cn("h-auto justify-start px-3 py-2 text-start text-xs", selectedStyle === style && "border-primary/60 bg-primary/10 text-foreground shadow-[0_0_0_3px_var(--focus-ring)]")}
                     >
                       {style}
                     </Button>
@@ -167,7 +169,7 @@ export function VideoGeneratorView() {
                 <SegmentedOptions value={duration} options={durationOptions} onChange={setDuration} />
               </PanelSection> */}
 
-              <PanelSection title="Aspect Ratio" icon={Frame}>
+              <PanelSection title={t("video.aspectRatio")} icon={Frame}>
                 <div className="grid grid-cols-2 gap-2">
                   {aspectOptions.map((option) => {
                     const Icon = option.icon;
@@ -179,7 +181,7 @@ export function VideoGeneratorView() {
                         type="button"
                         variant="secondary"
                         onClick={() => setAspectRatio(option.label)}
-                        className={cn("h-auto justify-start px-3 py-3 text-left", selected && "border-primary/60 bg-primary/10 text-foreground shadow-[0_0_0_3px_var(--focus-ring)]")}
+                        className={cn("h-auto justify-start px-3 py-3 text-start", selected && "border-primary/60 bg-primary/10 text-foreground shadow-[0_0_0_3px_var(--focus-ring)]")}
                       >
                         <Icon className="size-5 shrink-0 text-primary" />
                         <span>
@@ -194,7 +196,7 @@ export function VideoGeneratorView() {
 
               <Button className="h-12 w-full" type="button" onClick={() => void submitGeneration()} disabled={!canGenerate}>
                 {isRendering ? <Loader2 className="size-4 animate-spin" /> : <Sparkles className="size-4" />}
-                {isRendering ? "Generating Video" : "Generate Video"}
+                {isRendering ? t("video.generatingVideo") : t("video.generateVideo")}
               </Button>
 
               {formError || error ? <p className="rounded-lg border border-red-300/30 bg-red-400/10 p-3 text-sm leading-6 text-red-200">{formError || error}</p> : null}
@@ -225,6 +227,8 @@ function PanelSection({ children, icon: Icon, title }: { children: React.ReactNo
 }
 
 function ProductUpload({ onSelect, previewUrl, productFile }: { onSelect: (file: File | null) => void; previewUrl: string; productFile: File | null }) {
+  const { t } = useTranslation();
+
   return (
     <label className="group relative grid min-h-52 cursor-pointer place-items-center overflow-hidden rounded-lg border border-dashed border-border bg-card p-4 text-center transition hover:border-primary/60 hover:bg-soft-green-surface focus-within:ring-2 focus-within:ring-primary/70">
       <input
@@ -241,7 +245,7 @@ function ProductUpload({ onSelect, previewUrl, productFile }: { onSelect: (file:
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={previewUrl} alt="Product preview" className="absolute inset-0 size-full object-cover transition-transform duration-500 group-hover:scale-[1.03]" />
           <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
-          <div className="absolute bottom-3 left-3 right-3 rounded-lg border border-white/15 bg-black/40 px-3 py-2 text-left text-white backdrop-blur-md">
+          <div className="absolute inset-x-3 bottom-3 rounded-lg border border-white/15 bg-black/40 px-3 py-2 text-start text-white backdrop-blur-md">
             <p className="truncate text-sm font-semibold">{productFile?.name}</p>
             <p className="text-xs text-white/70">{productFile ? `${Math.max(productFile.size / 1024 / 1024, 0.01).toFixed(2)} MB` : null}</p>
           </div>
@@ -251,8 +255,8 @@ function ProductUpload({ onSelect, previewUrl, productFile }: { onSelect: (file:
           <div className="mx-auto mb-4 grid size-14 place-items-center rounded-lg border border-primary/20 bg-primary/10 text-primary">
             <ImagePlus className="size-7" />
           </div>
-          <p className="text-sm font-semibold text-foreground">Upload Product Image</p>
-          <p className="mt-1 text-xs text-muted">PNG, JPG, or WEBP</p>
+          <p className="text-sm font-semibold text-foreground">{t("video.uploadProductImage")}</p>
+          <p className="mt-1 text-xs text-muted">{t("studio.fileTypes")}</p>
         </div>
       )}
     </label>
@@ -286,13 +290,15 @@ function VideoPreview({
   selectedStyle: string;
   video: VideoRecord | null;
 }) {
+  const { t } = useTranslation();
+
   return (
     <section className="overflow-hidden rounded-lg border border-border bg-card shadow-[var(--panel-shadow)]">
       <div className="border-b border-border p-5 sm:p-6">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
-            <h2 className="font-display text-2xl font-semibold text-foreground">Video Preview</h2>
-            <p className="mt-2 text-sm leading-6 text-muted">Preview the active render and export the final video when it is ready.</p>
+            <h2 className="font-display text-2xl font-semibold text-foreground">{t("video.preview")}</h2>
+            <p className="mt-2 text-sm leading-6 text-muted">{t("video.previewDesc")}</p>
           </div>
           <div className="flex flex-wrap gap-2">
             <span className="rounded-md border border-border bg-surface px-3 py-1 text-xs font-semibold text-muted">{selectedStyle}</span>
@@ -308,8 +314,8 @@ function VideoPreview({
             <div className="grid size-full place-items-center bg-surface">
               <div className="text-center">
                 <Loader2 className="mx-auto mb-4 size-12 animate-spin text-primary" />
-                <p className="font-display text-2xl font-semibold text-foreground">Generating video</p>
-                <p className="mt-2 text-sm text-muted">Rendering your product motion sequence.</p>
+                <p className="font-display text-2xl font-semibold text-foreground">{t("video.generatingVideo")}</p>
+                <p className="mt-2 text-sm text-muted">{t("video.renderingSequence")}</p>
               </div>
               <div className="absolute inset-0 shimmer opacity-20" />
             </div>
@@ -319,10 +325,10 @@ function VideoPreview({
             <div className="grid size-full place-items-center text-center">
               <div>
                 <div className="mx-auto mb-5 grid size-20 place-items-center rounded-lg border border-primary/20 bg-primary/10 text-primary">
-                  <Play className="ml-1 size-9" />
+                  <Play className="ms-1 size-9 rtl:rotate-180" />
                 </div>
-                <h3 className="font-display text-3xl font-semibold text-foreground">No video yet</h3>
-                <p className="mx-auto mt-3 max-w-md text-sm leading-6 text-muted">Upload a product image, write a prompt, choose a preset, then generate your product video.</p>
+                <h3 className="font-display text-3xl font-semibold text-foreground">{t("video.noVideo")}</h3>
+                <p className="mx-auto mt-3 max-w-md text-sm leading-6 text-muted">{t("video.noVideoDesc")}</p>
               </div>
             </div>
           )}
@@ -331,12 +337,12 @@ function VideoPreview({
 
       <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border p-4">
         <div>
-          <p className="text-sm font-semibold text-foreground">{video?.title ?? "Waiting for render"}</p>
-          <p className="mt-1 text-xs text-muted">{video ? `${video.selectedStyle} - ${formatDate(video.createdAt)}` : "The generated video will appear in the preview area."}</p>
+          <p className="text-sm font-semibold text-foreground">{video?.title ?? t("video.waitingForRender")}</p>
+          <p className="mt-1 text-xs text-muted">{video ? `${video.selectedStyle} - ${formatDate(video.createdAt)}` : t("video.generatedWillAppear")}</p>
         </div>
         <Button variant="secondary" type="button" onClick={onDownload} disabled={!video?.videoUrl}>
           <Download className="size-4" />
-          Download
+          {t("common.download")}
         </Button>
       </div>
     </section>
@@ -354,12 +360,14 @@ function SavedRenders({
   onDownload: (video: VideoRecord) => void;
   onOpen: (video: VideoRecord) => void;
 }) {
+  const { t } = useTranslation();
+
   return (
     <section className="rounded-lg border border-border bg-card p-5 shadow-[var(--panel-shadow)] sm:p-6">
       <div className="mb-5 flex items-center justify-between gap-3">
         <div>
-          <p className="text-xs font-semibold uppercase text-primary">Render Library</p>
-          <h2 className="mt-1 font-display text-2xl font-semibold text-foreground">Saved Renders</h2>
+          <p className="text-xs font-semibold uppercase text-primary">{t("video.renderLibrary")}</p>
+          <h2 className="mt-1 font-display text-2xl font-semibold text-foreground">{t("video.savedRenders")}</h2>
         </div>
       </div>
 
@@ -369,8 +377,8 @@ function SavedRenders({
           <div className="col-span-full grid min-h-52 place-items-center rounded-lg border border-dashed border-border bg-surface p-6 text-center">
             <div>
               <Film className="mx-auto mb-3 size-8 text-primary" />
-              <p className="font-display text-lg font-semibold text-foreground">No saved renders yet</p>
-              <p className="mt-2 max-w-md text-sm leading-6 text-muted">Completed videos will appear here for previewing and download.</p>
+              <p className="font-display text-lg font-semibold text-foreground">{t("video.noSavedRenders")}</p>
+              <p className="mt-2 max-w-md text-sm leading-6 text-muted">{t("video.noSavedRendersDesc")}</p>
             </div>
           </div>
         ) : null}
@@ -383,9 +391,11 @@ function SavedRenders({
 }
 
 function VideoResultCard({ onDownload, onOpen, video }: { onDownload: () => void; onOpen: () => void; video: VideoRecord }) {
+  const { t } = useTranslation();
+
   return (
     <article className="group overflow-hidden rounded-lg border border-border bg-surface transition hover:border-primary/45 hover:shadow-[var(--panel-shadow)]">
-      <button type="button" onClick={onOpen} className="relative block aspect-video w-full bg-card text-left">
+      <button type="button" onClick={onOpen} className="relative block aspect-video w-full bg-card text-start">
         {video.videoUrl ? (
           <video className="size-full object-cover opacity-85 transition group-hover:opacity-100" muted playsInline preload="metadata" poster={video.thumbnailUrl} src={video.videoUrl} />
         ) : (
@@ -394,7 +404,7 @@ function VideoResultCard({ onDownload, onOpen, video }: { onDownload: () => void
           </div>
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-transparent to-black/10" />
-        <div className="absolute bottom-3 left-3 right-3">
+        <div className="absolute inset-x-3 bottom-3">
           <p className="line-clamp-1 text-sm font-semibold text-white">{video.title}</p>
           <p className="mt-1 text-xs text-white/70">{formatDate(video.createdAt)}</p>
         </div>
@@ -408,11 +418,11 @@ function VideoResultCard({ onDownload, onOpen, video }: { onDownload: () => void
         <div className="flex gap-2">
           <Button variant="secondary" size="sm" type="button" onClick={onDownload} disabled={!video.videoUrl}>
             <Download className="size-3" />
-            Download
+            {t("common.download")}
           </Button>
           <Button variant="secondary" size="sm" type="button" onClick={onOpen}>
             <RefreshCw className="size-3" />
-            View
+            {t("common.view")}
           </Button>
         </div>
       </div>
