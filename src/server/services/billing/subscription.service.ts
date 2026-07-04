@@ -1,5 +1,5 @@
 import { UserModel, type IUser } from "@/server/database/models/user.model";
-import { ApiError } from "@/server/errors/api-error";
+import { apiErrors } from "@/server/errors/api-error";
 import type { PlanType } from "@/server/database/enums";
 import mongoose from "mongoose";
 
@@ -100,10 +100,10 @@ export class SubscriptionService {
 
     try {
       const user = await UserModel.findById(userId).session(session);
-      if (!user) throw new ApiError(404, "User not found");
+      if (!user) throw apiErrors.notFound("User not found");
 
       const planConfig = SUBSCRIPTION_PLANS[newPlanId];
-      if (!planConfig) throw new ApiError(400, "Invalid plan");
+      if (!planConfig) throw apiErrors.badRequest("Invalid plan");
 
       user.subscription.plan = newPlanId;
       user.subscription.status = "active";

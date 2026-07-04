@@ -33,7 +33,7 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
             We sent a verification link to <span className="font-semibold text-white">{form.getValues().email}</span>. Please check your inbox and click the link to activate your account.
           </p>
         </div>
-        <Button variant="outline" asChild className="mt-4">
+        <Button variant="secondary" asChild className="mt-4">
           <Link href="/login">Return to login</Link>
         </Button>
       </div>

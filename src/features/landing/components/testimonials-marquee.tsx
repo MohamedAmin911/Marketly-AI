@@ -45,7 +45,7 @@ const TESTIMONIALS = [
 }>;
 
 export function TestimonialsMarquee() {
-  const { t } = useTranslation();
+  const { t, isRtl } = useTranslation();
 
   return (
     <section className="py-24 overflow-hidden relative bg-background">
@@ -59,9 +59,9 @@ export function TestimonialsMarquee() {
       <div className="absolute inset-y-0 left-0 w-64 md:w-96 bg-gradient-to-r from-background via-background/80 to-transparent z-20 pointer-events-none" />
       <div className="absolute inset-y-0 right-0 w-64 md:w-96 bg-gradient-to-l from-background via-background/80 to-transparent z-20 pointer-events-none" />
 
-      <div className="flex w-full overflow-hidden">
+      <div className="flex w-full overflow-hidden" dir="ltr">
         <motion.div
-          animate={{ x: [0, "-50%"] }}
+          animate={{ x: isRtl ? ["-50%", "0%"] : ["0%", "-50%"] }}
           transition={{
             repeat: Infinity,
             ease: "linear",

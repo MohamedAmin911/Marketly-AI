@@ -16,5 +16,5 @@ export { SettingsModel, type ISettings } from "./models/settings.model";
 export { StoryboardModel, type IStoryboard, type StoryboardScene } from "./models/storyboard.model";
 export { SubscriptionModel, type ISubscription } from "./models/subscription.model";
 export { UploadModel, type IUpload } from "./models/upload.model";
-export { UserModel, type IUser, type RefreshTokenSession, type UsageLimits } from "./models/user.model";
+export { UserModel, type IUser, type RefreshTokenSession } from "./models/user.model";
 export { VideoModel, type IVideo } from "./models/video.model";

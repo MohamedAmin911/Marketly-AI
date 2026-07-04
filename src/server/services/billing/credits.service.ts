@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 import { UserModel, type IUser } from "@/server/database/models/user.model";
 import { CreditLedgerModel } from "@/server/database/models/credit-ledger.model";
-import { ApiError } from "@/server/errors/api-error";
+import { ApiError, apiErrors } from "@/server/errors/api-error";
 import { logger } from "@/server/logging/logger";
 
 export class CreditsService {
@@ -19,7 +19,7 @@ export class CreditsService {
       const user = await UserModel.findById(userId).session(session);
       
       if (!user) {
-        throw new ApiError(404, "User not found");
+        throw apiErrors.notFound("User not found");
       }
 
       // Admin bypass
@@ -46,7 +46,7 @@ export class CreditsService {
           // Insufficient overall credits
           await session.abortTransaction();
           session.endSession();
-          throw new ApiError(402, "Insufficient credits.");
+          throw apiErrors.badRequest("Insufficient credits.");
         }
       }
 
@@ -93,7 +93,7 @@ export class CreditsService {
       session.endSession();
       if (error instanceof ApiError) throw error;
       logger.error("Failed to deduct credits", { error, userId, amount });
-      throw new ApiError(500, "Failed to process credit deduction");
+      throw apiErrors.internal("Failed to process credit deduction");
     }
   }
 
@@ -106,7 +106,7 @@ export class CreditsService {
 
     try {
       const user = await UserModel.findById(userId).session(session);
-      if (!user) throw new ApiError(404, "User not found");
+      if (!user) throw apiErrors.notFound("User not found");
 
       user.subscription.purchasedCredits += amount;
       await user.save({ session });

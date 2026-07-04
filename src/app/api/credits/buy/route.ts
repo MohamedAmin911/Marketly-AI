@@ -1,7 +1,7 @@
 import { createApiHandler } from "@/server/http/route-handler";
 import { requireUser } from "@/server/http/subscription-middleware";
 import { StripeService } from "@/server/services/billing/stripe.service";
-import { ApiError } from "@/server/errors/api-error";
+import { apiErrors } from "@/server/errors/api-error";
 import { headers } from "next/headers";
 
 export const POST = createApiHandler(async ({ request }) => {
@@ -11,7 +11,7 @@ export const POST = createApiHandler(async ({ request }) => {
   const amount = body.amount;
   
   if (!amount || typeof amount !== "number") {
-    throw new ApiError(400, "Valid amount is required");
+    throw apiErrors.badRequest("Valid amount is required");
   }
 
   // Determine domain URL
@@ -28,7 +28,7 @@ export const POST = createApiHandler(async ({ request }) => {
   );
   
   if (!session.url) {
-    throw new ApiError(500, "Failed to create Stripe checkout session");
+    throw apiErrors.internal("Failed to create Stripe checkout session");
   }
 
   return { success: true, url: session.url };

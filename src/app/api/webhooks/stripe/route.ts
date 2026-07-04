@@ -55,7 +55,7 @@ export async function POST(req: Request) {
         const subscription = event.data.object as any;
         const user = await UserModel.findOne({ "subscription.stripeSubscriptionId": subscription.id });
         if (user) {
-          await SubscriptionService.applyPlanChange(user._id as string, "free");
+          await SubscriptionService.applyPlanChange(String(user._id), "free");
         }
         break;
       }
@@ -67,7 +67,7 @@ export async function POST(req: Request) {
         if (user) {
            if (subscription.status !== "active" && subscription.status !== "trialing") {
              if (subscription.status === "canceled") {
-                await SubscriptionService.applyPlanChange(user._id as string, "free");
+                await SubscriptionService.applyPlanChange(String(user._id), "free");
              } else {
                 user.subscription.status = subscription.status; // e.g. past_due
                 await user.save();

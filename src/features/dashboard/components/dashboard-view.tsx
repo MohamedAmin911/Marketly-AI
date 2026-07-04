@@ -115,7 +115,7 @@ function DashboardHero({ metrics, recentGenerations, billing, features }: { metr
   const latest = recentGenerations[0];
 
   const actions = heroActions.filter(
-    (action) => !action.feature || (features && features[action.feature])
+    (action: any) => !action.feature || (features && features[action.feature])
   );
 
   return (

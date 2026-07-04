@@ -20,8 +20,8 @@ export function QuickActionsCard({ features }: { features?: Record<string, boole
         {items.map((item) => (
           <Link key={item.title} href={item.href} className="block focus-visible:outline-none">
             <ActionCard
-              title={t(item.translationKey)}
-              description={t(item.descriptionKey)}
+              title={item.translationKey ? t(item.translationKey as any) : item.title}
+              description={item.descriptionKey ? t(item.descriptionKey as any) : item.description}
               icon={item.icon}
             />
           </Link>

@@ -11,27 +11,30 @@ async function fetchAdminAnalytics() {
   return data.data ?? data;
 }
 
+import { useTranslation } from "@/lib/i18n/useTranslation";
+
 export default function AdminDashboardPage() {
+  const { t } = useTranslation();
   const { data, isLoading } = useQuery({
     queryKey: ["adminAnalytics"],
     queryFn: fetchAdminAnalytics,
     refetchInterval: 30000,
   });
 
-  if (isLoading) return <div className="p-8 text-muted flex items-center"><Loader2 className="mr-2 animate-spin" /> Loading dashboard...</div>;
-  if (!data) return <div className="p-8 text-destructive">Failed to load metrics. Ensure you have admin access.</div>;
+  if (isLoading) return <div className="p-8 text-muted flex items-center"><Loader2 className="mr-2 animate-spin" /> {t("admin.loading")}</div>;
+  if (!data) return <div className="p-8 text-destructive">{t("admin.loadError")}</div>;
 
   const kpis = [
-    { title: "Total Users", value: data.kpis.totalUsers, icon: Users, desc: "All registered accounts" },
-    { title: "Active Subscriptions", value: data.kpis.activeSubscriptions, icon: CreditCard, desc: "Paid plans active" },
-    { title: "Online Now", value: data.kpis.onlineUsers, icon: Activity, desc: "Active in last 5 mins", highlight: true },
+    { title: t("admin.kpiTotalUsers"), value: data.kpis.totalUsers, icon: Users, desc: t("admin.kpiTotalUsersDesc") },
+    { title: t("admin.kpiActiveSubs"), value: data.kpis.activeSubscriptions, icon: CreditCard, desc: t("admin.kpiActiveSubsDesc") },
+    { title: t("admin.kpiOnline"), value: data.kpis.onlineUsers, icon: Activity, desc: t("admin.kpiOnlineDesc"), highlight: true },
   ];
 
   return (
     <div className="p-8 space-y-8">
       <header>
-        <h1 className="text-3xl font-display font-bold text-foreground">Admin Dashboard</h1>
-        <p className="text-muted mt-1">Real-time platform overview and management tools.</p>
+        <h1 className="text-3xl font-display font-bold text-foreground">{t("admin.pageTitle")}</h1>
+        <p className="text-muted mt-1">{t("admin.pageDesc")}</p>
       </header>
 
       <div className="grid gap-6 md:grid-cols-3">
@@ -52,8 +55,8 @@ export default function AdminDashboardPage() {
       <div className="grid gap-6 md:grid-cols-1 max-w-4xl">
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg">Generation Insights (30 Days)</CardTitle>
-            <CardDescription>Total platform usage across all users.</CardDescription>
+            <CardTitle className="text-lg">{t("admin.insightsTitle")}</CardTitle>
+            <CardDescription>{t("admin.insightsDesc")}</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">

@@ -26,9 +26,9 @@ export function LandingNavbar() {
       </div>
 
       <div className="hidden md:flex items-center gap-8 absolute left-1/2 -translate-x-1/2">
-        <Link href="#features" className="text-sm font-medium text-muted hover:text-foreground transition-colors">Features</Link>
-        <Link href="#pricing" className="text-sm font-medium text-muted hover:text-foreground transition-colors">Pricing</Link>
-        <Link href="#partners" className="text-sm font-medium text-muted hover:text-foreground transition-colors">Partners</Link>
+        <Link href="#features" className="text-sm font-medium text-muted hover:text-foreground transition-colors">{t("landing.features")}</Link>
+        <Link href="#pricing" className="text-sm font-medium text-muted hover:text-foreground transition-colors">{t("landing.pricing")}</Link>
+        <Link href="#partners" className="text-sm font-medium text-muted hover:text-foreground transition-colors">{t("landing.partners")}</Link>
       </div>
 
       <div className="flex items-center gap-4">
