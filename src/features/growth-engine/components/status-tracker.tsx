@@ -19,6 +19,7 @@ const getStageTranslationKey = (stage: GrowthEngineStage): TranslationKey => {
     case "Strategy Generated": return "stage.strategy";
     case "Campaigns Generated": return "stage.campaigns";
     case "Storyboards Generated": return "stage.storyboards";
+    default: return "common.draft";
   }
 };
 
