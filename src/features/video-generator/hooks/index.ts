@@ -6,8 +6,11 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { downloadVideo, generateVideo, getVideoHistory } from "@/features/video-generator/services";
 import type { VideoGenerationRequest, VideoRecord } from "@/features/video-generator/types";
 
+import { useUiStore } from "@/store/ui-store";
+
 export function useVideoRender() {
   const queryClient = useQueryClient();
+  const addToast = useUiStore((state) => state.addToast);
   const [video, setVideo] = useState<VideoRecord | null>(null);
   const [error, setError] = useState("");
 
@@ -18,7 +21,11 @@ export function useVideoRender() {
 
   const generateMutation = useMutation({
     mutationFn: generateVideo,
-    onError: (cause) => setError(cause instanceof Error ? cause.message : "Video generation failed."),
+    onError: (cause) => {
+      const msg = cause instanceof Error ? cause.message : "Video generation failed.";
+      setError(msg);
+      addToast({ title: "Generation Failed", description: msg, type: "error" });
+    },
     onMutate: () => setError(""),
     onSuccess: async (nextVideo) => {
       setVideo(nextVideo);
@@ -39,7 +46,7 @@ export function useVideoRender() {
     isHistoryLoading: historyQuery.isLoading,
     isRendering: generateMutation.isPending,
     setVideo,
-    startRender: (input: VideoGenerationRequest) => generateMutation.mutateAsync(input),
+    startRender: (input: VideoGenerationRequest) => generateMutation.mutateAsync(input).catch(() => {}),
     video,
   };
 }
