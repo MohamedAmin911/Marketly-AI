@@ -1,6 +1,6 @@
 import mongoose, { Schema, type Model } from "mongoose";
 
-import { AUTH_PROVIDERS, PLAN_TYPES, THEMES, USER_ROLES, USER_STATUSES, type AuthProvider, type PlanType, type Theme, type UserRole, type UserStatus } from "@/server/database/enums";
+import { AUTH_PROVIDERS, PLAN_TYPES, THEMES, USER_ROLES, USER_STATUSES, type AuthProvider, type BillingCycle, type PlanType, type SubscriptionStatus, type Theme, type UserRole, type UserStatus } from "@/server/database/enums";
 import type { BaseEntity, ObjectId } from "@/server/database/types";
 import { addBasePlugins, assetRefSchema, schemaOptions, softDeleteFields } from "@/server/database/schemas/fragments";
 

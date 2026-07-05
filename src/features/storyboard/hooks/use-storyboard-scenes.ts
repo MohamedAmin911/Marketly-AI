@@ -6,15 +6,25 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { generateStoryboard } from "@/features/storyboard/services";
 import type { CinematicStoryboardScene, StoryboardGenerationRequest } from "@/features/storyboard/types";
 
+import { useUiStore } from "@/store/ui-store";
+
 const revealDelayMs = 420;
 
 export function useStoryboardScenes() {
   const queryClient = useQueryClient();
+  const addToast = useUiStore((state) => state.addToast);
   const [scenes, setScenes] = useState<CinematicStoryboardScene[]>([]);
   const [isRevealing, setIsRevealing] = useState(false);
 
   const generationMutation = useMutation({
     mutationFn: generateStoryboard,
+    onError: (error) => {
+      addToast({
+        title: "Generation Failed",
+        description: error instanceof Error ? error.message : "An error occurred.",
+        type: "error"
+      });
+    },
     onMutate: () => {
       setScenes([]);
       setIsRevealing(false);
@@ -36,7 +46,7 @@ export function useStoryboardScenes() {
   });
 
   async function generate(input: StoryboardGenerationRequest) {
-    return generationMutation.mutateAsync(input);
+    return generationMutation.mutateAsync(input).catch(() => {});
   }
 
   return {

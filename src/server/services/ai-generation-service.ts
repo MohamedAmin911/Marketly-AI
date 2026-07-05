@@ -8,6 +8,7 @@ import { ApiError, apiErrors } from "@/server/errors/api-error";
 import { logger } from "@/server/logging/logger";
 import type { AuthContext } from "@/server/security/auth-guard";
 import type { AiGenerationRequest, AssistantChatRequest } from "@/server/schemas/ai";
+import { checkPromptSafety } from "@/server/security/profanity-filter";
 
 type ChatRole = "assistant" | "system" | "user";
 
@@ -52,6 +53,8 @@ export type AIResponseResult = {
 };
 
 export async function generateAiAsset(input: AiGenerationRequest, auth: AuthContext) {
+  checkPromptSafety(input.prompt, auth);
+
   return runAIWorkflow(
     {
       brandId: input.brandId,
@@ -95,6 +98,8 @@ async function synthesizeAudio(text: string): Promise<string | null> {
 }
 
 export async function generateAIResponse(input: AssistantChatRequest, auth: AuthContext): Promise<AIResponseResult> {
+  checkPromptSafety(input.message, auth);
+
   const userId = auth.user.sub;
   const brandId = input.brandId;
   const profileMemory = await retrieveAIMemory(userId, brandId);
