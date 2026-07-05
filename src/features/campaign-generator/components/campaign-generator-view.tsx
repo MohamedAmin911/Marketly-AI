@@ -12,6 +12,7 @@ import { useState } from "react";
 
 import { PageShell } from "@/components/layout/page-shell";
 import { Button } from "@/components/ui/button";
+import { ImageUploadCard } from "@/components/shared/image-upload-card";
 import { CampaignCard } from "@/features/campaign-generator/components/campaign-card";
 import { useCampaignAds } from "@/features/campaign-generator/hooks/use-campaign-ads";
 import { useTranslation } from "@/lib/i18n/useTranslation";
@@ -83,33 +84,7 @@ export function CampaignGeneratorView() {
             <p className="mb-5 text-center font-mono text-xs font-bold uppercase tracking-[0.34em] text-white/45">
               {t("campaign.productReference")}
             </p>
-            <label className="group relative grid aspect-square cursor-pointer place-items-center overflow-hidden rounded-2xl border border-dashed border-primary/70 bg-black/30 shadow-[0_0_46px_rgba(114,255,95,0.08)] transition hover:border-primary hover:shadow-glow">
-              <input
-                className="sr-only"
-                type="file"
-                accept="image/png,image/jpeg,image/webp"
-                onChange={(event) => {
-                  setProductFile(event.target.files?.[0] ?? null);
-                  event.target.value = "";
-                }}
-              />
-              {productFile ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={URL.createObjectURL(productFile)}
-                  alt={t("campaign.productReference")}
-                  className="size-full object-cover opacity-90"
-                />
-              ) : (
-                <div className="text-center">
-                  <UploadCloud className="mx-auto mb-5 size-12 text-white/70" />
-                  <p className="text-base font-medium text-white/70">
-                    {t("campaign.uploadImage")}
-                  </p>
-                  <p className="mt-2 text-sm text-white/40">{t("campaign.dragDrop")}</p>
-                </div>
-              )}
-            </label>
+            <ImageUploadCard eyebrow="" hint="" image={productFile} onImageChange={setProductFile} />
           </aside>
 
           <main className="min-w-0">

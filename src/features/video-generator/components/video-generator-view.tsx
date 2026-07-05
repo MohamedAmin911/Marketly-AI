@@ -23,6 +23,7 @@ import { Button } from "@/components/ui/button";
 import { FormField } from "@/components/ui/form-field";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
+import { ImageUploadCard } from "@/components/shared/image-upload-card";
 import { useVideoRender } from "@/features/video-generator/hooks";
 import type { VideoRecord } from "@/features/video-generator/types";
 import { useTranslation } from "@/lib/i18n/useTranslation";
@@ -56,10 +57,6 @@ export function VideoGeneratorView() {
   const [duration, setDuration] = useState<DurationOption>("10s");
   const [aspectRatio, setAspectRatio] = useState<AspectOption>("16:9");
   const [formError, setFormError] = useState("");
-  const productPreview = useMemo(
-    () => (productFile ? URL.createObjectURL(productFile) : ""),
-    [productFile],
-  );
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -134,7 +131,7 @@ export function VideoGeneratorView() {
 
             <div className="space-y-5">
               <PanelSection title={t("storyboard.productUpload")} icon={UploadCloud}>
-                <ProductUpload productFile={productFile} previewUrl={productPreview} onSelect={setProductFile} />
+                <ImageUploadCard eyebrow={t("storyboard.productUpload")} hint="" image={productFile} onImageChange={setProductFile} compact />
               </PanelSection>
 
               <PanelSection title={t("video.prompt")} icon={WandSparkles}>
@@ -226,42 +223,7 @@ function PanelSection({ children, icon: Icon, title }: { children: React.ReactNo
   );
 }
 
-function ProductUpload({ onSelect, previewUrl, productFile }: { onSelect: (file: File | null) => void; previewUrl: string; productFile: File | null }) {
-  const { t } = useTranslation();
 
-  return (
-    <label className="group relative grid min-h-52 cursor-pointer place-items-center overflow-hidden rounded-lg border border-dashed border-border bg-card p-4 text-center transition hover:border-primary/60 hover:bg-soft-green-surface focus-within:ring-2 focus-within:ring-primary/70">
-      <input
-        className="sr-only"
-        type="file"
-        accept="image/png,image/jpeg,image/webp"
-        onChange={(event) => {
-          onSelect(event.target.files?.[0] ?? null);
-          event.target.value = "";
-        }}
-      />
-      {previewUrl ? (
-        <>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={previewUrl} alt="Product preview" className="absolute inset-0 size-full object-cover transition-transform duration-500 group-hover:scale-[1.03]" />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
-          <div className="absolute inset-x-3 bottom-3 rounded-lg border border-white/15 bg-black/40 px-3 py-2 text-start text-white backdrop-blur-md">
-            <p className="truncate text-sm font-semibold">{productFile?.name}</p>
-            <p className="text-xs text-white/70">{productFile ? `${Math.max(productFile.size / 1024 / 1024, 0.01).toFixed(2)} MB` : null}</p>
-          </div>
-        </>
-      ) : (
-        <div>
-          <div className="mx-auto mb-4 grid size-14 place-items-center rounded-lg border border-primary/20 bg-primary/10 text-primary">
-            <ImagePlus className="size-7" />
-          </div>
-          <p className="text-sm font-semibold text-foreground">{t("video.uploadProductImage")}</p>
-          <p className="mt-1 text-xs text-muted">{t("studio.fileTypes")}</p>
-        </div>
-      )}
-    </label>
-  );
-}
 
 function SegmentedOptions<T extends string>({ onChange, options, value }: { onChange: (value: T) => void; options: readonly T[]; value: T }) {
   return (
