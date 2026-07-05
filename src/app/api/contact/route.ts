@@ -24,7 +24,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ success: true, message: "Message sent successfully" });
   } catch (error) {
-    logger.error("Failed to send contact email:", error);
+    logger.error("Failed to send contact email:", { error: error instanceof Error ? error.message : String(error) });
     return NextResponse.json({ error: "Failed to send message" }, { status: 500 });
   }
 }
