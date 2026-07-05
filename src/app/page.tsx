@@ -5,11 +5,15 @@ import { FeaturesSection } from "@/features/landing/components/features-section"
 import { TestimonialsMarquee } from "@/features/landing/components/testimonials-marquee";
 import { PricingSection } from "@/features/landing/components/pricing-section";
 import { LandingFooter } from "@/features/landing/components/footer";
+import { cookies } from "next/headers";
 
-export default function Home() {
+export default async function Home() {
+  const cookieStore = await cookies();
+  const isAuthenticated = !!cookieStore.get("marketly_access")?.value;
+
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      <LandingNavbar />
+      <LandingNavbar isAuthenticated={isAuthenticated} />
       <main className="flex-1">
         <HeroSection />
         <PartnersMarquee />

@@ -69,6 +69,9 @@ export function Topbar() {
             <DropdownMenuItem asChild>
               <Link href="/settings?tab=billing">{t("topbar.billing")}</Link>
             </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <Link href="/contact">{t("contact.title")}</Link>
+            </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={handleSignOut}>
               {t("topbar.signOut")}

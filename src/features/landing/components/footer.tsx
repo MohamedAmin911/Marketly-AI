@@ -12,8 +12,10 @@ export function LandingFooter() {
       <div className="container mx-auto px-6">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-16">
           <div className="col-span-2">
-            <div className="[&>div]:mt-0 [&>div]:mb-4 [&>div_img]:h-24 -ml-2">
-              <BrandMark />
+            <div className="mb-4 -ml-2 inline-block">
+              <Link href="/" className="hover:opacity-80 transition-opacity block">
+                <BrandMark />
+              </Link>
             </div>
             <p className="text-muted text-sm max-w-sm">{t("landing.footerDescription")}</p>
           </div>
@@ -21,8 +23,8 @@ export function LandingFooter() {
           <div>
             <h4 className="font-semibold text-foreground mb-4">{t("landing.product")}</h4>
             <ul className="space-y-3 text-sm text-muted">
-              <li><Link href="#features" className="hover:text-primary transition-colors">{t("landing.features")}</Link></li>
-              <li><Link href="#pricing" className="hover:text-primary transition-colors">{t("landing.pricing")}</Link></li>
+              <li><Link href="/#features" className="hover:text-primary transition-colors">{t("landing.features")}</Link></li>
+              <li><Link href="/#pricing" className="hover:text-primary transition-colors">{t("landing.pricing")}</Link></li>
               <li><Link href="#" className="hover:text-primary transition-colors">{t("landing.integrations")}</Link></li>
               <li><Link href="#" className="hover:text-primary transition-colors">{t("landing.changelog")}</Link></li>
             </ul>
@@ -33,7 +35,7 @@ export function LandingFooter() {
             <ul className="space-y-3 text-sm text-muted">
               <li><Link href="#" className="hover:text-primary transition-colors">{t("landing.privacy")}</Link></li>
               <li><Link href="#" className="hover:text-primary transition-colors">{t("landing.terms")}</Link></li>
-              <li><Link href="#" className="hover:text-primary transition-colors">{t("landing.cookies")}</Link></li>
+              <li><Link href="/contact" className="hover:text-primary transition-colors">{t("contact.title")}</Link></li>
             </ul>
           </div>
         </div>

@@ -1,5 +1,5 @@
 import nodemailer from "nodemailer";
-import { logger } from "@/server/utils/logger";
+import { logger } from "@/server/logging/logger";
 
 const smtpUrl = process.env.SMTP_URL;
 const gmailUser = process.env.GMAIL_USER;
@@ -82,6 +82,33 @@ export async function sendAdminEmail(email: string, subject: string, message: st
     console.log(`[MailService Mock Admin] To: ${email}`);
     console.log(`[MailService Mock Admin] Subject: ${subject}`);
     console.log(`[MailService Mock Admin] Message: \n${message}`);
+    console.log("------------------------------------------------------------------");
+  }
+}
+
+export async function sendContactUsEmail(userEmail: string, subject: string, message: string) {
+  const adminEmail = process.env.ADMIN_EMAIL || process.env.GMAIL_USER || "admin@marketly.ai";
+  if (transporter) {
+    try {
+      const fromEmail = gmailUser ? `"Marketly AI Contact Form" <${gmailUser}>` : process.env.SMTP_FROM_EMAIL || '"Marketly AI Contact Form" <noreply@marketly.ai>';
+      await transporter.sendMail({
+        from: fromEmail,
+        replyTo: userEmail,
+        to: adminEmail,
+        subject: `[Contact Form] ${subject}`,
+        text: `From: ${userEmail}\n\nMessage:\n${message}`,
+      });
+      console.log(`[MailService] Sent contact email to admin from ${userEmail}`);
+    } catch (error) {
+      console.error("[MailService] Failed to send contact email", error);
+      throw error;
+    }
+  } else {
+    console.log("------------------------------------------------------------------");
+    console.log(`[MailService Mock Contact] From User: ${userEmail}`);
+    console.log(`[MailService Mock Contact] To Admin: ${adminEmail}`);
+    console.log(`[MailService Mock Contact] Subject: ${subject}`);
+    console.log(`[MailService Mock Contact] Message: \n${message}`);
     console.log("------------------------------------------------------------------");
   }
 }

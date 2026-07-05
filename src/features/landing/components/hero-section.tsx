@@ -28,15 +28,6 @@ export function HeroSection() {
       />
 
       <div className="container relative z-10 px-6 mx-auto text-center">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.1 }}
-          className="inline-flex items-center gap-2 px-3 py-1 mb-8 text-xs font-semibold uppercase tracking-widest text-primary bg-primary/10 rounded-full border border-primary/20"
-        >
-          <Sparkles className="size-3" />
-          {t("landing.future")}
-        </motion.div>
 
         <motion.h1
           initial={{ opacity: 0, y: 30 }}
