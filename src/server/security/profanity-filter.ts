@@ -1,4 +1,4 @@
-import Filter from "bad-words";
+import Filter = require("bad-words");
 import { apiErrors } from "@/server/errors/api-error";
 import type { AuthContext } from "@/server/security/auth-guard";
 
