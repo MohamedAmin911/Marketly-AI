@@ -21,44 +21,49 @@ async function resolveToBlob(image: Blob | string): Promise<Blob> {
 export async function generateFluxImage(
   input: AIImageInput
 ): Promise<AIImageResult> {
-  const token = getHfToken();
-  const client = await Client.connect(
-    FLUX_ADVERTISEMENT_SPACE,
-    isHuggingFaceToken(token) ? { token } : undefined,
-  );
+  try {
+    const token = getHfToken();
+    const client = await Client.connect(
+      FLUX_ADVERTISEMENT_SPACE,
+      isHuggingFaceToken(token) ? { token } : undefined,
+    );
 
-  const inputImages: Array<{ image: unknown }> = [];
+    const inputImages: Array<{ image: unknown }> = [];
 
-  if (input.productImage) {
-    const blob = await resolveToBlob(input.productImage);
-    inputImages.push({ image: handle_file(blob) });
+    if (input.productImage) {
+      const blob = await resolveToBlob(input.productImage);
+      inputImages.push({ image: handle_file(blob) });
+    }
+    if (input.referenceImage) {
+      const blob = await resolveToBlob(input.referenceImage);
+      inputImages.push({ image: handle_file(blob) });
+    }
+
+    const rawResult = await client.predict("/infer", {
+      guidance_scale: 1,
+      input_images: inputImages,
+      prompt: input.prompt,
+      randomize_seed: true,
+      seed: 0,
+      steps: 4,
+      style_name: "None",
+    });
+
+    const imageUrl = extractGeneratedImageUrl(rawResult.data);
+    if (!imageUrl) {
+      throw new Error("FLUX Space returned a result, but no generated image URL was found.");
+    }
+
+    return {
+      imageUrl,
+      revisedPrompt: input.prompt,
+      seed: extractUsedSeed(rawResult.data),
+      rawResult,
+    };
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : (typeof err === "object" && err !== null ? JSON.stringify(err) : String(err));
+    throw new Error(`Flux Image Generation Error: ${msg}`);
   }
-  if (input.referenceImage) {
-    const blob = await resolveToBlob(input.referenceImage);
-    inputImages.push({ image: handle_file(blob) });
-  }
-
-  const rawResult = await client.predict("/infer", {
-    guidance_scale: 1,
-    input_images: inputImages,
-    prompt: input.prompt,
-    randomize_seed: true,
-    seed: 0,
-    steps: 4,
-    style_name: "None",
-  });
-
-  const imageUrl = extractGeneratedImageUrl(rawResult.data);
-  if (!imageUrl) {
-    throw new Error("FLUX Space returned a result, but no generated image URL was found.");
-  }
-
-  return {
-    imageUrl,
-    revisedPrompt: input.prompt,
-    seed: extractUsedSeed(rawResult.data),
-    rawResult,
-  };
 }
 
 function extractGeneratedImageUrl(

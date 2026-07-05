@@ -63,37 +63,42 @@ export async function generateWanProductVideo({
   prompt: string;
   timeoutMs: number;
 }): Promise<WanVideoResult> {
-  const client = await Client.connect(
-    WAN_I2V_VIDEO_SPACE,
-    isHuggingFaceToken(hfToken) ? { token: hfToken } : undefined,
-  );
+  try {
+    const client = await Client.connect(
+      WAN_I2V_VIDEO_SPACE,
+      isHuggingFaceToken(hfToken) ? { token: hfToken } : undefined,
+    );
 
-  const rawResult = await withTimeout(
-    client.predict("/generate_video", {
-      duration_seconds: WAN_I2V_VIDEO_DURATION_SECONDS,
-      guidance_scale: 1,
-      guidance_scale_2: 1,
-      input_image: handle_file(productImage),
-      negative_prompt:
-        "static image, no motion, low quality, distorted product, warped logo, blurry, flicker, artifacts, extra objects, unreadable text, watermark, subtitles, text overlay",
-      prompt,
-      randomize_seed: true,
-      seed: 42,
-      steps: 6,
-    }),
-    timeoutMs,
-  );
+    const rawResult = await withTimeout(
+      client.predict("/generate_video", {
+        duration_seconds: WAN_I2V_VIDEO_DURATION_SECONDS,
+        guidance_scale: 1,
+        guidance_scale_2: 1,
+        input_image: handle_file(productImage),
+        negative_prompt:
+          "static image, no motion, low quality, distorted product, warped logo, blurry, flicker, artifacts, extra objects, unreadable text, watermark, subtitles, text overlay",
+        prompt,
+        randomize_seed: true,
+        seed: 42,
+        steps: 6,
+      }),
+      timeoutMs,
+    );
 
-  const videoUrl = extractGeneratedMediaUrl(rawResult);
-  if (!videoUrl) {
-    throw new Error("The Space returned a result, but no generated video URL was found.");
+    const videoUrl = extractGeneratedMediaUrl(rawResult);
+    if (!videoUrl) {
+      throw new Error("The Space returned a result, but no generated video URL was found.");
+    }
+
+    return {
+      rawResult,
+      seed: extractUsedSeed(rawResult),
+      videoUrl,
+    };
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : (typeof err === "object" && err !== null ? JSON.stringify(err) : String(err));
+    throw new Error(`Wan Video Generation Error: ${msg}`);
   }
-
-  return {
-    rawResult,
-    seed: extractUsedSeed(rawResult),
-    videoUrl,
-  };
 }
 
 export function isHuggingFaceToken(token?: string): token is `hf_${string}` {

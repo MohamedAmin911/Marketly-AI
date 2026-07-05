@@ -55,7 +55,7 @@ export function createApiHandler<TData, TParams = unknown>(handler: Handler<TDat
       const apiError = normalizeApiError(error);
 
       logger.error("api.request.failed", {
-        errorMessage: error instanceof Error ? error.message : String(error),
+        errorMessage: error instanceof Error ? error.message : (typeof error === "object" && error !== null ? JSON.stringify(error) : String(error)),
         code: apiError.code,
         durationMs: Date.now() - startedAt,
         method: request.method,

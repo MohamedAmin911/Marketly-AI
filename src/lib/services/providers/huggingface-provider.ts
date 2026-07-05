@@ -39,24 +39,29 @@ async function generateGradioText(
   promptText: string,
   options: { maxTokens?: number; temperature?: number } = {},
 ): Promise<string> {
-  const token = process.env.HF_TOKEN || process.env.HUGGINGFACE_API_KEY;
-  const client = await Client.connect(
-    HF_TEXT_GENERATION_SPACE,
-    isHfToken(token) ? { token } : undefined,
-  );
+  try {
+    const token = process.env.HF_TOKEN || process.env.HUGGINGFACE_API_KEY;
+    const client = await Client.connect(
+      HF_TEXT_GENERATION_SPACE,
+      isHfToken(token) ? { token } : undefined,
+    );
 
-  const result = await client.predict("/generate", {
-    message: promptText,
-    system_prompt: "",
-    max_new_tokens: options.maxTokens ?? 1024,
-    temperature: options.temperature ?? 0.7,
-    top_p: 0.9,
-    top_k: 50,
-    repetition_penalty: 1.2,
-  });
+    const result = await client.predict("/generate", {
+      message: promptText,
+      system_prompt: "",
+      max_new_tokens: options.maxTokens ?? 1024,
+      temperature: options.temperature ?? 0.7,
+      top_p: 0.9,
+      top_k: 50,
+      repetition_penalty: 1.2,
+    });
 
-  const data = Array.isArray(result.data) ? result.data : [result.data];
-  return String(data[0] ?? "").trim();
+    const data = Array.isArray(result.data) ? result.data : [result.data];
+    return String(data[0] ?? "").trim();
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : (typeof err === "object" && err !== null ? JSON.stringify(err) : String(err));
+    throw new Error(`HuggingFace Text Generation Error: ${msg}`);
+  }
 }
 
 export const huggingFaceProvider: AIProvider = {
