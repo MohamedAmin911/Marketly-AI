@@ -4,53 +4,56 @@ import Image from "next/image";
 import { motion } from "framer-motion";
 import { Brain, Image as ImageIcon, Video, ChartLine, LayoutDashboard, BarChart3, MessageSquare } from "lucide-react";
 import { cn } from "@/lib/utils";
-
-const features = [
-  {
-    title: "AI Growth Engine",
-    description: "Input your brand and target audience, and our AI constructs a multi-stage growth plan complete with custom campaigns and actionable strategies.",
-    icon: ChartLine,
-    image: "/growth engine.png",
-  },
-  {
-    title: "AI Chat Assistant",
-    description: "Your 24/7 strategic marketing co-pilot. Bounce ideas, refine copy, or ask for data-driven insights in a natural conversational interface.",
-    icon: MessageSquare,
-    image: "/ai assitant.png",
-  },
-  {
-    title: "Campaign Generator",
-    description: "Instantly create high-converting copy, hooks, and creative angles tailored for Instagram, LinkedIn, and TikTok.",
-    icon: Brain,
-    image: "/ad studio.png",
-  },
-  {
-    title: "AI Image Generation",
-    description: "Generate breathtaking, photorealistic product shots and lifestyle imagery that perfectly matches your brand aesthetic.",
-    icon: ImageIcon,
-    image: "/image generation.png",
-  },
-  {
-    title: "Video Storyboarding",
-    description: "Turn simple concepts into complete video storyboards with scene-by-scene prompts, dialogue, and camera angles.",
-    icon: Video,
-    image: "/video generation.png",
-  },
-  {
-    title: "Command Dashboard",
-    description: "A centralized hub to track all your AI generations, manage campaigns, and organize your marketing assets in one beautiful space.",
-    icon: LayoutDashboard,
-    image: "/dashboard.png",
-  },
-  {
-    title: "Performance Analytics",
-    description: "Visualize the impact of your campaigns with real-time metrics, KPI tracking, and actionable insights to optimize your strategy.",
-    icon: BarChart3,
-    image: "/analytics.png",
-  },
-];
+import { useTranslation } from "@/lib/i18n/useTranslation";
 
 export function FeaturesSection() {
+  const { t } = useTranslation();
+
+  const features = [
+    {
+      title: t("landing.feature1Title"),
+      description: t("landing.feature1Desc"),
+      icon: ChartLine,
+      image: "/growth engine.png",
+    },
+    {
+      title: t("landing.feature2Title"),
+      description: t("landing.feature2Desc"),
+      icon: MessageSquare,
+      image: "/ai assitant.png",
+    },
+    {
+      title: t("landing.feature3Title"),
+      description: t("landing.feature3Desc"),
+      icon: Brain,
+      image: "/ad studio.png",
+    },
+    {
+      title: t("landing.feature4Title"),
+      description: t("landing.feature4Desc"),
+      icon: ImageIcon,
+      image: "/image generation.png",
+    },
+    {
+      title: t("landing.feature5Title"),
+      description: t("landing.feature5Desc"),
+      icon: Video,
+      image: "/video generation.png",
+    },
+    {
+      title: t("landing.feature6Title"),
+      description: t("landing.feature6Desc"),
+      icon: LayoutDashboard,
+      image: "/dashboard.png",
+    },
+    {
+      title: t("landing.feature7Title"),
+      description: t("landing.feature7Desc"),
+      icon: BarChart3,
+      image: "/analytics.png",
+    },
+  ];
+
   return (
     <section id="features" className="py-24 relative z-10 bg-background border-t border-border/50 overflow-hidden">
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-primary/5 via-transparent to-transparent opacity-50 pointer-events-none" />
@@ -63,7 +66,7 @@ export function FeaturesSection() {
             viewport={{ once: true }}
             className="font-display text-3xl md:text-5xl font-bold mb-6"
           >
-            Everything you need to <span className="text-primary">dominate</span> your market
+            {t("landing.featuresTitle")} <span className="text-primary">{t("landing.featuresHighlight")}</span> {t("landing.featuresSubtitle")}
           </motion.h2>
           <motion.p 
             initial={{ opacity: 0, y: 20 }}
@@ -72,7 +75,7 @@ export function FeaturesSection() {
             transition={{ delay: 0.1 }}
             className="text-muted text-lg"
           >
-            A complete suite of AI tools designed to replace agency retainers and accelerate your content pipeline.
+            {t("landing.featuresDesc")}
           </motion.p>
         </div>
 
