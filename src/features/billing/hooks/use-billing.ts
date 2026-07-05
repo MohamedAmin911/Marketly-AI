@@ -81,6 +81,19 @@ export function useBilling() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["billing"] }),
   });
 
+  const syncSessionMutation = useMutation({
+    mutationFn: async (sessionId: string) => {
+      const res = await fetch("/api/subscription/sync", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sessionId }),
+      });
+      if (!res.ok) throw new Error("Failed to sync session");
+      return res.json();
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["billing"] }),
+  });
+
   return {
     billing: query.data,
     isLoading: query.isLoading,
@@ -88,5 +101,7 @@ export function useBilling() {
     isUpgrading: upgradeMutation.isPending,
     buyCredits: buyCreditsMutation.mutate,
     isBuyingCredits: buyCreditsMutation.isPending,
+    syncSession: syncSessionMutation.mutate,
+    isSyncing: syncSessionMutation.isPending,
   };
 }
