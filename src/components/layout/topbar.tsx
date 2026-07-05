@@ -49,8 +49,8 @@ export function Topbar() {
       </div>
       <div className="flex items-center gap-2">
         {billing?.subscription && (
-          <Link href="/settings?tab=billing" className="me-1 flex items-center gap-1.5 rounded-full border border-primary/20 bg-primary/10 px-3 py-1.5 text-xs font-semibold text-primary transition-colors hover:bg-primary/20">
-            <Coins className="size-3.5" />
+          <Link href="/settings?tab=billing" className="me-1 flex h-10 items-center gap-1.5 rounded-lg border border-primary/20 bg-primary/10 px-3 text-sm font-semibold text-primary transition-colors hover:bg-primary/20">
+            <Coins className="size-4" />
             {totalCredits.toLocaleString()} {t("topbar.credits")}
           </Link>
         )}

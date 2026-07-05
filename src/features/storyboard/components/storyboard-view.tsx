@@ -6,7 +6,7 @@ import type { ReactNode } from "react";
 import { useEffect, useMemo, useState } from "react";
 
 import { PageShell } from "@/components/layout/page-shell";
-import { UploadArea } from "@/components/shared/upload-area";
+import { ImageUploadCard } from "@/components/shared/image-upload-card";
 import { Button } from "@/components/ui/button";
 import { FormField } from "@/components/ui/form-field";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -106,9 +106,7 @@ export function StoryboardView() {
 
           <div className="space-y-5">
             <InputPanelSection title={t("storyboard.productUpload")} icon={UploadCloud}>
-              <FormField label={t("growth.productImage")} id="storyboard-product-image">
-                <UploadArea label={productImage ? productImage.name : "Upload product image"} onFileSelect={setProductImage} />
-              </FormField>
+              <ImageUploadCard eyebrow={t("growth.productImage")} hint="" image={productImage} onImageChange={setProductImage} compact />
             </InputPanelSection>
 
             <InputPanelSection title={t("storyboard.campaignPrompt")} icon={Film}>

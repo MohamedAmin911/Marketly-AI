@@ -9,7 +9,7 @@ import type { ReactNode } from "react";
 import { PageShell } from "@/components/layout/page-shell";
 import { Button } from "@/components/ui/button";
 import { GenerateButton } from "@/features/creator-studio/components/generate-button";
-import { ImageUploadCard } from "@/features/creator-studio/components/image-upload-card";
+import { ImageUploadCard } from "@/components/shared/image-upload-card";
 import { PromptBox } from "@/features/creator-studio/components/prompt-box";
 import { ResultPreview } from "@/features/creator-studio/components/result-preview";
 import { useTranslation } from "@/lib/i18n/useTranslation";

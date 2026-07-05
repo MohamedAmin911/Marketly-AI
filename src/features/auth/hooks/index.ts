@@ -4,6 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
+import { useQuery } from "@tanstack/react-query";
 
 import { login, signup } from "@/features/auth/services/auth-service";
 import { loginSchema, signupSchema, type LoginFormValues, type SignupFormValues } from "@/features/auth/utils/schema";
@@ -46,5 +47,23 @@ export function useAuthForm(mode: AuthMode) {
     isSuccess,
     onSubmit,
     serverError,
+  };
+}
+
+export function useUser() {
+  const query = useQuery({
+    queryKey: ["user"],
+    queryFn: async () => {
+      const res = await fetch("/api/auth/me", { credentials: "include" });
+      if (!res.ok) return null;
+      const data = await res.json();
+      return (data.data?.user as { email: string; name: string }) ?? null;
+    },
+    staleTime: 1000 * 60 * 5,
+  });
+
+  return {
+    user: query.data,
+    isLoading: query.isLoading,
   };
 }

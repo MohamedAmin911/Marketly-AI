@@ -16,6 +16,7 @@ import {
   ShieldCheck,
   SlidersHorizontal,
   Users,
+  UserRound,
   Volume2,
 } from "lucide-react";
 import { useRef, useState, useEffect } from "react";
@@ -33,6 +34,7 @@ import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { useBrand, type BrandData } from "@/features/settings/hooks";
+import { useUser } from "@/features/auth/hooks";
 import { useTranslation } from "@/lib/i18n/useTranslation";
 import { cn } from "@/lib/utils";
 import { useUiStore } from "@/store/ui-store";
@@ -54,6 +56,7 @@ export function SettingsView() {
   const themeMode = useUiStore((state) => state.themeMode);
   const setThemeMode = useUiStore((state) => state.setThemeMode);
   const { brand: savedBrand, isLoading, isSaving, saved, save } = useBrand();
+  const { user } = useUser();
   const [local, setLocal] = useState<BrandData | null>(null);
   const brand = local ?? savedBrand;
   const logoInputRef = useRef<HTMLInputElement>(null);
@@ -139,6 +142,12 @@ export function SettingsView() {
               </TabsTrigger>
             );
           })}
+          {user && (
+            <div className="ml-auto hidden items-center gap-2 px-3 py-1.5 font-mono text-[11px] font-semibold tracking-[0.08em] text-muted sm:flex">
+              <UserRound className="size-3.5" />
+              <span>{user.email}</span>
+            </div>
+          )}
         </TabsList>
 
         <TabsContent value="brand">

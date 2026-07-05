@@ -11,12 +11,10 @@ export function LanguageToggle() {
 
   return (
     <Button
-      type="button"
       variant="secondary"
-      size="sm"
       aria-label={t("language.toggleLabel")}
       onClick={() => setLanguage(nextLanguage)}
-      className="min-w-20 px-3"
+      className="h-10 min-h-10 min-w-[72px] px-3 font-semibold"
     >
       <Languages className="size-4" />
       {language === "en" ? t("language.ar") : t("language.en")}
