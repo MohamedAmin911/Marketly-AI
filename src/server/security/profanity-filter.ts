@@ -1,5 +1,5 @@
-import * as badWords from "bad-words";
-const Filter = (badWords as any).default || badWords;
+// @ts-ignore - bad-words types require synthetic default imports
+import Filter from "bad-words";
 import { apiErrors } from "@/server/errors/api-error";
 import type { AuthContext } from "@/server/security/auth-guard";
 
