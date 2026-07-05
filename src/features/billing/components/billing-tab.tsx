@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect, useRef } from "react";
+import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { useBilling } from "@/features/billing/hooks/use-billing";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -16,7 +18,30 @@ const PLANS = [
 
 export function BillingTab() {
   const { t } = useTranslation();
-  const { billing, isLoading, upgradePlan, isUpgrading, buyCredits, isBuyingCredits } = useBilling();
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
+  const { billing, isLoading, upgradePlan, isUpgrading, buyCredits, isBuyingCredits, syncSession, isSyncing } = useBilling();
+  
+  const hasSynced = useRef(false);
+
+  useEffect(() => {
+    const sessionId = searchParams.get("session_id");
+    const success = searchParams.get("success");
+
+    if (success === "true" && sessionId && !hasSynced.current) {
+      hasSynced.current = true;
+      syncSession(sessionId, {
+        onSettled: () => {
+          // Remove session_id from URL to prevent duplicate syncing on refresh
+          const newParams = new URLSearchParams(searchParams.toString());
+          newParams.delete("session_id");
+          newParams.delete("success");
+          router.replace(`${pathname}?${newParams.toString()}#plans`, { scroll: false });
+        }
+      });
+    }
+  }, [searchParams, syncSession, router, pathname]);
 
   if (isLoading) {
     return (
