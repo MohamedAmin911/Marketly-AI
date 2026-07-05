@@ -1,4 +1,5 @@
-import Filter = require("bad-words");
+import * as badWords from "bad-words";
+const Filter = (badWords as any).default || badWords;
 import { apiErrors } from "@/server/errors/api-error";
 import type { AuthContext } from "@/server/security/auth-guard";
 
