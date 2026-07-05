@@ -9,8 +9,8 @@ export function AuthShell({ children }: { children: ReactNode }) {
       <div className="pointer-events-none fixed inset-0 grid-field opacity-60" />
       <div className="pointer-events-none fixed inset-0 bg-[linear-gradient(180deg,rgba(2,9,2,.42),rgba(2,9,2,.92))]" />
       <Card className="relative w-full max-w-md p-6 sm:p-8">
-        <div className="-mb-15 -mt-20 flex justify-center">
-          <BrandMark />
+        <div className="mb-6 mt-2 flex justify-center">
+          <BrandMark className="flex-col" />
         </div>
         {children}
       </Card>

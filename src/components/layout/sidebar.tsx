@@ -13,11 +13,16 @@ import { useUiStore } from "@/store/ui-store";
 
 import { useBilling } from "@/features/billing/hooks/use-billing";
 
-function SidebarContent() {
+function SidebarContent({ userRole }: { userRole?: string }) {
   const pathname = usePathname();
   const setSidebarOpen = useUiStore((state) => state.setSidebarOpen);
   const { billing } = useBilling();
   const { isRtl, t } = useTranslation();
+
+  const allowedNavItems = NAV_ITEMS.filter((item) => {
+    if (item.role && item.role !== userRole) return false;
+    return true;
+  });
 
   return (
     <div className="flex h-full flex-col">
@@ -28,7 +33,7 @@ function SidebarContent() {
         </button>
       </div>
       <nav className="mt-4 flex-1 space-y-1 px-3">
-        {NAV_ITEMS.map((item) => {
+        {allowedNavItems.map((item) => {
           const active = pathname === item.href;
           const isLocked = item.feature && billing?.features ? !billing.features[item.feature] : false;
 
@@ -70,7 +75,7 @@ function SidebarContent() {
   );
 }
 
-export function Sidebar() {
+export function Sidebar({ userRole }: { userRole?: string }) {
   const sidebarOpen = useUiStore((state) => state.sidebarOpen);
   const setSidebarOpen = useUiStore((state) => state.setSidebarOpen);
   const { isRtl } = useTranslation();
@@ -78,7 +83,7 @@ export function Sidebar() {
   return (
     <>
       <aside className={cn("fixed inset-y-0 z-40 hidden w-72 bg-surface/92 backdrop-blur-2xl lg:block", isRtl ? "right-0 border-l border-border" : "left-0 border-r border-border")}>
-        <SidebarContent />
+        <SidebarContent userRole={userRole} />
       </aside>
       <AnimatePresence>
         {sidebarOpen ? (
@@ -97,7 +102,7 @@ export function Sidebar() {
               exit={{ x: isRtl ? "100%" : "-100%" }}
               transition={{ type: "spring", stiffness: 340, damping: 34 }}
             >
-              <SidebarContent />
+              <SidebarContent userRole={userRole} />
             </motion.aside>
           </>
         ) : null}

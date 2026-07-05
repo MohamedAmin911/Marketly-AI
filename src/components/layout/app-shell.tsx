@@ -7,7 +7,7 @@ import { Topbar } from "@/components/layout/topbar";
 import { useTranslation } from "@/lib/i18n/useTranslation";
 import { cn } from "@/lib/utils";
 
-export function AppShell({ children }: { children: ReactNode }) {
+export function AppShell({ children, userRole = "user" }: { children: ReactNode; userRole?: string }) {
   const { isRtl } = useTranslation();
 
   return (
@@ -16,7 +16,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         <div className="absolute inset-0 grid-field" />
         <div className="absolute inset-0 bg-[image:var(--app-overlay)]" />
       </div>
-      <Sidebar />
+      <Sidebar userRole={userRole} />
       <div className={cn("relative z-10", isRtl ? "lg:pr-72" : "lg:pl-72")}>
         <Topbar />
         <main>{children}</main>

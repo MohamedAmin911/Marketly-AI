@@ -58,4 +58,12 @@ export const QUICK_CREATE_ITEMS: (Omit<NavItem, "title"> & { title: string, desc
     icon: Rocket,
     feature: "growthEngine",
   },
+  {
+    title: "Contact Support",
+    translationKey: "contact.title",
+    description: "Get help from our team",
+    descriptionKey: "contact.desc",
+    href: "/contact",
+    icon: Bot,
+  },
 ] as const;
