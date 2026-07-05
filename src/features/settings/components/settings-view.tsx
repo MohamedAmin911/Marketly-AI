@@ -125,18 +125,10 @@ export function SettingsView() {
       title={t("settings.title")}
       description={t("settings.description")}
       actions={
-        <div className="flex items-center gap-4">
-          {user && (
-            <div className="hidden items-center gap-2 rounded-full border border-border bg-surface px-3 py-1.5 text-sm font-medium text-muted sm:flex">
-              <UserRound className="size-4" />
-              <span>{user.email}</span>
-            </div>
-          )}
-          <Button type="button" onClick={() => save(brand)} disabled={isSaving}>
-            {isSaving ? <Loader2 className="size-4 animate-spin" /> : <Save className="size-4" />}
-            {saved ? t("common.saved") : t("settings.saveSettings")}
-          </Button>
-        </div>
+        <Button type="button" onClick={() => save(brand)} disabled={isSaving}>
+          {isSaving ? <Loader2 className="size-4 animate-spin" /> : <Save className="size-4" />}
+          {saved ? t("common.saved") : t("settings.saveSettings")}
+        </Button>
       }
     >
       <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-5">
@@ -150,6 +142,12 @@ export function SettingsView() {
               </TabsTrigger>
             );
           })}
+          {user && (
+            <div className="ml-auto hidden items-center gap-2 px-3 py-1.5 font-mono text-[11px] font-semibold tracking-[0.08em] text-muted sm:flex">
+              <UserRound className="size-3.5" />
+              <span>{user.email}</span>
+            </div>
+          )}
         </TabsList>
 
         <TabsContent value="brand">
