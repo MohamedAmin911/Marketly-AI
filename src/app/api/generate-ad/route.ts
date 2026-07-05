@@ -3,6 +3,7 @@ import type { NextRequest } from "next/server";
 import { ApiError } from "@/server/errors/api-error";
 import { logger } from "@/server/logging/logger";
 import { requireAuth } from "@/server/security/auth-guard";
+import { checkPromptSafety } from "@/server/security/profanity-filter";
 import { generateProductAdvertisement } from "@/services/advertisement-generation-service";
 
 export async function POST(req: NextRequest) {
@@ -23,6 +24,12 @@ export async function POST(req: NextRequest) {
         },
         { status: 400 },
       );
+    }
+
+    try {
+      checkPromptSafety(prompt, auth);
+    } catch (err: any) {
+      return Response.json({ success: false, error: err.message }, { status: 400 });
     }
 
     const generation = await generateProductAdvertisement({

@@ -4,6 +4,7 @@ import { apiErrors } from "@/server/errors/api-error";
 import { createApiHandler, withTimeout } from "@/server/http/route-handler";
 import { requireAuth } from "@/server/security/auth-guard";
 import { validateUploadFile } from "@/server/security/uploads";
+import { checkPromptSafety } from "@/server/security/profanity-filter";
 import { generateCinematicStoryboard } from "@/lib/services/storyboard-generator";
 
 export const POST = createApiHandler(
@@ -20,6 +21,8 @@ export const POST = createApiHandler(
     if (typeof campaignPrompt !== "string" || campaignPrompt.trim().length < 12) {
       throw apiErrors.badRequest("Campaign prompt must be at least 12 characters.");
     }
+
+    checkPromptSafety(campaignPrompt, auth);
 
     await validateUploadFile(productImage);
 
