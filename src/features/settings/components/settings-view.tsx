@@ -16,6 +16,7 @@ import {
   ShieldCheck,
   SlidersHorizontal,
   Users,
+  UserRound,
   Volume2,
 } from "lucide-react";
 import { useRef, useState, useEffect } from "react";
@@ -33,6 +34,7 @@ import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { useBrand, type BrandData } from "@/features/settings/hooks";
+import { useUser } from "@/features/auth/hooks";
 import { useTranslation } from "@/lib/i18n/useTranslation";
 import { cn } from "@/lib/utils";
 import { useUiStore } from "@/store/ui-store";
@@ -54,6 +56,7 @@ export function SettingsView() {
   const themeMode = useUiStore((state) => state.themeMode);
   const setThemeMode = useUiStore((state) => state.setThemeMode);
   const { brand: savedBrand, isLoading, isSaving, saved, save } = useBrand();
+  const { user } = useUser();
   const [local, setLocal] = useState<BrandData | null>(null);
   const brand = local ?? savedBrand;
   const logoInputRef = useRef<HTMLInputElement>(null);
@@ -122,10 +125,18 @@ export function SettingsView() {
       title={t("settings.title")}
       description={t("settings.description")}
       actions={
-        <Button type="button" onClick={() => save(brand)} disabled={isSaving}>
-          {isSaving ? <Loader2 className="size-4 animate-spin" /> : <Save className="size-4" />}
-          {saved ? t("common.saved") : t("settings.saveSettings")}
-        </Button>
+        <div className="flex items-center gap-4">
+          {user && (
+            <div className="hidden items-center gap-2 rounded-full border border-border bg-surface px-3 py-1.5 text-sm font-medium text-muted sm:flex">
+              <UserRound className="size-4" />
+              <span>{user.email}</span>
+            </div>
+          )}
+          <Button type="button" onClick={() => save(brand)} disabled={isSaving}>
+            {isSaving ? <Loader2 className="size-4 animate-spin" /> : <Save className="size-4" />}
+            {saved ? t("common.saved") : t("settings.saveSettings")}
+          </Button>
+        </div>
       }
     >
       <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-5">
