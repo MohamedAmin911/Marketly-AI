@@ -5,72 +5,75 @@ import { Check } from "lucide-react";
 import { motion } from "framer-motion";
 
 import { Button } from "@/components/ui/button";
-
-const TIERS = [
-  {
-    name: "Free",
-    price: "$0",
-    description: "Perfect for getting started and exploring AI tools.",
-    features: [
-      "50 Lifetime Credits",
-      "Ad Studio",
-      "Image Generation",
-      "Video Generation",
-    ],
-    cta: "Start Free",
-    highlight: false,
-  },
-  {
-    name: "Starter",
-    price: "$49",
-    description: "For solo creators and small businesses.",
-    features: [
-      "500 Credits / month",
-      "Everything in Free",
-      "AI Assistant",
-      "Email Support",
-    ],
-    cta: "Start Trial",
-    highlight: false,
-  },
-  {
-    name: "Pro",
-    price: "$99",
-    description: "For marketing teams scaling their growth.",
-    features: [
-      "1,500 Credits / month",
-      "Growth Engine",
-      "Analytics Dashboard",
-      "Priority Support",
-    ],
-    cta: "Get Pro",
-    highlight: true,
-  },
-  {
-    name: "Business",
-    price: "$249",
-    description: "Dedicated AI models for large agencies.",
-    features: [
-      "4,000 Credits / month",
-      "API Access",
-      "Commercial Rights",
-      "Dedicated Account Manager",
-    ],
-    cta: "Contact Sales",
-    highlight: false,
-  },
-];
+import { useTranslation } from "@/lib/i18n/useTranslation";
 
 export function PricingSection() {
+  const { t } = useTranslation();
+
+  const TIERS = [
+    {
+      name: t("landing.tierFreeName"),
+      price: "$0",
+      description: t("landing.tierFreeDesc"),
+      features: [
+        t("landing.tierFreeF1"),
+        t("landing.tierFreeF2"),
+        t("landing.tierFreeF3"),
+        t("landing.tierFreeF4"),
+      ],
+      cta: t("landing.tierFreeCta"),
+      highlight: false,
+    },
+    {
+      name: t("landing.tierStarterName"),
+      price: "$49",
+      description: t("landing.tierStarterDesc"),
+      features: [
+        t("landing.tierStarterF1"),
+        t("landing.tierStarterF2"),
+        t("landing.tierStarterF3"),
+        t("landing.tierStarterF4"),
+      ],
+      cta: t("landing.tierStarterCta"),
+      highlight: false,
+    },
+    {
+      name: t("landing.tierProName"),
+      price: "$99",
+      description: t("landing.tierProDesc"),
+      features: [
+        t("landing.tierProF1"),
+        t("landing.tierProF2"),
+        t("landing.tierProF3"),
+        t("landing.tierProF4"),
+      ],
+      cta: t("landing.tierProCta"),
+      highlight: true,
+    },
+    {
+      name: t("landing.tierBusinessName"),
+      price: "$249",
+      description: t("landing.tierBusinessDesc"),
+      features: [
+        t("landing.tierBusinessF1"),
+        t("landing.tierBusinessF2"),
+        t("landing.tierBusinessF3"),
+        t("landing.tierBusinessF4"),
+      ],
+      cta: t("landing.tierBusinessCta"),
+      highlight: false,
+    },
+  ];
+
   return (
     <section id="pricing" className="py-24 bg-background border-t border-border/50">
       <div className="container mx-auto px-6">
         <div className="text-center max-w-2xl mx-auto mb-16">
           <h2 className="font-display text-3xl md:text-5xl font-bold mb-6 text-foreground">
-            Simple, transparent <span className="text-primary">pricing</span>
+            {t("landing.pricingTitle")} <span className="text-primary">{t("landing.pricingHighlight")}</span>
           </h2>
           <p className="text-muted text-lg">
-            Invest in your growth. Cancel anytime.
+            {t("landing.pricingDesc")}
           </p>
         </div>
 
@@ -88,7 +91,7 @@ export function PricingSection() {
             >
               {tier.highlight && (
                 <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-primary text-primary-foreground text-xs font-bold uppercase tracking-widest px-3 py-1 rounded-full">
-                  Most Popular
+                  {t("landing.pricingMostPopular")}
                 </div>
               )}
               
@@ -96,7 +99,7 @@ export function PricingSection() {
                 <h3 className="text-xl font-semibold text-foreground mb-2">{tier.name}</h3>
                 <div className="flex items-baseline gap-1 mb-2">
                   <span className="text-4xl font-bold text-foreground">{tier.price}</span>
-                  {tier.price !== "$0" && <span className="text-muted text-sm">/mo</span>}
+                  {tier.price !== "$0" && <span className="text-muted text-sm">{t("landing.pricingMo")}</span>}
                 </div>
                 <p className="text-muted text-sm">{tier.description}</p>
               </div>
