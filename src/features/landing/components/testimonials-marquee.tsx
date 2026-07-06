@@ -72,7 +72,7 @@ export function TestimonialsMarquee() {
                 </div>
               </div>
               <p className="text-foreground text-sm leading-relaxed flex-1">
-                "{testimonial.content}"
+                &quot;{testimonial.content}&quot;
               </p>
               <div>
                 <p className="font-semibold text-foreground text-sm">{testimonial.name}</p>

@@ -11,6 +11,11 @@ async function fetchAdminAnalytics() {
   return data.data ?? data;
 }
 
+type AdminInsight = {
+  name: string;
+  value: number;
+};
+
 export default function AdminDashboardPage() {
   const { data, isLoading } = useQuery({
     queryKey: ["adminAnalytics"],
@@ -57,7 +62,7 @@ export default function AdminDashboardPage() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {data.insights.map((insight: any) => (
+              {data.insights.map((insight: AdminInsight) => (
                 <div key={insight.name} className="flex items-center justify-between border-b border-border pb-2 last:border-0 last:pb-0">
                   <span className="text-sm text-muted">{insight.name}</span>
                   <span className="font-semibold">{insight.value.toLocaleString()}</span>

@@ -11,13 +11,17 @@ const actionSchema = z.object({
   action: z.enum(["block", "unblock", "delete"]),
 });
 
-export const POST = createApiHandler(
+type UserParams = {
+  id: string;
+};
+
+export const POST = createApiHandler<unknown, UserParams>(
   async ({ meta, request, params }) => {
     const auth = await requireAuth(request);
     requireRole(auth, ["admin"]);
 
     const body = await parseJsonBody(request, actionSchema);
-    const userId = params.id;
+    const userId = params?.id;
 
     if (!userId) {
       throw apiErrors.badRequest("User ID is required");

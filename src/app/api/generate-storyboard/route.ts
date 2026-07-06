@@ -1,14 +1,11 @@
-import type { NextRequest } from "next/server";
-
 import { apiErrors } from "@/server/errors/api-error";
-import { createApiHandler, withTimeout } from "@/server/http/route-handler";
-import { requireAuth } from "@/server/security/auth-guard";
+import { withTimeout } from "@/server/http/route-handler";
 import { validateUploadFile } from "@/server/security/uploads";
 import { generateCinematicStoryboard } from "@/lib/services/storyboard-generator";
+import { createModeratedApiHandler } from "@/server/moderation/with-moderation";
 
-export const POST = createApiHandler(
-  async ({ request }: { request: NextRequest }) => {
-    const auth = await requireAuth(request);
+export const POST = createModeratedApiHandler(
+  async ({ auth, request }) => {
     const formData = await request.formData();
     const productImage = formData.get("productImage");
     const campaignPrompt = formData.get("campaignPrompt");
@@ -33,5 +30,5 @@ export const POST = createApiHandler(
       "Storyboard generation timed out.",
     );
   },
-  { rateLimit: { keyPrefix: "storyboard.cinematic.generate", limit: 6, windowMs: 60 * 1000 } },
+  { feature: "storyboard", rateLimit: { keyPrefix: "storyboard.cinematic.generate", limit: 6, windowMs: 60 * 1000 } },
 );

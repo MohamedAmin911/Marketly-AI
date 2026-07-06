@@ -65,6 +65,12 @@ export type OpenAIImagesGenerateInput = {
   background?: "transparent" | "opaque" | "auto";
 };
 
+type OpenAIImageData = {
+  b64_json?: string;
+  revised_prompt?: string;
+  url?: string;
+};
+
 function normalizeDalleQuality(quality: string): string {
   if (quality === "low" || quality === "medium" || quality === "high") return "standard";
   if (quality === "auto") return "hd";
@@ -123,22 +129,25 @@ export async function generateImage(
         if (input.background) payload.background = input.background;
       }
 
-      const response = await retryOnRateLimit(() => getClient().images.generate(payload as any));
-      const image = response.data?.[0];
+      const response = await retryOnRateLimit(() => getClient().images.generate(payload as unknown as Parameters<OpenAI["images"]["generate"]>[0]));
+      if (!("data" in response)) {
+        throw new Error("OpenAI image generation returned a stream response unexpectedly.");
+      }
+      const image = response.data?.[0] as OpenAIImageData | undefined;
       if (!image) {
         throw new Error("OpenAI image generation returned no result.");
       }
 
       const imageUrl =
-        (image as any).url ??
-        ((image as any).b64_json ? `data:image/png;base64,${(image as any).b64_json}` : undefined);
+        image.url ??
+        (image.b64_json ? `data:image/png;base64,${image.b64_json}` : undefined);
       if (!imageUrl) {
         throw new Error("OpenAI image generation returned no usable image URL or base64 data.");
       }
 
       return {
         imageUrl,
-        revisedPrompt: (image as any).revised_prompt,
+        revisedPrompt: image.revised_prompt,
       };
     } catch (error) {
       if (input.model) {

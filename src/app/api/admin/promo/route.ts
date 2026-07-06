@@ -4,6 +4,7 @@ import { requireAuth, requireRole } from "@/server/security/auth-guard";
 import { stripe } from "@/server/services/billing/stripe.service";
 import { parseJsonBody } from "@/server/http/validation";
 import { z } from "zod";
+import type Stripe from "stripe";
 
 const promoSchema = z.object({
   percentOff: z.number().min(1).max(100),
@@ -21,7 +22,7 @@ export const POST = createApiHandler(
     const body = await parseJsonBody(request, promoSchema);
 
     // 1. Create Coupon
-    const couponParams: any = {
+    const couponParams: Stripe.CouponCreateParams = {
       percent_off: body.percentOff,
       duration: body.duration,
       name: `Admin Promo ${body.percentOff}% off`,
@@ -38,8 +39,11 @@ export const POST = createApiHandler(
     const coupon = await stripe.coupons.create(couponParams);
 
     // 2. Create Promotion Code connected to Coupon
-    const promoParams: any = {
-      coupon: coupon.id,
+    const promoParams: Stripe.PromotionCodeCreateParams = {
+      promotion: {
+        coupon: coupon.id,
+        type: "coupon",
+      },
       active: true,
     };
 

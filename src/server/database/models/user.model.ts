@@ -1,6 +1,6 @@
 import mongoose, { Schema, type Model } from "mongoose";
 
-import { AUTH_PROVIDERS, PLAN_TYPES, THEMES, USER_ROLES, USER_STATUSES, type AuthProvider, type PlanType, type Theme, type UserRole, type UserStatus } from "@/server/database/enums";
+import { AUTH_PROVIDERS, PLAN_TYPES, THEMES, USER_ROLES, USER_STATUSES, type AuthProvider, type BillingCycle, type PlanType, type SubscriptionStatus, type Theme, type UserRole, type UserStatus } from "@/server/database/enums";
 import type { BaseEntity, ObjectId } from "@/server/database/types";
 import { addBasePlugins, assetRefSchema, schemaOptions, softDeleteFields } from "@/server/database/schemas/fragments";
 
@@ -82,6 +82,9 @@ export interface IUser extends BaseEntity {
   timezone: string;
   username: string;
   verificationToken?: string;
+  aiModerationStrikes?: number;
+  aiModerationSuspendedUntil?: Date | null;
+  aiModerationPermanentBan?: boolean;
 }
 
 const userSubscriptionSchema = new Schema<IUserSubscription>(
@@ -176,6 +179,9 @@ const userSchema = new Schema<IUser>(
     timezone: { default: "UTC", maxlength: 80, trim: true, type: String },
     username: { lowercase: true, maxlength: 40, minlength: 3, required: true, trim: true, type: String },
     verificationToken: { select: false, type: String },
+    aiModerationStrikes: { default: 0, type: Number },
+    aiModerationSuspendedUntil: { default: null, type: Date },
+    aiModerationPermanentBan: { default: false, type: Boolean },
   },
   schemaOptions,
 );

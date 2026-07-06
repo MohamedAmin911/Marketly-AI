@@ -6,13 +6,14 @@ import { verifyJwt } from "@/server/security/jwt";
 
 // Basic auth check for admin layout
 async function checkAdmin() {
-  const token = headers().get("cookie")?.split("; ").find(r => r.startsWith("marketly_access="))?.split("=")[1];
+  const headerStore = await headers();
+  const token = headerStore.get("cookie")?.split("; ").find((item: string) => item.startsWith("marketly_access="))?.split("=")[1];
   
   if (!token) return false;
   try {
     const decoded = await verifyJwt(token, "access");
     return decoded.role === "admin";
-  } catch (e) {
+  } catch {
     return false;
   }
 }

@@ -10,7 +10,19 @@ import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
 import { useUiStore } from "@/store/ui-store";
 
-async function createPromoCode(params: any) {
+type PromoCode = {
+  active: boolean;
+  code: string;
+  percentOff: number;
+};
+
+type PromoCreateParams = {
+  code?: string;
+  duration: string;
+  percentOff: number;
+};
+
+async function createPromoCode(params: PromoCreateParams) {
   const res = await fetch("/api/admin/promo", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -24,7 +36,7 @@ export default function AdminPromoPage() {
   const [promoPercent, setPromoPercent] = useState("20");
   const [promoDuration, setPromoDuration] = useState("once");
   const [promoCodeName, setPromoCodeName] = useState("");
-  const [createdPromo, setCreatedPromo] = useState<any>(null);
+  const [createdPromo, setCreatedPromo] = useState<PromoCode | null>(null);
 
   const addToast = useUiStore((state) => state.addToast);
 

@@ -1,12 +1,10 @@
-import { createApiHandler } from "@/server/http/route-handler";
 import { parseJsonBody } from "@/server/http/validation";
 import { personalizeWithMemory } from "@/server/ai/memory/personalization-engine";
-import { requireAuth } from "@/server/security/auth-guard";
 import { personalizationRequestSchema } from "@/server/schemas/ai-memory";
+import { createModeratedApiHandler } from "@/server/moderation/with-moderation";
 
-export const POST = createApiHandler(
-  async ({ request }) => {
-    const auth = await requireAuth(request);
+export const POST = createModeratedApiHandler(
+  async ({ auth, request }) => {
     const body = await parseJsonBody(request, personalizationRequestSchema);
 
     return personalizeWithMemory({
@@ -14,5 +12,5 @@ export const POST = createApiHandler(
       userId: auth.user.sub,
     });
   },
-  { rateLimit: { keyPrefix: "ai.personalize", limit: 60, windowMs: 60 * 1000 } },
+  { feature: "text_generation", rateLimit: { keyPrefix: "ai.personalize", limit: 60, windowMs: 60 * 1000 } },
 );

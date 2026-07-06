@@ -1,5 +1,4 @@
 import nodemailer from "nodemailer";
-import { logger } from "@/server/utils/logger";
 
 const smtpUrl = process.env.SMTP_URL;
 const gmailUser = process.env.GMAIL_USER;

@@ -39,11 +39,37 @@ async function contactUser({ id, subject, message }: { id: string; subject: stri
   return res.json();
 }
 
+type AdminUser = {
+  _id?: string;
+  createdAt: string;
+  email: string;
+  emailVerified?: boolean;
+  features?: Record<string, boolean>;
+  fullName: string;
+  id: string;
+  lastActiveAt?: string;
+  role: string;
+  status: string;
+  subscription?: {
+    monthlyCredits?: number;
+    monthlyCreditsRemaining?: number;
+    plan?: string;
+    purchasedCredits?: number;
+    status?: string;
+  };
+  usage?: {
+    aiRequests?: number;
+    analyticsRuns?: number;
+    growthRuns?: number;
+    projectsCreated?: number;
+  };
+};
+
 export default function AdminUsersPage() {
   const [search, setSearch] = useState("");
   const [expandedUser, setExpandedUser] = useState<string | null>(null);
   const [contactModalOpen, setContactModalOpen] = useState(false);
-  const [selectedUser, setSelectedUser] = useState<any>(null);
+  const [selectedUser, setSelectedUser] = useState<AdminUser | null>(null);
   
   const [emailSubject, setEmailSubject] = useState("");
   const [emailMessage, setEmailMessage] = useState("");
@@ -100,7 +126,7 @@ export default function AdminUsersPage() {
     actionMutation.mutate({ id, action });
   };
 
-  const openContact = (user: any) => {
+  const openContact = (user: AdminUser) => {
     setSelectedUser(user);
     setContactModalOpen(true);
     setEmailStatus("idle");
@@ -109,7 +135,7 @@ export default function AdminUsersPage() {
   const handleSendEmail = () => {
     if (!emailSubject || !emailMessage || !selectedUser) return;
     setEmailStatus("loading");
-    contactMutation.mutate({ id: selectedUser.id || selectedUser._id, subject: emailSubject, message: emailMessage });
+    contactMutation.mutate({ id: selectedUser.id, subject: emailSubject, message: emailMessage });
   };
 
   return (
@@ -148,8 +174,8 @@ export default function AdminUsersPage() {
             {isLoading && (
               <TableRow><TableCell colSpan={7} className="h-24 text-center text-muted">Loading...</TableCell></TableRow>
             )}
-            {!isLoading && users?.map((user: any) => {
-              const id = user.id || user._id;
+            {!isLoading && users?.map((user: AdminUser) => {
+              const id = user.id;
               const isExpanded = expandedUser === id;
               const isSuspended = user.status === "suspended";
 

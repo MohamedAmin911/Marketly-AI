@@ -3,6 +3,8 @@ import { stripe } from "@/server/services/billing/stripe.service";
 import { SubscriptionService } from "@/server/services/billing/subscription.service";
 import { UserModel } from "@/server/database/models/user.model";
 import { connectToDatabase } from "@/server/database/connection";
+import type Stripe from "stripe";
+import { PLAN_TYPES, SUBSCRIPTION_STATUSES, type PlanType, type SubscriptionStatus } from "@/server/database/enums";
 
 export async function POST(req: Request) {
   const body = await req.text();
@@ -12,7 +14,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "No signature" }, { status: 400 });
   }
 
-  let event;
+  let event: Stripe.Event;
 
   try {
     event = stripe.webhooks.constructEvent(
@@ -20,9 +22,10 @@ export async function POST(req: Request) {
       signature,
       process.env.STRIPE_WEBHOOK_SECRET!
     );
-  } catch (err: any) {
-    console.error("Webhook signature verification failed.", err.message);
-    return NextResponse.json({ error: `Webhook Error: ${err.message}` }, { status: 400 });
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : "Invalid webhook signature";
+    console.error("Webhook signature verification failed.", message);
+    return NextResponse.json({ error: `Webhook Error: ${message}` }, { status: 400 });
   }
 
   await connectToDatabase();
@@ -30,7 +33,7 @@ export async function POST(req: Request) {
   try {
     switch (event.type) {
       case "checkout.session.completed": {
-        const session = event.data.object as any;
+        const session = event.data.object as Stripe.Checkout.Session;
         const userId = session.metadata?.userId;
         const planId = session.metadata?.planId;
         
@@ -41,6 +44,7 @@ export async function POST(req: Request) {
             await CreditsService.addPurchasedCredits(userId, amount, `Purchased ${amount} credits pack`);
           }
         } else if (userId && planId) {
+          if (!isPlanType(planId)) break;
           await SubscriptionService.applyPlanChange(
             userId, 
             planId, 
@@ -52,24 +56,24 @@ export async function POST(req: Request) {
       }
       
       case "customer.subscription.deleted": {
-        const subscription = event.data.object as any;
+        const subscription = event.data.object as Stripe.Subscription;
         const user = await UserModel.findOne({ "subscription.stripeSubscriptionId": subscription.id });
         if (user) {
-          await SubscriptionService.applyPlanChange(user._id as string, "free");
+          await SubscriptionService.applyPlanChange(String(user._id), "free");
         }
         break;
       }
       
       case "customer.subscription.updated": {
-        const subscription = event.data.object as any;
+        const subscription = event.data.object as Stripe.Subscription;
         const user = await UserModel.findOne({ "subscription.stripeSubscriptionId": subscription.id });
         
         if (user) {
            if (subscription.status !== "active" && subscription.status !== "trialing") {
              if (subscription.status === "canceled") {
-                await SubscriptionService.applyPlanChange(user._id as string, "free");
+                await SubscriptionService.applyPlanChange(String(user._id), "free");
              } else {
-                user.subscription.status = subscription.status; // e.g. past_due
+                user.subscription.status = toSubscriptionStatus(subscription.status);
                 await user.save();
              }
            } else {
@@ -88,4 +92,12 @@ export async function POST(req: Request) {
     console.error("Webhook processing error:", error);
     return NextResponse.json({ error: "Webhook processing failed" }, { status: 500 });
   }
+}
+
+function isPlanType(value: unknown): value is PlanType {
+  return typeof value === "string" && PLAN_TYPES.includes(value as PlanType);
+}
+
+function toSubscriptionStatus(status: Stripe.Subscription.Status): SubscriptionStatus {
+  return SUBSCRIPTION_STATUSES.includes(status as SubscriptionStatus) ? status as SubscriptionStatus : "past_due";
 }

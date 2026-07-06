@@ -13,13 +13,17 @@ const contactSchema = z.object({
   message: z.string().min(1, "Message is required"),
 });
 
-export const POST = createApiHandler(
+type UserParams = {
+  id: string;
+};
+
+export const POST = createApiHandler<unknown, UserParams>(
   async ({ meta, request, params }) => {
     const auth = await requireAuth(request);
     requireRole(auth, ["admin"]);
 
     const body = await parseJsonBody(request, contactSchema);
-    const userId = params.id;
+    const userId = params?.id;
 
     if (!userId) {
       throw apiErrors.badRequest("User ID is required");

@@ -91,9 +91,9 @@ export async function login(input: LoginRequest, context: AuthRequestContext) {
     throw apiErrors.unauthorized("Invalid email or password.");
   }
 
-  if (!user.emailVerified) {
-    throw apiErrors.unauthorized("Please verify your email address to log in.");
-  }
+  // if (!user.emailVerified) {
+  //   throw apiErrors.unauthorized("Please verify your email address to log in.");
+  // }
 
   assertCanLogin(user);
   clearBruteForceLimit(bruteForceKey);
@@ -215,6 +215,7 @@ async function issueTokens(user: AuthUser, context: AuthRequestContext, remember
     sub: user.id,
     tenantId: user.tenantId,
   };
+
   const accessToken = await createJwt(basePayload, "access", accessTtlSeconds);
   const refreshToken = await createJwt(basePayload, "refresh", remember ? refreshTtlSeconds : 60 * 60 * 8);
   const refreshPayload = await verifyJwt(refreshToken, "refresh");

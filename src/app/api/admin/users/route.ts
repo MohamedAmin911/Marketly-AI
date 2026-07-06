@@ -17,7 +17,7 @@ export const GET = createApiHandler(
 
     await connectToDatabase();
 
-    const query: any = {};
+    const query: Record<string, unknown> = {};
     if (search) {
       query.$or = [
         { email: { $regex: search, $options: "i" } },

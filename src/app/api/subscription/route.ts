@@ -3,13 +3,13 @@ import { requireUser } from "@/server/http/subscription-middleware";
 import { SubscriptionService } from "@/server/services/billing/subscription.service";
 import { apiErrors } from "@/server/errors/api-error";
 
-import { UserModel } from "@/server/database/models/user.model";
+import { UserModel, type IUserSubscription } from "@/server/database/models/user.model";
 
 export const GET = createApiHandler(async ({ request }) => {
   const reqUser = await requireUser(request);
   
   // Lazily evaluate monthly reset
-  await SubscriptionService.evaluateMonthlyReset(reqUser._id as string);
+  await SubscriptionService.evaluateMonthlyReset(String(reqUser._id));
   
   // Fetch hydrated user to ensure Mongoose defaults (like subscription) are applied
   const user = await UserModel.findById(reqUser._id);
@@ -18,14 +18,15 @@ export const GET = createApiHandler(async ({ request }) => {
   // Ensure old users get the default subscription structure saved if missing
   let needsSave = false;
   if (!user.subscription || !user.subscription.plan) {
-    user.subscription = { 
+    const defaultSubscription: IUserSubscription = {
       plan: "free", 
       status: "free", 
       startedAt: new Date(), 
       monthlyCredits: 50, 
       monthlyCreditsRemaining: 50, 
       purchasedCredits: 0 
-    } as any;
+    };
+    user.subscription = defaultSubscription;
     needsSave = true;
   }
   

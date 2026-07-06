@@ -3,6 +3,7 @@ import {
   generateChatCompletion as openaiGenerateChatCompletion,
   transcribeAudio as openaiTranscribeAudio,
 } from "@/lib/services/openai-service";
+import type { OpenAIImagesGenerateInput } from "@/lib/services/openai-service";
 import type {
   AIProvider,
   AIProviderName,
@@ -14,7 +15,7 @@ import type {
 
 const PROVIDER_NAME: AIProviderName = "openai";
 
-function adaptImageInput(input: AIImageInput) {
+function adaptImageInput(input: AIImageInput): OpenAIImagesGenerateInput {
   let prompt = input.prompt;
 
   if (input.productImage || input.referenceImage) {
@@ -30,13 +31,13 @@ function adaptImageInput(input: AIImageInput) {
 
   return {
     prompt,
-    ...(input.model ? { model: input.model as any } : {}),
+    ...(input.model ? { model: input.model as OpenAIImagesGenerateInput["model"] } : {}),
     ...(input.n ? { n: input.n } : {}),
-    ...(input.quality ? { quality: input.quality as any } : {}),
-    ...(input.size ? { size: input.size as any } : {}),
-    ...(input.style ? { style: input.style as any } : {}),
-    ...(input.outputFormat ? { outputFormat: input.outputFormat as any } : {}),
-    ...(input.background ? { background: input.background as any } : {}),
+    ...(input.quality ? { quality: input.quality as OpenAIImagesGenerateInput["quality"] } : {}),
+    ...(input.size ? { size: input.size } : {}),
+    ...(input.style ? { style: input.style } : {}),
+    ...(input.outputFormat ? { outputFormat: input.outputFormat } : {}),
+    ...(input.background ? { background: input.background } : {}),
   };
 }
 

@@ -26,14 +26,41 @@ export class ApiError extends Error {
   readonly expose: boolean;
   readonly status: number;
 
-  constructor(code: ApiErrorCode, message: string, options: ApiErrorOptions) {
-    super(message, { cause: options.cause });
+  constructor(code: ApiErrorCode, message: string, options: ApiErrorOptions);
+  constructor(status: number, message: string);
+  constructor(codeOrStatus: ApiErrorCode | number, message: string, options?: ApiErrorOptions) {
+    super(message, { cause: options?.cause });
     this.name = "ApiError";
-    this.code = code;
-    this.details = options.details;
-    this.expose = options.expose ?? options.status < 500;
-    this.status = options.status;
+    const normalized = typeof codeOrStatus === "number"
+      ? { code: codeFromStatus(codeOrStatus), details: undefined, expose: codeOrStatus < 500, status: codeOrStatus }
+      : {
+          code: codeOrStatus,
+          details: options?.details,
+          expose: options?.expose ?? (options?.status ?? 500) < 500,
+          status: options?.status ?? 500,
+        };
+
+    this.code = normalized.code;
+    this.details = normalized.details;
+    this.expose = normalized.expose;
+    this.status = normalized.status;
   }
+}
+
+function codeFromStatus(status: number): ApiErrorCode {
+  if (status === 400) return "BAD_REQUEST";
+  if (status === 401) return "UNAUTHORIZED";
+  if (status === 403) return "FORBIDDEN";
+  if (status === 404) return "NOT_FOUND";
+  if (status === 409) return "CONFLICT";
+  if (status === 413) return "PAYLOAD_TOO_LARGE";
+  if (status === 415) return "UNSUPPORTED_MEDIA_TYPE";
+  if (status === 422) return "VALIDATION_ERROR";
+  if (status === 429) return "RATE_LIMITED";
+  if (status === 504) return "TIMEOUT";
+  if (status === 502) return "AI_PROVIDER_ERROR";
+  if (status === 503) return "DATABASE_ERROR";
+  return "INTERNAL_ERROR";
 }
 
 export const apiErrors = {

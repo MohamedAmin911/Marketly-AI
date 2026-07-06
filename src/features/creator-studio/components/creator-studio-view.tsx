@@ -16,6 +16,19 @@ import { cn } from "@/lib/utils";
 
 type OutputAspectRatio = "9:16" | "16:9";
 type StepState = "complete" | "current" | "pending";
+type GenerateAdPayload =
+  | {
+      data?: {
+        image?: { url?: string };
+        result?: unknown;
+        success?: boolean;
+      };
+      ok: true;
+    }
+  | {
+      error?: { message?: string };
+      ok: false;
+    };
 
 const BASE_PROMPT = `product_swap: start with the reference advertisement (Picture 2) as the base image, keeping its lighting, environment, and background. Remove the original product from Picture 2 completely and replace it with the target product (Picture 1).
 
@@ -89,13 +102,14 @@ export function CreatorStudioView() {
         body: formData,
       });
 
-      const data = await response.json();
+      const payload = (await response.json()) as GenerateAdPayload;
 
-      if (!response.ok || !data.success) {
-        throw new Error(data.error ?? "Generation failed");
+      if (!response.ok || !payload.ok) {
+        throw new Error(payload.ok ? "Generation failed" : payload.error?.message ?? "Generation failed");
       }
 
-      const imageUrl = typeof data.image?.url === "string" ? data.image.url : extractGeneratedImageUrl(data.result);
+      const data = payload.data;
+      const imageUrl = typeof data?.image?.url === "string" ? data.image.url : extractGeneratedImageUrl(data?.result);
       if (!imageUrl) {
         throw new Error("The Space returned a result, but no generated image URL was found.");
       }

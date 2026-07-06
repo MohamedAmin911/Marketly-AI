@@ -11,6 +11,7 @@ const buttonVariants = cva(
       variant: {
         default: "bg-primary text-primary-foreground shadow-[var(--button-shadow)] hover:bg-secondary hover:shadow-[var(--button-shadow-hover)]",
         secondary: "border border-border bg-card text-foreground hover:border-primary/45 hover:bg-surface-container-high",
+        outline: "border border-border bg-transparent text-foreground hover:border-primary/45 hover:bg-surface-container-high",
         ghost: "text-muted hover:bg-card hover:text-foreground",
         danger: "border border-red-300/20 bg-red-400/10 text-red-100 hover:bg-red-400/20",
         icon: "size-10 rounded-lg border border-border bg-card p-0 text-muted hover:border-primary/45 hover:bg-surface-container-high hover:text-primary",

@@ -1,14 +1,10 @@
-import type { NextRequest } from "next/server";
-
-import { ApiError } from "@/server/errors/api-error";
-import { logger } from "@/server/logging/logger";
-import { requireAuth } from "@/server/security/auth-guard";
+import { apiErrors } from "@/server/errors/api-error";
+import { createModeratedApiHandler } from "@/server/moderation/with-moderation";
 import { generateProductAdvertisement } from "@/services/advertisement-generation-service";
 
-export async function POST(req: NextRequest) {
-  try {
-    const auth = await requireAuth(req);
-    const formData = await req.formData();
+export const POST = createModeratedApiHandler(
+  async ({ auth, request }) => {
+    const formData = await request.formData();
 
     const productImage = formData.get("productImage") as File;
     const referenceImage = formData.get("referenceImage") as File;
@@ -16,13 +12,7 @@ export async function POST(req: NextRequest) {
     const aspectRatio = String(formData.get("aspectRatio") ?? "16:9");
 
     if (!productImage || !referenceImage || !prompt) {
-      return Response.json(
-        {
-          success: false,
-          error: "Product image, reference image, and prompt are required",
-        },
-        { status: 400 },
-      );
+      throw apiErrors.badRequest("Product image, reference image, and prompt are required.");
     }
 
     const generation = await generateProductAdvertisement({
@@ -33,23 +23,10 @@ export async function POST(req: NextRequest) {
       userId: auth.user.sub,
     });
 
-    return Response.json({
+    return {
       ...generation,
       success: true,
-    });
-  } catch (error) {
-    logger.error("Product advertisement generation failed.", {
-      error: error instanceof Error ? error.message : JSON.stringify(error),
-    });
-    const isTimeout = error instanceof Error && error.message === "Generation timed out";
-    const status = error instanceof ApiError ? error.status : isTimeout ? 504 : 500;
-
-    return Response.json(
-      {
-        success: false,
-        error: error instanceof ApiError ? error.message : isTimeout ? "Generation timed out. The AI service may be busy." : "Generation failed",
-      },
-      { status },
-    );
-  }
-}
+    };
+  },
+  { feature: "advertisement", rateLimit: { keyPrefix: "generate-ad", limit: 12, windowMs: 60 * 1000 } },
+);

@@ -192,10 +192,13 @@ export function useAssistantChat() {
       if (activeSessionId) void apiSaveMsg(activeSessionId, assistantMsg);
     } catch (error) {
       if (error instanceof DOMException && error.name === "AbortError") return;
+      const message = error instanceof Error
+        ? error.message
+        : "I could not complete the assistant request. Check the strategy inputs or try again with more analytics context.";
       setMessages(prev => [...prev, {
         id: crypto.randomUUID(),
         role: "assistant",
-        content: "I could not complete the assistant request. Check the strategy inputs or try again with more analytics context.",
+        content: message,
       }]);
     } finally {
       setIsSending(false);
