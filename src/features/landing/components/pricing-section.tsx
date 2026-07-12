@@ -12,55 +12,35 @@ export function PricingSection() {
 
   const TIERS = [
     {
-      name: t("landing.tierFreeName"),
+      name: t("landing.tierFreeName", { defaultValue: "Free" }),
       price: "$0",
-      description: t("landing.tierFreeDesc"),
-      features: [
-        t("landing.tierFreeF1"),
-        t("landing.tierFreeF2"),
-        t("landing.tierFreeF3"),
-        t("landing.tierFreeF4"),
-      ],
-      cta: t("landing.tierFreeCta"),
+      description: t("landing.tierFreeDesc", { defaultValue: "For exploring Marketly AI capabilities." }),
+      features: ["Ad Studio", "Image Generation", "Video Generation"],
+      cta: t("landing.tierFreeCta", { defaultValue: "Get Started" }),
       highlight: false,
     },
     {
-      name: t("landing.tierStarterName"),
+      name: t("landing.tierStarterName", { defaultValue: "Starter" }),
       price: "$49",
-      description: t("landing.tierStarterDesc"),
-      features: [
-        t("landing.tierStarterF1"),
-        t("landing.tierStarterF2"),
-        t("landing.tierStarterF3"),
-        t("landing.tierStarterF4"),
-      ],
-      cta: t("landing.tierStarterCta"),
+      description: t("landing.tierStarterDesc", { defaultValue: "Perfect for independent creators." }),
+      features: ["Ad Studio", "Image Generation", "Video Generation", "AI Assistant", "Viral Engine", "500 Credits/mo"],
+      cta: t("landing.tierStarterCta", { defaultValue: "Start Free Trial" }),
       highlight: false,
     },
     {
-      name: t("landing.tierProName"),
+      name: t("landing.tierProName", { defaultValue: "Pro" }),
       price: "$99",
-      description: t("landing.tierProDesc"),
-      features: [
-        t("landing.tierProF1"),
-        t("landing.tierProF2"),
-        t("landing.tierProF3"),
-        t("landing.tierProF4"),
-      ],
-      cta: t("landing.tierProCta"),
+      description: t("landing.tierProDesc", { defaultValue: "Ideal for growing marketing teams." }),
+      features: ["Ad Studio", "Image Generation", "Video Generation", "AI Assistant", "Viral Engine", "Growth Engine", "Analytics", "1500 Credits/mo"],
+      cta: t("landing.tierProCta", { defaultValue: "Start Free Trial" }),
       highlight: true,
     },
     {
-      name: t("landing.tierBusinessName"),
+      name: t("landing.tierBusinessName", { defaultValue: "Business" }),
       price: "$249",
-      description: t("landing.tierBusinessDesc"),
-      features: [
-        t("landing.tierBusinessF1"),
-        t("landing.tierBusinessF2"),
-        t("landing.tierBusinessF3"),
-        t("landing.tierBusinessF4"),
-      ],
-      cta: t("landing.tierBusinessCta"),
+      description: t("landing.tierBusinessDesc", { defaultValue: "Advanced features for enterprises." }),
+      features: ["Ad Studio", "Image Generation", "Video Generation", "AI Assistant", "Viral Engine", "Growth Engine", "Analytics", "Priority Support", "API Access", "4000 Credits/mo"],
+      cta: t("landing.tierBusinessCta", { defaultValue: "Contact Sales" }),
       highlight: false,
     },
   ];
@@ -108,7 +88,7 @@ export function PricingSection() {
                 {tier.features.map((feature, i) => (
                   <li key={i} className="flex items-start gap-3 text-sm text-foreground">
                     <Check className="size-4 text-primary shrink-0 mt-0.5" />
-                    <span>{feature}</span>
+                    <span>{translatePlanFeature(feature, t)}</span>
                   </li>
                 ))}
               </ul>
@@ -126,4 +106,21 @@ export function PricingSection() {
       </div>
     </section>
   );
+}
+
+function translatePlanFeature(feature: string, t: ReturnType<typeof useTranslation>["t"]) {
+  if (feature === "AI Assistant") return t("nav.aiAssistant");
+  if (feature === "Ad Studio") return t("nav.adStudio");
+  if (feature === "Image Generation") return t("nav.imageGeneration");
+  if (feature === "Video Generation") return t("nav.videoGeneration");
+  if (feature === "Viral Engine") return t("nav.viralEngine");
+  if (feature === "Growth Engine") return t("nav.growthEngine");
+  if (feature === "Analytics") return t("nav.analytics");
+  if (feature === "Priority Support") return t("billing.prioritySupport", { defaultValue: "Priority Support" });
+  if (feature === "API Access") return t("billing.apiAccess", { defaultValue: "API Access" });
+
+  const creditsMatch = feature.match(/^(\d+) Credits\/mo$/);
+  if (creditsMatch) return t("billing.featureCredits", { amount: creditsMatch[1], defaultValue: `${creditsMatch[1]} Credits/mo` });
+
+  return feature;
 }
