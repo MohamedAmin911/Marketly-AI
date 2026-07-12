@@ -44,7 +44,7 @@ export const POST = createApiHandler(async ({ request }) => {
           // Applying a subscription plan is idempotent.
           await SubscriptionService.applyPlanChange(
             userId, 
-            planId, 
+            planId as "free" | "starter" | "pro" | "business", 
             session.customer as string, 
             session.subscription as string
           );
