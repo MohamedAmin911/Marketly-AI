@@ -2,10 +2,11 @@
  
 /* eslint-disable @next/next/no-img-element */
 
-import { Image as ImageIcon, Loader2, MessageSquarePlus, Mic, Paperclip, PauseCircle, Send, Share2, Sparkles, Square, Trash2, Volume2, X } from "lucide-react";
+import { Image as ImageIcon, Loader2, MessageSquarePlus, Mic, Paperclip, PauseCircle, Send, Share2, Sparkles, Square, Trash2, Volume2, X, Zap } from "lucide-react";
 import { useRef, useState } from "react";
  
 import { PageShell } from "@/components/layout/page-shell";
+import { Badge } from "@/components/ui/badge";
 import { StaggeredItem, StaggeredList } from "@/components/shared/motion";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -188,7 +189,17 @@ recognition.onresult = (event: any) => {
   const canSend = !isSending && (draft.trim().length > 0 || attachment !== null);
  
   return (
-    <PageShell title={t("assistant.title")} description={t("assistant.description")}>
+    <PageShell 
+      title={
+        <div className="flex items-center gap-3">
+          {t("assistant.title")}
+          <Badge variant="secondary" className="font-normal border-primary/20 bg-primary/10 text-primary">
+            <Zap className="size-3.5 me-1 inline-block" /> 0.2 Credits/Request
+          </Badge>
+        </div>
+      } 
+      description={t("assistant.description")}
+    >
       <div className="mx-auto flex max-w-6xl gap-4">
  
         {/* ── Sessions Sidebar ── */}

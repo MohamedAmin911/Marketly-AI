@@ -14,6 +14,7 @@ import {
   ImagePlus,
   Clock3,
   Frame,
+  Zap,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { useMemo, useState, useEffect } from "react";
@@ -23,6 +24,7 @@ import { Button } from "@/components/ui/button";
 import { FormField } from "@/components/ui/form-field";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
 import { ImageUploadCard } from "@/components/shared/image-upload-card";
 import { useVideoRender } from "@/features/video-generator/hooks";
 import type { VideoRecord } from "@/features/video-generator/types";
@@ -106,7 +108,14 @@ export function VideoGeneratorView() {
 
   return (
     <PageShell
-      title={t("video.title")}
+      title={
+        <div className="flex items-center gap-3">
+          {t("video.title")}
+          <Badge variant="secondary" className="font-normal border-primary/20 bg-primary/10 text-primary">
+            <Zap className="size-3.5 me-1 inline-block" /> 5 Credits/Generation
+          </Badge>
+        </div>
+      }
       description={t("video.description")}
       className="max-w-[1480px]"
       actions={

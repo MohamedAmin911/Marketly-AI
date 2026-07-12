@@ -12,6 +12,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getDashboardGenerations, type DashboardGeneration } from "@/features/dashboard/services";
 import { GrowthEngineResults } from "@/features/growth-engine/components/growth-engine-results";
 import { getGrowthProject } from "@/features/growth-engine/services";
+import { ResultsDashboard } from "@/features/viral-engine/components/results-dashboard";
 import { useTranslation } from "@/lib/i18n/useTranslation";
 import { cn } from "@/lib/utils";
 
@@ -118,7 +119,7 @@ function NewGenerationLink() {
 function GenerationTile({ item, onPreview }: { item: DashboardGeneration; onPreview: (item: DashboardGeneration) => void }) {
   const { t } = useTranslation();
   const isGrowthEngine = item.type === "AI Growth Engine";
-  const canPreview = isGrowthEngine || Boolean(item.imageUrl || item.isCampaign || item.isVideo);
+  const canPreview = isGrowthEngine || item.isViralEngine || Boolean(item.imageUrl || item.isCampaign || item.isVideo);
 
   const handleClick = () => {
     onPreview(item);
@@ -162,6 +163,8 @@ function ImagePreviewDialog({ item, onOpenChange }: { item: DashboardGeneration 
         <div className="overflow-hidden rounded-lg bg-background">
           {item.type === "AI Growth Engine" ? (
             <GrowthEnginePreview item={item} />
+          ) : item.isViralEngine ? (
+            <ViralEnginePreview item={item} />
           ) : item.isCampaign ? (
             <CampaignPreview item={item} />
           ) : (
@@ -200,6 +203,40 @@ function GrowthEnginePreview({ item }: { item: DashboardGeneration }) {
         <div className="p-12 text-center text-red-400">{t("dashboard.failedLoadProject")}</div>
       ) : projectQuery.data ? (
         <GrowthEngineResults liveProject={projectQuery.data} />
+      ) : null}
+    </div>
+  );
+}
+
+function ViralEnginePreview({ item }: { item: DashboardGeneration }) {
+  const { t } = useTranslation();
+  const projectQuery = useQuery({
+    queryKey: ["viral-engine-project", item.id],
+    queryFn: async () => {
+      const response = await fetch(`/api/viral-engine/${item.id}`);
+      if (!response.ok) throw new Error("Failed to fetch viral engine");
+      const data = await response.json();
+      return data.generation.response;
+    },
+  });
+
+  return (
+    <div className="max-h-[calc(100dvh-2rem)] overflow-y-auto p-5 pe-14 sm:p-6 sm:pe-14">
+      <header className="mb-6 border-b border-border pb-5">
+        <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-primary">{item.type}</p>
+        <h2 className="mt-2 font-display text-3xl font-semibold leading-tight">{item.title}</h2>
+        <p className="mt-3 text-sm leading-6 text-muted">{item.description || "Saved AI Viral Engine strategy."}</p>
+        <p className="mt-3 text-xs font-semibold text-secondary">Generated {formatDate(item.createdAt)}</p>
+      </header>
+
+      {projectQuery.isLoading ? (
+        <div className="flex justify-center p-12 text-muted">
+          <Loader2 className="size-6 animate-spin" />
+        </div>
+      ) : projectQuery.isError ? (
+        <div className="p-12 text-center text-red-400">Failed to load Viral Engine data.</div>
+      ) : projectQuery.data ? (
+        <ResultsDashboard data={projectQuery.data} />
       ) : null}
     </div>
   );

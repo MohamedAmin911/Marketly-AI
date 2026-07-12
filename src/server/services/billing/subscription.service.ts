@@ -14,6 +14,7 @@ export const SUBSCRIPTION_PLANS = {
       priority: false,
       api: false,
       commercial: false,
+      viralEngine: false,
     }
   },
   starter: {
@@ -26,6 +27,7 @@ export const SUBSCRIPTION_PLANS = {
       priority: false,
       api: false,
       commercial: false,
+      viralEngine: true,
     }
   },
   pro: {
@@ -38,6 +40,7 @@ export const SUBSCRIPTION_PLANS = {
       priority: true,
       api: true,
       commercial: true,
+      viralEngine: true,
     }
   },
   business: {
@@ -50,6 +53,7 @@ export const SUBSCRIPTION_PLANS = {
       priority: true,
       api: true,
       commercial: true,
+      viralEngine: true,
     }
   }
 } as const;

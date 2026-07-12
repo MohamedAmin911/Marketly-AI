@@ -11,9 +11,9 @@ import { useTranslation } from "@/lib/i18n/useTranslation";
 
 const PLANS = [
   { id: "free", name: "Free", price: "$0", features: ["Ad Studio", "Image Generation", "Video Generation"] },
-  { id: "starter", name: "Starter", price: "$49/mo", features: ["Everything in Free", "AI Assistant", "500 Credits/mo"] },
-  { id: "pro", name: "Pro", price: "$99/mo", features: ["Growth Engine", "Analytics", "1500 Credits/mo"] },
-  { id: "business", name: "Business", price: "$249/mo", features: ["Priority Support", "API Access", "4000 Credits/mo"] },
+  { id: "starter", name: "Starter", price: "$49/mo", features: ["Ad Studio", "Image Generation", "Video Generation", "AI Assistant", "Viral Engine", "500 Credits/mo"] },
+  { id: "pro", name: "Pro", price: "$99/mo", features: ["Ad Studio", "Image Generation", "Video Generation", "AI Assistant", "Viral Engine", "Growth Engine", "Analytics", "1500 Credits/mo"] },
+  { id: "business", name: "Business", price: "$249/mo", features: ["Ad Studio", "Image Generation", "Video Generation", "AI Assistant", "Viral Engine", "Growth Engine", "Analytics", "Priority Support", "API Access", "4000 Credits/mo"] },
 ];
 
 export function BillingTab() {
@@ -168,13 +168,13 @@ export function BillingTab() {
         <h3 className="mb-4 text-lg font-semibold text-foreground">{t("billing.availablePlans")}</h3>
         <div className="grid gap-5 md:grid-cols-4">
           {PLANS.map((plan) => (
-            <Card key={plan.id} className={subscription.plan === plan.id ? "border-primary" : ""}>
+            <Card key={plan.id} className={`flex flex-col ${subscription.plan === plan.id ? "border-primary" : ""}`}>
               <CardHeader>
                 <CardTitle>{translatePlanName(plan.name, t)}</CardTitle>
                 <CardDescription className="text-xl font-bold text-foreground mt-2">{plan.price}</CardDescription>
               </CardHeader>
-              <CardContent>
-                <ul className="mb-6 space-y-2 text-sm text-muted">
+              <CardContent className="flex flex-1 flex-col">
+                <ul className="mb-6 flex-1 space-y-2 text-sm text-muted">
                   {plan.features.map((f, i) => (
                     <li key={i} className="flex items-start gap-2">
                       <Check className="size-4 text-primary shrink-0" />
@@ -210,10 +210,13 @@ function translatePlanName(plan: string, t: ReturnType<typeof useTranslation>["t
 
 function translatePlanFeature(feature: string, t: ReturnType<typeof useTranslation>["t"]) {
   if (feature === "Everything in Free") return t("billing.featureEverythingFree");
+  if (feature === "Everything in Starter") return t("billing.featureEverythingStarter");
+  if (feature === "Everything in Pro") return t("billing.featureEverythingPro");
   if (feature === "AI Assistant") return t("nav.aiAssistant");
   if (feature === "Ad Studio") return t("nav.adStudio");
   if (feature === "Image Generation") return t("nav.imageGeneration");
   if (feature === "Video Generation") return t("nav.videoGeneration");
+  if (feature === "Viral Engine") return t("nav.viralEngine");
   if (feature === "Growth Engine") return t("nav.growthEngine");
   if (feature === "Analytics") return t("nav.analytics");
   if (feature === "Priority Support") return t("billing.prioritySupport");

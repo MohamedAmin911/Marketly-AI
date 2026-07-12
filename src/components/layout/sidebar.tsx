@@ -35,7 +35,7 @@ function SidebarContent({ userRole }: { userRole?: string }) {
       <nav className="mt-4 flex-1 space-y-1 px-3">
         {allowedNavItems.map((item) => {
           const active = pathname === item.href;
-          const isLocked = item.feature && billing?.features ? !billing.features[item.feature] : false;
+          const isLocked = userRole !== "admin" && item.feature && billing?.features ? !billing.features[item.feature] : false;
 
           return (
             <Link

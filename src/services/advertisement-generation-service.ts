@@ -34,7 +34,7 @@ export async function generateProductAdvertisement({
   const startedAt = Date.now();
 
   await connectToDatabase();
-  await CreditsService.deductCredits(userId, 1, "creator_studio", "Generated ad variation in Ad Studio");
+  await CreditsService.deductCredits(userId, 2, "creator_studio", "Generated ad variation in Ad Studio");
 
   const fluxResult = await generateFluxAdvertisement({
     productImage,

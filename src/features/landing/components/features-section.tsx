@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { motion } from "framer-motion";
-import { Brain, Image as ImageIcon, Video, ChartLine, LayoutDashboard, BarChart3, MessageSquare } from "lucide-react";
+import { Brain, Image as ImageIcon, Video, ChartLine, LayoutDashboard, BarChart3, MessageSquare, Flame } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useTranslation } from "@/lib/i18n/useTranslation";
 
@@ -51,6 +51,12 @@ export function FeaturesSection() {
       description: t("landing.feature7Desc"),
       icon: BarChart3,
       image: "/analytics.png",
+    },
+    {
+      title: t("nav.viralEngine"),
+      description: t("landing.featureViralEngineDesc"),
+      icon: Flame,
+      image: "/viral engine.png",
     },
   ];
 

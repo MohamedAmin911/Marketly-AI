@@ -25,6 +25,7 @@ export interface IUserFeatures {
   priority: boolean;
   api: boolean;
   commercial: boolean;
+  viralEngine: boolean;
 }
 
 export interface IUserUsage {
@@ -109,6 +110,7 @@ const userFeaturesSchema = new Schema<IUserFeatures>(
     priority: { default: false, type: Boolean },
     api: { default: false, type: Boolean },
     commercial: { default: false, type: Boolean },
+    viralEngine: { default: false, type: Boolean },
   },
   { _id: false },
 );

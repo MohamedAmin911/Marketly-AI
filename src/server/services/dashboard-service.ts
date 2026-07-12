@@ -1,6 +1,6 @@
 import { Types } from "mongoose";
 
-import { AnalyticsModel, CampaignModel, connectToDatabase, GeneratedContentModel, GrowthProjectModel, ProjectModel, StoryboardModel, VideoModel } from "@/server/database";
+import { AnalyticsModel, CampaignModel, connectToDatabase, GeneratedContentModel, GrowthProjectModel, ProjectModel, StoryboardModel, VideoModel, ViralEngineModel } from "@/server/database";
 import type { AuthContext } from "@/server/security/auth-guard";
 
 type DashboardMetric = {
@@ -22,6 +22,7 @@ export type RecentGeneration = {
   isCampaign?: boolean;
   isStoryboard?: boolean;
   isVideo?: boolean;
+  isViralEngine?: boolean;
   posts?: Array<{
     caption: string;
     id: string;
@@ -40,6 +41,7 @@ type GenerationItemSources = {
   recentGrowthProjects: Array<{ _id: unknown; brandName: string; createdAt?: unknown; productImage?: unknown }>;
   recentStoryboards: Array<{ _id: unknown; createdAt?: unknown; title: string }>;
   recentVideos: Array<{ _id: unknown; createdAt?: unknown; prompt?: unknown; selectedStyle?: unknown; thumbnailUrl?: unknown; title: string; videoUrl?: unknown }>;
+  recentViralEngines: Array<{ _id: unknown; brandName: string; createdAt?: unknown }>;
 };
 
 export async function getDashboardSummary(auth: AuthContext) {
@@ -51,7 +53,7 @@ export async function getDashboardSummary(auth: AuthContext) {
 
   await connectToDatabase();
 
-  const [projectCount, campaignCount, contentCount, storyboardCount, videoCount, analytics, recentContent, recentCampaigns, recentStoryboards, recentVideos, recentGrowthProjects] = await Promise.all([
+  const [projectCount, campaignCount, contentCount, storyboardCount, videoCount, analytics, recentContent, recentCampaigns, recentStoryboards, recentVideos, recentGrowthProjects, recentViralEngines] = await Promise.all([
     GrowthProjectModel.countDocuments({ userId }),
     CampaignModel.countDocuments({ userId }),
     GeneratedContentModel.countDocuments({ userId }),
@@ -63,14 +65,15 @@ export async function getDashboardSummary(auth: AuthContext) {
     StoryboardModel.find({ userId }).sort({ createdAt: -1 }).limit(4).lean(),
     VideoModel.find({ userId }).sort({ createdAt: -1 }).limit(4).lean(),
     GrowthProjectModel.find({ userId, status: { $ne: "draft" } }).sort({ createdAt: -1 }).limit(4).lean(),
+    ViralEngineModel.find({ userId }).sort({ createdAt: -1 }).limit(4).lean(),
   ]);
 
   const clicks = analytics.reduce((total, item) => total + (item.clicks ?? 0), 0);
   const impressions = analytics.reduce((total, item) => total + (item.impressions ?? 0), 0);
   const conversions = analytics.reduce((total, item) => total + (item.conversions ?? 0), 0);
   const ctr = impressions > 0 ? (clicks / impressions) * 100 : 0;
-  const recentGenerations = buildGenerationItems({ recentCampaigns, recentContent, recentGrowthProjects, recentStoryboards, recentVideos }).slice(0, 5);
-  const growthTrend = buildGrowthTrend([...recentContent, ...recentCampaigns, ...recentGrowthProjects, ...recentStoryboards, ...recentVideos]);
+  const recentGenerations = buildGenerationItems({ recentCampaigns, recentContent, recentGrowthProjects, recentStoryboards, recentVideos, recentViralEngines }).slice(0, 5);
+  const growthTrend = buildGrowthTrend([...recentContent, ...recentCampaigns, ...recentGrowthProjects, ...recentStoryboards, ...recentVideos, ...recentViralEngines]);
 
   return {
     growthTrend,
@@ -98,16 +101,17 @@ export async function getDashboardGenerations(auth: AuthContext): Promise<{ item
 
   await connectToDatabase();
 
-  const [recentContent, recentCampaigns, recentStoryboards, recentVideos, recentGrowthProjects] = await Promise.all([
+  const [recentContent, recentCampaigns, recentStoryboards, recentVideos, recentGrowthProjects, recentViralEngines] = await Promise.all([
     GeneratedContentModel.find({ userId }).sort({ createdAt: -1 }).limit(100).lean(),
     CampaignModel.find({ userId }).sort({ createdAt: -1 }).limit(100).lean(),
     StoryboardModel.find({ userId }).sort({ createdAt: -1 }).limit(100).lean(),
     VideoModel.find({ userId }).sort({ createdAt: -1 }).limit(100).lean(),
     GrowthProjectModel.find({ userId, status: { $ne: "draft" } }).sort({ createdAt: -1 }).limit(100).lean(),
+    ViralEngineModel.find({ userId }).sort({ createdAt: -1 }).limit(100).lean(),
   ]);
 
   return {
-    items: buildGenerationItems({ recentCampaigns, recentContent, recentGrowthProjects, recentStoryboards, recentVideos }),
+    items: buildGenerationItems({ recentCampaigns, recentContent, recentGrowthProjects, recentStoryboards, recentVideos, recentViralEngines }),
   };
 }
 
@@ -130,8 +134,18 @@ function buildGenerationItems({
   recentGrowthProjects,
   recentStoryboards,
   recentVideos,
+  recentViralEngines,
 }: GenerationItemSources): RecentGeneration[] {
   return [
+    ...recentViralEngines.map((item) => ({
+      color: "from-fuchsia-500/30 to-orange-500/25",
+      createdAt: toIso(item.createdAt),
+      description: `Viral Engine strategy for ${item.brandName}`,
+      id: String(item._id),
+      title: `Viral Engine: ${item.brandName}`,
+      type: "Viral Engine",
+      isViralEngine: true,
+    })),
     ...recentGrowthProjects.map((item) => ({
       color: "from-blue-500/30 to-purple-500/25",
       createdAt: toIso(item.createdAt),

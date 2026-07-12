@@ -141,8 +141,8 @@ export async function retryCreatorGeneration(generationId: string, auth: AuthCon
 
 async function runGeneration(input: CreatorGenerationInput, auth: AuthContext): Promise<CreatorGenerationRecord> {
   // Deduct credits before generation (1 credit per image variation)
-  const creditsCost = input.variations || 1;
-  await CreditsService.deductCredits(auth.user.sub, creditsCost, "creator_studio", `Generated ${creditsCost} ad asset(s)`);
+  const creditsCost = (input.variations || 1) * 2;
+  await CreditsService.deductCredits(auth.user.sub, creditsCost, "creator_studio", `Generated ${creditsCost / 2} ad asset(s)`);
 
   const memory = await buildMemoryContext(auth.user.sub, input.brandId);
   const enrichedInput = {

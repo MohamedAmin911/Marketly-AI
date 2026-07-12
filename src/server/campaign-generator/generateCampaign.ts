@@ -18,7 +18,7 @@ export async function generateAndPersistCampaign(input: SocialCampaignGeneration
   await assertImageReadable(input.productImage);
 
   await connectToDatabase();
-  await CreditsService.deductCredits(userId, 2, "campaign_generator", "Generated social campaign");
+  await CreditsService.deductCredits(userId, 10, "campaign_generator", "Generated social campaign");
 
   const [productAsset, textResult] = await Promise.all([
     uploadFileToImageKit({
