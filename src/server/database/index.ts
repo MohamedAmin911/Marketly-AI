@@ -18,3 +18,4 @@ export { SubscriptionModel, type ISubscription } from "./models/subscription.mod
 export { UploadModel, type IUpload } from "./models/upload.model";
 export { UserModel, type IUser, type RefreshTokenSession } from "./models/user.model";
 export { VideoModel, type IVideo } from "./models/video.model";
+export { ViralEngineModel, type IViralEngine } from "./models/viral-engine.model";
