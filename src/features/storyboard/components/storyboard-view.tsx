@@ -1,11 +1,12 @@
 "use client";
 
-import { Clapperboard, Film, Loader2, Monitor, Palette, RectangleVertical, Sparkles, UploadCloud, WandSparkles } from "lucide-react";
+import { Clapperboard, Film, Loader2, Monitor, Palette, RectangleVertical, Sparkles, UploadCloud, WandSparkles, Zap } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import type { ReactNode } from "react";
 import { useEffect, useMemo, useState } from "react";
 
 import { PageShell } from "@/components/layout/page-shell";
+import { Badge } from "@/components/ui/badge";
 import { ImageUploadCard } from "@/components/shared/image-upload-card";
 import { Button } from "@/components/ui/button";
 import { FormField } from "@/components/ui/form-field";
@@ -86,7 +87,14 @@ export function StoryboardView() {
 
   return (
     <PageShell
-      title={t("storyboard.title")}
+      title={
+        <div className="flex items-center gap-3">
+          {t("storyboard.title")}
+          <Badge variant="secondary" className="font-normal border-primary/20 bg-primary/10 text-primary">
+            <Zap className="size-3.5 me-1 inline-block" /> 2 Credits/Generation
+          </Badge>
+        </div>
+      }
       description={t("storyboard.description")}
       className="relative overflow-hidden"
     >

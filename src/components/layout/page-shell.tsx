@@ -11,7 +11,7 @@ export function PageShell({
   children,
   className,
 }: {
-  title: string;
+  title: ReactNode;
   description?: string;
   actions?: ReactNode;
   children: ReactNode;

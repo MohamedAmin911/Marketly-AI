@@ -82,7 +82,7 @@ export async function generateCinematicStoryboard({
 
   const startedAt = Date.now();
   await connectToDatabase();
-  await CreditsService.deductCredits(userId, 3, "storyboard_generator", "Generated cinematic storyboard");
+  await CreditsService.deductCredits(userId, 2, "storyboard_generator", "Generated cinematic storyboard");
 
   const drafts = await generateStoryboardDrafts(campaignPrompt);
   const scenes: CinematicStoryboardScene[] = [];

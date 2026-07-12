@@ -1,12 +1,13 @@
 "use client";
 
 import { useQueryClient } from "@tanstack/react-query";
-import { Clapperboard, Monitor, Smartphone, ImageIcon, FileText, Check, Loader2, Download } from "lucide-react";
+import { Clapperboard, Monitor, Smartphone, ImageIcon, FileText, Check, Loader2, Download, Zap } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { useMemo, useState, useEffect } from "react";
 import type { ReactNode } from "react";
 
 import { PageShell } from "@/components/layout/page-shell";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { GenerateButton } from "@/features/creator-studio/components/generate-button";
 import { ImageUploadCard } from "@/components/shared/image-upload-card";
@@ -116,7 +117,14 @@ export function CreatorStudioView() {
 
   return (
     <PageShell
-      title={t("studio.title")}
+      title={
+        <div className="flex items-center gap-3">
+          {t("studio.title")}
+          <Badge variant="secondary" className="font-normal border-primary/20 bg-primary/10 text-primary">
+            <Zap className="size-3.5 me-1 inline-block" /> 2 Credits/Generation
+          </Badge>
+        </div>
+      }
       description={t("studio.description")}
       className="relative overflow-hidden"
     >

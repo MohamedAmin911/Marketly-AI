@@ -1,10 +1,11 @@
 "use client";
 
-import { AlertTriangle, BriefcaseBusiness, Building2, ImagePlus, Loader2, Sparkles, Target, Upload, Users } from "lucide-react";
+import { AlertTriangle, BriefcaseBusiness, Building2, ImagePlus, Loader2, Sparkles, Target, Upload, Users, Zap } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 
 import { PageShell } from "@/components/layout/page-shell";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { FormField } from "@/components/ui/form-field";
@@ -122,7 +123,17 @@ export function GrowthEngineView() {
   }
 
   return (
-    <PageShell title={t("growth.title")} description={t("growth.description")}>
+    <PageShell 
+      title={
+        <div className="flex items-center gap-3">
+          {t("growth.title")}
+          <Badge variant="secondary" className="font-normal border-primary/20 bg-primary/10 text-primary">
+            <Zap className="size-3.5 me-1 inline-block" /> 10 Credits/Generation
+          </Badge>
+        </div>
+      } 
+      description={t("growth.description")}
+    >
       <div className="grid gap-6 xl:grid-cols-[26rem_minmax(0,1fr)]">
         <aside className="self-start xl:sticky xl:top-24">
           <Card>
