@@ -1,6 +1,6 @@
 import { createApiHandler } from "@/server/http/route-handler";
 import { requireUser } from "@/server/http/subscription-middleware";
-import { SubscriptionService } from "@/server/services/billing/subscription.service";
+import { SubscriptionService, SUBSCRIPTION_PLANS } from "@/server/services/billing/subscription.service";
 import { apiErrors } from "@/server/errors/api-error";
 
 import { UserModel } from "@/server/database/models/user.model";
@@ -29,6 +29,13 @@ export const GET = createApiHandler(async ({ request }) => {
     needsSave = true;
   }
   
+  // Sync features with the current plan to ensure new features (like viralEngine) are granted to existing users
+  const planConfig = SUBSCRIPTION_PLANS[user.subscription.plan as keyof typeof SUBSCRIPTION_PLANS];
+  if (planConfig && JSON.stringify(user.features) !== JSON.stringify(planConfig.features)) {
+    user.features = planConfig.features;
+    needsSave = true;
+  }
+
   if (needsSave) {
     await user.save();
   }
