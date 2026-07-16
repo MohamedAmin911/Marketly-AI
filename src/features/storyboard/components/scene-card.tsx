@@ -115,12 +115,12 @@ export function SceneCard({ index, scene, videoPrompt }: { index: number; scene:
               className="absolute inset-x-4 top-4 flex flex-col items-center"
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="relative w-full max-w-5xl rounded-lg overflow-hidden bg-black shadow-2xl">
+              <div className="relative w-full max-w-5xl rounded-lg overflow-hidden bg-black shadow-2xl flex items-center justify-center">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={scene.generatedImage}
                   alt={scene.sceneTitle}
-                  className="w-2/3 mx-auto object-contain"
+                  className="max-h-[85vh] w-auto max-w-full object-contain"
                 />
                 <button
                   type="button"

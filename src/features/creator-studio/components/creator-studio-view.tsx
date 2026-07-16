@@ -120,7 +120,7 @@ export function CreatorStudioView() {
       title={
         <div className="flex items-center gap-3">
           {t("studio.title")}
-          <Badge variant="secondary" className="font-normal border-primary/20 bg-primary/10 text-primary">
+          <Badge className="font-normal border-primary/20 bg-primary/10 text-primary">
             <Zap className="size-3.5 me-1 inline-block" /> 2 Credits/Generation
           </Badge>
         </div>
@@ -131,7 +131,6 @@ export function CreatorStudioView() {
       <div className="pointer-events-none absolute inset-x-6 top-20 h-56 grid-field opacity-25" />
 
       <div className="relative space-y-6">
-        <WorkflowStepper steps={workflowSteps} />
 
         <div className="grid gap-6 xl:grid-cols-[430px_minmax(0,1fr)]">
           <aside className="self-start rounded-lg border border-border bg-card p-5 shadow-[var(--panel-shadow)] sm:p-6 xl:sticky xl:top-24">

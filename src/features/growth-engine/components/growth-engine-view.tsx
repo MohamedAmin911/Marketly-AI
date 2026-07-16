@@ -1,8 +1,8 @@
 "use client";
 
 import { AlertTriangle, BriefcaseBusiness, Building2, ImagePlus, Loader2, Sparkles, Target, Upload, Users, Zap } from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { PageShell } from "@/components/layout/page-shell";
 import { Badge } from "@/components/ui/badge";
@@ -48,6 +48,7 @@ function completedStagesFromProject(project: GrowthProjectRecord): GrowthEngineS
 const POLL_INTERVAL_MS = 5_000;
 
 export function GrowthEngineView() {
+  const queryClient = useQueryClient();
   const { t } = useTranslation();
   const [form, setForm] = useState<GrowthEngineForm>({
     brandBrief: "",
@@ -99,6 +100,16 @@ export function GrowthEngineView() {
   const isGenerating = submitting || (Boolean(projectId) && liveProject?.status !== "completed" && liveProject?.status !== "storyboards_ready" && liveProject?.status !== "failed");
   const canSubmit = Boolean(form.brandName.trim()) && !submitting;
 
+  const previousGenerating = useRef(isGenerating);
+  useEffect(() => {
+    if (previousGenerating.current && !isGenerating) {
+      queryClient.invalidateQueries({ queryKey: ["dashboard-summary"] });
+      queryClient.invalidateQueries({ queryKey: ["dashboard-generations"] });
+      queryClient.invalidateQueries({ queryKey: ["billing"] });
+    }
+    previousGenerating.current = isGenerating;
+  }, [isGenerating, queryClient]);
+
   async function handleSubmit() {
     try {
       setError(null);
@@ -127,7 +138,7 @@ export function GrowthEngineView() {
       title={
         <div className="flex items-center gap-3">
           {t("growth.title")}
-          <Badge variant="secondary" className="font-normal border-primary/20 bg-primary/10 text-primary">
+          <Badge tone="success" className="font-normal border-primary/20 bg-primary/10 text-primary">
             <Zap className="size-3.5 me-1 inline-block" /> 10 Credits/Generation
           </Badge>
         </div>
@@ -210,17 +221,6 @@ export function GrowthEngineView() {
         </aside>
 
         <section className="space-y-5">
-          <Card>
-            <CardHeader>
-              <div>
-                <CardTitle>{t("growth.generatedStrategy")}</CardTitle>
-                <CardDescription>{t("growth.generatedStrategyDesc")}</CardDescription>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <StatusTracker activeStage={activeStage} completedStages={completedStages} isGenerating={isGenerating} />
-            </CardContent>
-          </Card>
 
           <GrowthEngineResults liveProject={liveProject} submitting={submitting} />
         </section>
