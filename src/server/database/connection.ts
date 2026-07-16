@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 
 import { logger } from "@/server/logging/logger";
+import { seedDatabase } from "./seeder";
 
 type MongooseCache = {
   conn: typeof mongoose | null;
@@ -33,10 +34,9 @@ export async function connectToDatabase(uri = process.env.MONGODB_URI): Promise<
   logger.info("database.connected");
 
   try {
-    const { seedDatabase } = await import("./seeder");
     await seedDatabase();
   } catch (err) {
-    logger.warn("database.seed.import.failed", { error: err });
+    logger.warn("database.seed.failed", { error: err });
   }
 
   return cache.conn;
