@@ -39,6 +39,16 @@ export interface IUserUsage {
   lastReset?: Date;
 }
 
+export interface IUserModeration {
+  aiBlockedUntil?: Date | null;
+  aiStrikes: number;
+  lastViolationAt?: Date | null;
+  lastViolationFeature?: string | null;
+  lastViolationReason?: string | null;
+  suspendedAt?: Date | null;
+  suspensionReason?: string | null;
+}
+
 export interface RefreshTokenSession {
   createdAt: Date;
   expiresAt: Date;
@@ -67,6 +77,7 @@ export interface IUser extends BaseEntity {
   language: string;
   lastLogin?: Date;
   lastActiveAt?: Date;
+  moderation: IUserModeration;
   notificationsEnabled: boolean;
   onboardingCompleted: boolean;
   onboardingStep: number;
@@ -129,6 +140,19 @@ const userUsageSchema = new Schema<IUserUsage>(
   { _id: false },
 );
 
+const userModerationSchema = new Schema<IUserModeration>(
+  {
+    aiBlockedUntil: { default: null, index: true, type: Date },
+    aiStrikes: { default: 0, min: 0, type: Number },
+    lastViolationAt: { default: null, index: true, type: Date },
+    lastViolationFeature: { maxlength: 120, trim: true, type: String },
+    lastViolationReason: { maxlength: 1000, trim: true, type: String },
+    suspendedAt: { default: null, type: Date },
+    suspensionReason: { maxlength: 1000, trim: true, type: String },
+  },
+  { _id: false },
+);
+
 const refreshTokenSchema = new Schema<RefreshTokenSession>(
   {
     createdAt: { default: () => new Date(), type: Date },
@@ -162,6 +186,7 @@ const userSchema = new Schema<IUser>(
     language: { default: "en", maxlength: 12, trim: true, type: String },
     lastLogin: { type: Date },
     lastActiveAt: { type: Date },
+    moderation: { default: () => ({}), type: userModerationSchema },
     notificationsEnabled: { default: true, type: Boolean },
     onboardingCompleted: { default: false, type: Boolean },
     onboardingStep: { default: 0, min: 0, type: Number },
@@ -186,6 +211,7 @@ userSchema.index({ email: 1 }, { partialFilterExpression: { isDeleted: false }, 
 userSchema.index({ username: 1 }, { partialFilterExpression: { isDeleted: false }, unique: true });
 userSchema.index({ createdAt: -1 });
 userSchema.index({ status: 1, "subscription.plan": 1 });
+userSchema.index({ "moderation.aiStrikes": -1, "moderation.lastViolationAt": -1 });
 addBasePlugins(userSchema);
 
 export const UserModel = (mongoose.models.User as Model<IUser>) ?? mongoose.model<IUser>("User", userSchema);
