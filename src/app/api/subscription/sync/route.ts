@@ -1,6 +1,6 @@
 import { createApiHandler } from "@/server/http/route-handler";
 import { requireUser } from "@/server/http/subscription-middleware";
-import { stripe } from "@/server/services/billing/stripe.service";
+import { getStripe } from "@/server/services/billing/stripe.service";
 import { SubscriptionService } from "@/server/services/billing/subscription.service";
 import { apiErrors } from "@/server/errors/api-error";
 import { connectToDatabase } from "@/server/database/connection";
@@ -15,7 +15,7 @@ export const POST = createApiHandler(async ({ request }) => {
     throw apiErrors.badRequest("sessionId is required");
   }
 
-  const session = await stripe.checkout.sessions.retrieve(sessionId);
+  const session = await getStripe().checkout.sessions.retrieve(sessionId);
   if (!session) {
     throw apiErrors.notFound("Session not found");
   }
