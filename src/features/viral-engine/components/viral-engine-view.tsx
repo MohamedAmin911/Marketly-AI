@@ -20,27 +20,11 @@ export function ViralEngineView() {
   const { t } = useTranslation();
   const [hasSearched, setHasSearched] = useState(false);
   const [copied, setCopied] = useState(false);
-  const [cachedData, setCachedData] = useState<ViralEngineResponse | null>(null);
-
-  useEffect(() => {
-    const saved = localStorage.getItem("viralEngine");
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        setCachedData(parsed);
-        setHasSearched(true);
-      } catch (err) {
-        console.error("Failed to parse cached Viral Engine data", err);
-      }
-    }
-  }, []);
 
   const mutation = useMutation<ViralEngineResponse, Error, ViralEngineRequest>({
     mutationFn: (data) => generateViralEngine(data),
     onSuccess: (data) => {
       setHasSearched(true);
-      setCachedData(data);
-      localStorage.setItem("viralEngine", JSON.stringify(data));
       queryClient.invalidateQueries({ queryKey: ["dashboard-summary"] });
       queryClient.invalidateQueries({ queryKey: ["dashboard-generations"] });
       queryClient.invalidateQueries({ queryKey: ["billing"] });
@@ -51,7 +35,7 @@ export function ViralEngineView() {
     mutation.mutate(data);
   };
 
-  const activeData = mutation.isSuccess ? mutation.data : cachedData;
+  const activeData = mutation.data;
 
   const handleCopyEntire = async () => {
     if (!activeData?.viralEngine) return;
