@@ -16,9 +16,9 @@ import type { NavItem } from "@/types/navigation";
 export const NAV_ITEMS: (NavItem & { feature?: string })[] = [
   { title: "Dashboard", translationKey: "nav.dashboard", href: "/dashboard", icon: LayoutDashboard },
   { title: "Ad Studio", translationKey: "nav.adStudio", href: "/creator-studio", icon: Grid2X2 },
-  { title: "AI Growth Engine", translationKey: "nav.growthEngine", href: "/growth-engine", icon: Rocket, feature: "growthEngine" },
   { title: "Image Generation", translationKey: "nav.imageGeneration", href: "/images", icon: ImageIcon },
   { title: "Video Generation", translationKey: "nav.videoGeneration", href: "/videos", icon: Film },
+  { title: "AI Growth Engine", translationKey: "nav.growthEngine", href: "/growth-engine", icon: Rocket, feature: "growthEngine" },
   { title: "🔥 Viral Engine", translationKey: "nav.viralEngine", href: "/viral-engine", icon: Flame, feature: "viralEngine" },
   { title: "AI Assistant", translationKey: "nav.aiAssistant", href: "/ai-assistant", icon: Bot, feature: "aiAssistant" },
   { title: "Analytics", translationKey: "nav.analytics", href: "/analytics", icon: BarChart3, feature: "analytics" },
