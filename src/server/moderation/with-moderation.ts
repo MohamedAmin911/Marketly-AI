@@ -1,4 +1,4 @@
-// @ts-ignore - bad-words types require synthetic default imports
+// @ts-expect-error - bad-words types require synthetic default imports
 import Filter from "bad-words";
 import type { NextRequest } from "next/server";
 

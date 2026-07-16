@@ -14,7 +14,7 @@ import { useUiStore } from "@/store/ui-store";
 
 import { useTranslation } from "@/lib/i18n/useTranslation";
 
-async function fetchUsers(search = "") {
+async function fetchUsers(search = ""): Promise<AdminUser[]> {
   const res = await fetch(`/api/admin/users?search=${encodeURIComponent(search)}`, { credentials: "include" });
   if (!res.ok) throw new Error("Failed to load");
   const data = await res.json();
@@ -22,6 +22,38 @@ async function fetchUsers(search = "") {
 }
 
 type AdminUserAction = "block" | "unblock" | "reset-strikes" | "delete";
+
+type AdminUser = {
+  _id?: string;
+  createdAt?: string;
+  email: string;
+  emailVerified?: boolean;
+  fullName: string;
+  id?: string;
+  lastActiveAt?: string;
+  moderation?: {
+    aiBlockedUntil?: string | null;
+    aiStrikes?: number;
+    lastViolationAt?: string | null;
+    lastViolationFeature?: string | null;
+    lastViolationReason?: string | null;
+  };
+  role: string;
+  status: string;
+  subscription?: {
+    monthlyCredits?: number;
+    monthlyCreditsRemaining?: number;
+    plan?: string;
+    purchasedCredits?: number;
+    status?: string;
+  };
+  usage?: {
+    aiRequests?: number;
+    analyticsRuns?: number;
+    growthRuns?: number;
+    projectsCreated?: number;
+  };
+};
 
 async function userAction({ id, action }: { id: string; action: AdminUserAction }) {
   const res = await fetch(`/api/admin/users/${id}/action`, {
@@ -48,7 +80,7 @@ export default function AdminUsersPage() {
   const [search, setSearch] = useState("");
   const [expandedUser, setExpandedUser] = useState<string | null>(null);
   const [contactModalOpen, setContactModalOpen] = useState(false);
-  const [selectedUser, setSelectedUser] = useState<any>(null);
+  const [selectedUser, setSelectedUser] = useState<AdminUser | null>(null);
   
   const [emailSubject, setEmailSubject] = useState("");
   const [emailMessage, setEmailMessage] = useState("");
@@ -105,7 +137,7 @@ export default function AdminUsersPage() {
     actionMutation.mutate({ id, action });
   };
 
-  const openContact = (user: any) => {
+  const openContact = (user: AdminUser) => {
     setSelectedUser(user);
     setContactModalOpen(true);
     setEmailStatus("idle");
@@ -113,8 +145,10 @@ export default function AdminUsersPage() {
 
   const handleSendEmail = () => {
     if (!emailSubject || !emailMessage || !selectedUser) return;
+    const selectedUserId = selectedUser.id ?? selectedUser._id;
+    if (!selectedUserId) return;
     setEmailStatus("loading");
-    contactMutation.mutate({ id: selectedUser.id || selectedUser._id, subject: emailSubject, message: emailMessage });
+    contactMutation.mutate({ id: selectedUserId, subject: emailSubject, message: emailMessage });
   };
 
   return (
@@ -155,8 +189,9 @@ export default function AdminUsersPage() {
             {isLoading && (
               <TableRow><TableCell colSpan={9} className="h-24 text-center text-muted">Loading...</TableCell></TableRow>
             )}
-            {!isLoading && users?.map((user: any) => {
-              const id = user.id || user._id;
+            {!isLoading && users?.map((user: AdminUser) => {
+              const id = user.id ?? user._id;
+              if (!id) return null;
               const isExpanded = expandedUser === id;
               const strikeCount = user.moderation?.aiStrikes ?? 0;
               const blockedUntil = user.moderation?.aiBlockedUntil ? new Date(user.moderation.aiBlockedUntil) : null;
@@ -255,7 +290,7 @@ export default function AdminUsersPage() {
                           <div className="space-y-3">
                             <h4 className="font-semibold text-sm">User Details</h4>
                             <div className="text-sm space-y-1">
-                              <div className="flex justify-between"><span className="text-muted">Joined:</span> <span className="font-medium">{new Date(user.createdAt).toLocaleDateString()}</span></div>
+                              <div className="flex justify-between"><span className="text-muted">Joined:</span> <span className="font-medium">{user.createdAt ? new Date(user.createdAt).toLocaleDateString() : "Unknown"}</span></div>
                               <div className="flex justify-between"><span className="text-muted">Last Active:</span> <span className="font-medium">{user.lastActiveAt ? new Date(user.lastActiveAt).toLocaleString() : "Never"}</span></div>
                               <div className="flex justify-between"><span className="text-muted">Email Verified:</span> <span className="font-medium">{user.emailVerified ? "Yes" : "No"}</span></div>
                             </div>

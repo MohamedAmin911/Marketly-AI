@@ -1,4 +1,4 @@
-import { NextResponse, type NextRequest } from "next/server";
+import type { NextRequest } from "next/server";
 import { AI_SUSPENSION_MESSAGE } from "@/server/config/moderation";
 import { UserModel, type IUser } from "@/server/database/models/user.model";
 import { connectToDatabase } from "@/server/database";

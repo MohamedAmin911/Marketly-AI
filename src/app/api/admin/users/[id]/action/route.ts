@@ -11,7 +11,12 @@ const actionSchema = z.object({
   action: z.enum(["block", "unblock", "reset-strikes", "delete"]),
 });
 
-export const POST = createApiHandler<any, { id: string }>(
+type AdminUserActionResponse = {
+  message: string;
+  success: boolean;
+};
+
+export const POST = createApiHandler<AdminUserActionResponse, { id: string }>(
   async ({ meta, request, params }) => {
     const auth = await requireAuth(request);
     requireRole(auth, ["admin"]);
