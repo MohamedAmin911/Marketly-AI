@@ -251,14 +251,16 @@ async function recordViolation(input: {
   }
 
   await connectToDatabase();
-  const user = await UserModel.findById(input.auth.user.sub).select("+refreshTokens");
+  const user = await UserModel.findById(input.auth.user.sub)
+    .select("email moderation status")
+    .lean();
   if (!user) throw apiErrors.unauthorized("User no longer exists.");
 
   const strikeNumber = (user.moderation?.aiStrikes ?? 0) + 1;
   const blockUntil = getBlockUntil(strikeNumber, timestamp);
   const isSuspended = strikeNumber >= AI_MODERATION_CONFIG.MAX_STRIKES;
 
-  user.moderation = {
+  const moderationUpdate = {
     ...(user.moderation ?? { aiStrikes: 0 }),
     aiBlockedUntil: isSuspended ? null : blockUntil,
     aiStrikes: strikeNumber,
@@ -269,16 +271,35 @@ async function recordViolation(input: {
     suspensionReason: isSuspended ? input.reason : user.moderation?.suspensionReason ?? null,
   };
 
-  if (isSuspended) {
-    user.status = "suspended";
-    user.refreshTokens = (user.refreshTokens ?? []).map((session) => ({
-      ...session,
-      revokedAt: session.revokedAt ?? timestamp,
-    }));
-  }
+  const userUpdate = isSuspended
+    ? [
+        {
+          $set: {
+            moderation: moderationUpdate,
+            refreshTokens: {
+              $map: {
+                input: { $ifNull: ["$refreshTokens", []] },
+                as: "session",
+                in: {
+                  $mergeObjects: [
+                    "$$session",
+                    { revokedAt: { $ifNull: ["$$session.revokedAt", timestamp] } },
+                  ],
+                },
+              },
+            },
+            status: "suspended",
+          },
+        },
+      ]
+    : {
+        $set: {
+          moderation: moderationUpdate,
+        },
+      };
 
   await Promise.all([
-    user.save(),
+    UserModel.collection.updateOne({ _id: user._id }, userUpdate),
     AIViolationModel.create({
       category: input.category,
       email: user.email,
