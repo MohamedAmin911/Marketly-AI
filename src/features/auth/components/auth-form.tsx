@@ -96,7 +96,7 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
 
         {serverError || oauthError ? (
           <div className="space-y-3 rounded-lg border border-red-300/20 bg-red-400/10 p-3 text-sm text-red-100" role="alert">
-            <p>{serverError ?? oauthError}</p>
+            <p>{serverError || oauthError}</p>
             {showSuspensionContact ? (
               <Button asChild size="sm" variant="secondary">
                 <Link href="/contact">Contact support</Link>
