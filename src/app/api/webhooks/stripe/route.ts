@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { stripe } from "@/server/services/billing/stripe.service";
+import { getStripe } from "@/server/services/billing/stripe.service";
 import { SubscriptionService } from "@/server/services/billing/subscription.service";
 import { UserModel } from "@/server/database/models/user.model";
 import { connectToDatabase } from "@/server/database/connection";
@@ -15,7 +15,7 @@ export async function POST(req: Request) {
   let event;
 
   try {
-    event = stripe.webhooks.constructEvent(
+    event = getStripe().webhooks.constructEvent(
       body,
       signature,
       process.env.STRIPE_WEBHOOK_SECRET!

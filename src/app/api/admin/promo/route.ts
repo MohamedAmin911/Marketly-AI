@@ -1,7 +1,7 @@
 import { createApiHandler } from "@/server/http/route-handler";
 import { jsonSuccess } from "@/server/http/responses";
 import { requireAuth, requireRole } from "@/server/security/auth-guard";
-import { stripe } from "@/server/services/billing/stripe.service";
+import { getStripe } from "@/server/services/billing/stripe.service";
 import { parseJsonBody } from "@/server/http/validation";
 import { z } from "zod";
 
@@ -35,7 +35,7 @@ export const POST = createApiHandler(
       couponParams.max_redemptions = body.maxRedemptions;
     }
 
-    const coupon = await stripe.coupons.create(couponParams);
+    const coupon = await getStripe().coupons.create(couponParams);
 
     // 2. Create Promotion Code connected to Coupon
     const promoParams: any = {
@@ -47,7 +47,7 @@ export const POST = createApiHandler(
       promoParams.code = body.code.toUpperCase();
     }
 
-    const promotionCode = await stripe.promotionCodes.create(promoParams);
+    const promotionCode = await getStripe().promotionCodes.create(promoParams);
 
     return jsonSuccess({
       promoCode: {

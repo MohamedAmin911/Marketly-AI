@@ -2,11 +2,19 @@ import Stripe from "stripe";
 import { SUBSCRIPTION_PLANS } from "./subscription.service";
 import { env } from "@/server/config/env"; // Or process.env
 
-const stripeSecretKey = process.env.STRIPE_SECRET_KEY || "dummy_key_for_build";
+let stripeInstance: Stripe | null = null;
 
-export const stripe = new Stripe(stripeSecretKey, {
-  apiVersion: "2025-01-27.acacia" as any, // Using recent version string cast to any to avoid typescript errors depending on SDK version
-});
+export const getStripe = () => {
+  if (!stripeInstance) {
+    if (!process.env.STRIPE_SECRET_KEY) {
+      throw new Error("Missing STRIPE_SECRET_KEY in environment");
+    }
+    stripeInstance = new Stripe(process.env.STRIPE_SECRET_KEY, {
+      apiVersion: "2025-01-27.acacia" as any,
+    });
+  }
+  return stripeInstance;
+};
 
 export class StripeService {
   static async createCheckoutSession(
@@ -27,7 +35,7 @@ export class StripeService {
     const priceInCents = priceMap[planId];
     if (!priceInCents) throw new Error("Price not defined for plan");
 
-    const session = await stripe.checkout.sessions.create({
+    const session = await getStripe().checkout.sessions.create({
       mode: "subscription",
       payment_method_types: ["card"],
       customer_email: email,
@@ -73,7 +81,7 @@ export class StripeService {
     const priceInCents = priceMap[amount];
     if (!priceInCents) throw new Error("Invalid credit amount");
 
-    const session = await stripe.checkout.sessions.create({
+    const session = await getStripe().checkout.sessions.create({
       mode: "payment",
       payment_method_types: ["card"],
       customer_email: email,
