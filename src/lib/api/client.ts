@@ -5,6 +5,7 @@ type ApiSuccess<T> = {
 
 type ApiFailure = {
   error?: {
+    details?: unknown;
     message?: string;
   };
   ok: false;
@@ -34,6 +35,12 @@ export async function apiJson<TData>(url: string, options: JsonRequestOptions = 
     const payload = (await response.json()) as ApiSuccess<TData> | ApiFailure;
 
     if (!response.ok || !payload.ok) {
+      const forceLogout = !payload.ok && isForceLogoutDetails(payload.error?.details) ? payload.error.details : null;
+      if (forceLogout && typeof window !== "undefined") {
+        void fetch("/api/auth/logout", { method: "POST", credentials: "include" }).finally(() => {
+          window.location.href = forceLogout.redirectTo ?? "/login";
+        });
+      }
       throw new Error(payload.ok ? "Request failed." : payload.error?.message ?? "Request failed.");
     }
 
@@ -42,6 +49,10 @@ export async function apiJson<TData>(url: string, options: JsonRequestOptions = 
     clearTimeout(timeout);
     init.signal?.removeEventListener("abort", forwardAbort);
   }
+}
+
+function isForceLogoutDetails(details: unknown): details is { forceLogout: true; redirectTo: string } {
+  return Boolean(details && typeof details === "object" && "forceLogout" in details);
 }
 
 export async function apiBlob(url: string, options: JsonRequestOptions = {}): Promise<{ blob: Blob; filename?: string }> {

@@ -1,4 +1,5 @@
 import { apiErrors } from "@/server/errors/api-error";
+import { AI_SUSPENSION_MESSAGE } from "@/server/config/moderation";
 import { connectToDatabase, UserModel, type IUser, type RefreshTokenSession } from "@/server/database";
 import type { UserRole } from "@/server/database/enums";
 import { hashPassword, verifyPassword } from "@/server/security/password";
@@ -420,7 +421,12 @@ async function recordSuccessfulLogin(user: AuthUser) {
 }
 
 function assertCanLogin(user: AuthUser) {
-  if (user.status === "suspended" || user.status === "deleted") throw apiErrors.forbidden("This account is not active.");
+  if (user.status === "suspended" || user.status === "deleted") {
+    throw apiErrors.forbidden(AI_SUSPENSION_MESSAGE, {
+      contactPath: "/contact",
+      redirectTo: "/login",
+    });
+  }
   if (user.accountLockedUntil && user.accountLockedUntil.getTime() > Date.now()) {
     throw apiErrors.rateLimited(Math.ceil((user.accountLockedUntil.getTime() - Date.now()) / 1000));
   }
