@@ -10,7 +10,6 @@ const nextConfig: NextConfig = {
   experimental: {
     optimizePackageImports: ["lucide-react", "recharts"],
   },
-  outputFileTracingRoot: path.join(__dirname, "../.."),
   poweredByHeader: false,
   reactStrictMode: true,
   eslint: {

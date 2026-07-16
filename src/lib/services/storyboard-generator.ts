@@ -37,17 +37,17 @@ The image prompts should:
 * feel like luxury advertising
 * maintain visual consistency across scenes
 
-Return ONLY valid JSON array.
+Return ONLY valid JSON object in this format:
 
-Example format:
-
-[
 {
-"sceneTitle": "",
-"imagePrompt": "",
-"script": ""
-}
-]`;
+  "scenes": [
+    {
+      "sceneTitle": "",
+      "imagePrompt": "",
+      "script": ""
+    }
+  ]
+}`;
 
 export type CinematicStoryboardScene = {
   generatedImage: string;
@@ -192,7 +192,7 @@ ${campaignPrompt}`;
     ],
     maxTokens: 1200,
     temperature: 0.72,
-    responseFormat: "text",
+    responseFormat: "json_object",
   });
 
   const content = result.content;
@@ -204,15 +204,16 @@ ${campaignPrompt}`;
 }
 
 function parseJsonArray(content: string): unknown {
-  // Replace literal control characters (like unescaped newlines and tabs) with spaces
-  // This fixes the "Bad control character in string literal in JSON" error
-  const sanitized = content.replace(/[\x00-\x1F]/g, " ");
-  const trimmed = sanitized.trim();
+  const sanitized = content.replace(/[\x00-\x1F]/g, " ").trim();
 
   try {
-    return JSON.parse(trimmed);
+    const parsed = JSON.parse(sanitized);
+    if (parsed && Array.isArray(parsed.scenes)) {
+      return parsed.scenes;
+    }
+    return parsed; // Fallback to whatever it parsed if scenes is missing
   } catch {
-    const match = trimmed.match(/\[[\s\S]*\]/);
+    const match = sanitized.match(/\[[\s\S]*\]/);
     if (!match) throw new Error("OpenAI response did not include a valid JSON array.");
     return JSON.parse(match[0]);
   }
