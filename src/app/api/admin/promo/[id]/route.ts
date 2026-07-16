@@ -15,7 +15,7 @@ export const PATCH = createApiHandler(
     requireRole(auth, ["admin"]);
 
     const body = await parseJsonBody(request, patchPromoSchema);
-    const promoId = params.id as string;
+    const promoId = (params as { id: string }).id;
 
     const promotionCode = await getStripe().promotionCodes.update(promoId, {
       active: body.active,
