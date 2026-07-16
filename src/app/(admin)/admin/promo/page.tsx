@@ -169,7 +169,7 @@ export default function AdminPromoPage() {
                     <TableCell className="font-mono font-medium">{promo.code}</TableCell>
                     <TableCell>{promo.percentOff}% OFF</TableCell>
                     <TableCell>
-                      <Badge variant={promo.active ? "default" : "secondary"} className={promo.active ? "bg-green-500/10 text-green-500 hover:bg-green-500/20" : ""}>
+                      <Badge tone={promo.active ? "success" : "default"}>
                         {promo.active ? "Active" : "Inactive"}
                       </Badge>
                     </TableCell>
