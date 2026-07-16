@@ -192,7 +192,7 @@ ${campaignPrompt}`;
     ],
     maxTokens: 1200,
     temperature: 0.72,
-    responseFormat: "json_object",
+    responseFormat: "json",
   });
 
   const content = result.content;
