@@ -58,19 +58,19 @@ export function IdeaGrid({ ideas }: IdeaGridProps) {
             {(format || potentialReach || difficulty) && (
               <div className="flex flex-wrap gap-2 mt-auto relative z-10 pt-5 border-t border-white/5">
                 {format && (
-                  <Badge variant="outline" className="bg-white/5 text-foreground/80 hover:bg-white/10 hover:text-foreground border-white/10 flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-lg">
+                  <Badge className="bg-white/5 text-foreground/80 hover:bg-white/10 hover:text-foreground border-white/10 flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-lg">
                     <Video className="size-3.5 text-primary" />
                     {format}
                   </Badge>
                 )}
                 {potentialReach && (
-                  <Badge variant="outline" className="bg-white/5 text-foreground/80 hover:bg-white/10 hover:text-foreground border-white/10 flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-lg">
+                  <Badge className="bg-white/5 text-foreground/80 hover:bg-white/10 hover:text-foreground border-white/10 flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-lg">
                     <TrendingUp className="size-3.5 text-emerald-400" />
                     {potentialReach}
                   </Badge>
                 )}
                 {difficulty && (
-                  <Badge variant="outline" className="bg-white/5 text-foreground/80 hover:bg-white/10 hover:text-foreground border-white/10 flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-lg">
+                  <Badge className="bg-white/5 text-foreground/80 hover:bg-white/10 hover:text-foreground border-white/10 flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-lg">
                     <Target className="size-3.5 text-orange-400" />
                     {difficulty}
                   </Badge>

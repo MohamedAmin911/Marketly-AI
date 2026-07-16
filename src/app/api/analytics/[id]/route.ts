@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { createApiHandler } from "@/server/http/route-handler";
 import { requireAuth } from "@/server/security/auth-guard";
 import { connectToDatabase } from "@/server/database/connection";
-import { ViralEngineModel } from "@/server/database/models/viral-engine.model";
+import { AnalyticsEngineModel } from "@/server/database/models/analytics-engine.model";
 import { Types } from "mongoose";
 
 export const GET = createApiHandler<any, { id: string }>(async ({ request, params }) => {
@@ -15,14 +15,14 @@ export const GET = createApiHandler<any, { id: string }>(async ({ request, param
 
   await connectToDatabase();
 
-  const generation = await ViralEngineModel.findOne({
+  const generation = await AnalyticsEngineModel.findOne({
     _id: id,
     userId: new Types.ObjectId(auth.user.sub),
     deletedAt: null,
   }).lean();
 
   if (!generation) {
-    return NextResponse.json({ success: false, message: "Generation not found" }, { status: 404 });
+    return NextResponse.json({ success: false, message: "Analytics generation not found" }, { status: 404 });
   }
 
   return NextResponse.json({

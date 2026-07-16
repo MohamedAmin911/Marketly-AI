@@ -8,6 +8,7 @@ import type { GrowthEngineApiResponse } from "@/server/growth-engine/types";
 import type { AuthContext } from "@/server/security/auth-guard";
 import { validateUploadFile } from "@/server/security/uploads";
 import { uploadFileToImageKit, type UploadedImageKitAsset } from "@/server/services/imagekit-service";
+import { CreditsService } from "@/server/services/billing/credits.service";
 
 const IMAGEKIT_UPLOAD_TIMEOUT_MS = 45_000;
 
@@ -27,6 +28,8 @@ export async function buildGrowthEngineProject(input: GrowthEngineRequestInput, 
       await validateUploadFile(input.productImage);
       productImage = await uploadProductImage(input);
     }
+
+    await CreditsService.deductCredits(auth.user.sub, 10, "growth_engine", "Generated Growth Project");
 
     // Create the initial draft shell so it exists in the database
     // This allows n8n to update it via findOneAndUpdate or fallback logic

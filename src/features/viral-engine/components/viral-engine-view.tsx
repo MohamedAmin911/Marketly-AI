@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Flame, AlertCircle, Download, Copy, Check, Zap } from "lucide-react";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 import { PageShell } from "@/components/layout/page-shell";
 import { Badge } from "@/components/ui/badge";
@@ -16,6 +16,7 @@ import { ViralEngineRequest, ViralEngineResponse } from "@/types/viral-engine";
 import { useTranslation } from "@/lib/i18n/useTranslation";
 
 export function ViralEngineView() {
+  const queryClient = useQueryClient();
   const { t } = useTranslation();
   const [hasSearched, setHasSearched] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -40,6 +41,9 @@ export function ViralEngineView() {
       setHasSearched(true);
       setCachedData(data);
       localStorage.setItem("viralEngine", JSON.stringify(data));
+      queryClient.invalidateQueries({ queryKey: ["dashboard-summary"] });
+      queryClient.invalidateQueries({ queryKey: ["dashboard-generations"] });
+      queryClient.invalidateQueries({ queryKey: ["billing"] });
     },
   });
 
@@ -78,7 +82,7 @@ export function ViralEngineView() {
       title={
         <div className="flex items-center gap-3">
           {t("viralEngine.title")}
-          <Badge variant="secondary" className="font-normal border-primary/20 bg-primary/10 text-primary">
+          <Badge tone="success" className="font-normal border-primary/20 bg-primary/10 text-primary">
             <Zap className="size-3.5 me-1 inline-block" /> 50 Credits/Generation
           </Badge>
         </div>

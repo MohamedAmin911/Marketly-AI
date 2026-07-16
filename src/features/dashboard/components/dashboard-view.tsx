@@ -57,7 +57,7 @@ export function DashboardView() {
 
           <section aria-labelledby="dashboard-kpis">
             <SectionHeader title={t("dashboard.performanceSnapshot")} description={t("dashboard.performanceSnapshotDesc")} />
-            <div id="dashboard-kpis" className="grid gap-4 sm:grid-cols-3">
+            <div id="dashboard-kpis" className="grid gap-4 sm:grid-cols-3 xl:grid-cols-5">
               {kpis.map((kpi) => (
                 <KpiCard key={kpi.label} {...kpi} />
               ))}
@@ -267,6 +267,8 @@ function RecentActivityTimeline({ items }: { items: DashboardGeneration[] }) {
 function buildKpis(metrics: Metric[], recentGenerations: DashboardGeneration[], t: ReturnType<typeof useTranslation>["t"]): KpiCardProps[] {
   const projects = findMetric(metrics, "Projects");
   const generatedAssets = findMetric(metrics, "Generated Assets");
+  const viralEngine = findMetric(metrics, "Viral Engine");
+  const analytics = findMetric(metrics, "Analytics");
   const videosCount = recentGenerations.filter((item) => item.isVideo || item.type.toLowerCase().includes("video")).length;
 
   return [
@@ -277,13 +279,6 @@ function buildKpis(metrics: Metric[], recentGenerations: DashboardGeneration[], 
       tone: projects?.tone,
       value: projects?.value ?? "0",
     },
-    // {
-    //   description: campaigns?.delta ?? "Campaign records",
-    //   icon: Megaphone,
-    //   label: "Campaigns",
-    //   tone: campaigns?.tone,
-    //   value: campaigns?.value ?? "0",
-    // },
     {
       description: generatedAssets?.delta ?? t("dashboard.savedAiOutputs"),
       icon: Sparkles,
@@ -297,6 +292,20 @@ function buildKpis(metrics: Metric[], recentGenerations: DashboardGeneration[], 
       label: t("dashboard.videos"),
       tone: videosCount > 0 ? "success" : "neutral",
       value: videosCount.toLocaleString(),
+    },
+    {
+      description: viralEngine && viralEngine.value !== "0" ? viralEngine.delta : t("dashboard.noGenerations"),
+      icon: TrendingUp,
+      label: t("nav.viralEngine"),
+      tone: viralEngine?.tone,
+      value: viralEngine?.value ?? "0",
+    },
+    {
+      description: analytics && analytics.value !== "0" ? analytics.delta : t("dashboard.noGenerations"),
+      icon: BarChart3,
+      label: t("nav.analytics"),
+      tone: analytics?.tone,
+      value: analytics?.value ?? "0",
     },
     // {
     //   description: ctr?.delta ?? "No analytics recorded yet",

@@ -52,7 +52,7 @@ const settingsSchema = new Schema<ISettings>(
     notificationSettings: { default: () => ({}), type: notificationSettingsSchema },
     privacySettings: { default: () => ({}), type: privacySettingsSchema },
     theme: { default: "dark", enum: THEMES, type: String },
-    userId: objectId("User", true),
+    userId: { ref: "User", required: true, type: Schema.Types.ObjectId },
   },
   schemaOptions,
 );

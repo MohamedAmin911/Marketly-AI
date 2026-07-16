@@ -90,7 +90,7 @@ export function StoryboardView() {
       title={
         <div className="flex items-center gap-3">
           {t("storyboard.title")}
-          <Badge variant="secondary" className="font-normal border-primary/20 bg-primary/10 text-primary">
+          <Badge tone="success" className="font-normal border-primary/20 bg-primary/10 text-primary">
             <Zap className="size-3.5 me-1 inline-block" /> 2 Credits/Generation
           </Badge>
         </div>

@@ -20,7 +20,7 @@ export function ScheduleTable({ schedule }: ScheduleTableProps) {
   if (isStringArray) {
     return (
       <div className="grid gap-5 sm:grid-cols-2">
-        {schedule.map((item, idx) => (
+        {(schedule as unknown as string[]).map((item, idx) => (
           <div key={idx} className="flex gap-4 rounded-2xl border border-white/5 bg-black/20 backdrop-blur-xl shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] p-5 hover:-translate-y-1 hover:shadow-2xl hover:shadow-primary/10 hover:border-primary/20 transition-all duration-300 relative group cursor-default">
             <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-primary/20 to-primary/5 ring-1 ring-primary/20">
               <Calendar className="size-4 text-primary" />
@@ -66,7 +66,7 @@ export function ScheduleTable({ schedule }: ScheduleTableProps) {
                   </div>
                 </TableCell>
                 <TableCell>
-                  <Badge variant="secondary" className="bg-primary/10 text-primary hover:bg-primary/20 border-0 font-mono text-[10px]">{item.platform}</Badge>
+                  <Badge tone="success" className="bg-primary/10 text-primary hover:bg-primary/20 border-0 font-mono text-[10px]">{item.platform}</Badge>
                 </TableCell>
                 <TableCell className="text-muted-foreground text-sm">{item.contentType}</TableCell>
                 <TableCell>
