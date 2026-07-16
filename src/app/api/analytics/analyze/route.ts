@@ -1,10 +1,12 @@
-import type { NextRequest } from "next/server";
+import { NextResponse, type NextRequest } from "next/server";
 
 import { ApiError } from "@/server/errors/api-error";
 import { logger } from "@/server/logging/logger";
 import { requireAuth } from "@/server/security/auth-guard";
 import { CreditsService } from "@/server/services/billing/credits.service";
 import { Types } from "mongoose";
+import { isForceLogoutError, moderateAIRequest } from "@/server/moderation/with-moderation";
+import { clearAuthCookies } from "@/server/security/cookies";
 
 import { AnalyticsEngineModel, connectToDatabase } from "@/server/database";
 
@@ -16,11 +18,13 @@ export async function POST(req: NextRequest) {
     const { url, brandName, industry } = body;
 
     if (!url || !brandName || !industry) {
-      return Response.json(
+      return NextResponse.json(
         { success: false, error: "URL, brandName, and industry are required" },
         { status: 400 }
       );
     }
+
+    await moderateAIRequest({ auth, feature: "Analytics Engine", prompts: [brandName, industry, url] });
 
     logger.info(`Starting analytics analysis for ${brandName} - ${url}`);
 
@@ -73,7 +77,7 @@ export async function POST(req: NextRequest) {
       response: normalizedData,
     });
 
-    return Response.json({ success: true, data: normalizedData });
+    return NextResponse.json({ success: true, data: normalizedData });
   } catch (error) {
     logger.error("Analytics post analysis failed.", {
       error: error instanceof Error ? error.message : JSON.stringify(error),
@@ -81,12 +85,14 @@ export async function POST(req: NextRequest) {
     
     const status = error instanceof ApiError ? error.status : 500;
 
-    return Response.json(
+    const response = NextResponse.json(
       {
         success: false,
         error: error instanceof ApiError ? error.message : "Analysis failed",
       },
       { status }
     );
+    if (isForceLogoutError(error)) clearAuthCookies(response);
+    return response;
   }
 }

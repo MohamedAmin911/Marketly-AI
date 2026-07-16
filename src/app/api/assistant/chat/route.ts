@@ -4,6 +4,8 @@ import { CreditsService } from "@/server/services/billing/credits.service";
 import { AssistantSessionModel } from "@/server/database/models/assistant-session.model";
 import { AssistantMessageModel } from "@/server/database/models/assistant-message.model";
 import { ApiError } from "@/server/errors/api-error";
+import { moderateAIRequest, isForceLogoutError } from "@/server/moderation/with-moderation";
+import { clearAuthCookies } from "@/server/security/cookies";
 
 // Edge runtime can't run Mongoose easily without some setup, but this is standard route handler.
 // Since we use Mongoose transactions, we keep Node.js runtime.
@@ -18,6 +20,8 @@ export async function POST(request: NextRequest) {
     if (!message) {
       return NextResponse.json({ success: false, message: "Message is required" }, { status: 400 });
     }
+
+    await moderateAIRequest({ auth: { user: { exp: 0, iat: 0, jti: "", kind: "access", role: user.role, sub: String(user._id), tenantId: String(user._id) } }, feature: "AI Assistant", prompts: message });
 
     // Pre-deduct or check credits
     await CreditsService.deductCredits(String(user._id), 0.2, "AI Assistant", "Chat Request");
@@ -74,7 +78,9 @@ export async function POST(request: NextRequest) {
     });
   } catch (error: any) {
     if (error instanceof ApiError) {
-      return NextResponse.json({ success: false, message: error.message }, { status: error.status });
+      const response = NextResponse.json({ success: false, message: error.message }, { status: error.status });
+      if (isForceLogoutError(error)) clearAuthCookies(response);
+      return response;
     }
     return NextResponse.json({ success: false, message: "Internal server error" }, { status: 500 });
   }

@@ -2,6 +2,7 @@ import { createApiHandler, withTimeout } from "@/server/http/route-handler";
 import { getCampaignAuth } from "@/server/campaign-generator/auth";
 import { generateAndPersistCampaign } from "@/server/campaign-generator/generateCampaign";
 import { socialCampaignGenerationSchema } from "@/server/campaign-generator/validators";
+import { moderateAIRequest } from "@/server/moderation/with-moderation";
 
 type CampaignParams = {
   id: string;
@@ -18,6 +19,7 @@ export const POST = createApiHandler<unknown, CampaignParams>(
       productImage: formData.get("productImage"),
       theme: formData.get("theme"),
     });
+    await moderateAIRequest({ auth, feature: "Campaign Generator", prompts: [body.theme, body.moodPreset, ...body.customIdeas] });
 
     return withTimeout(generateAndPersistCampaign(body, auth.user.sub), 90_000, "Campaign regeneration timed out.");
   },

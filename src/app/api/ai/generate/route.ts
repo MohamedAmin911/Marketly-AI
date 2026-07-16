@@ -5,12 +5,14 @@ import { requireAuth } from "@/server/security/auth-guard";
 import { requireIdempotencyKey, runIdempotently } from "@/server/security/idempotency";
 import { aiGenerationRequestSchema } from "@/server/schemas/ai";
 import { generateAiAsset } from "@/server/services/ai-generation-service";
+import { moderateAIRequest } from "@/server/moderation/with-moderation";
 
 export const POST = createApiHandler(
   async ({ request }) => {
     const auth = await requireAuth(request);
     const idempotencyKey = requireIdempotencyKey(request.headers.get("idempotency-key"));
     const body = await parseJsonBody(request, aiGenerationRequestSchema);
+    await moderateAIRequest({ auth, feature: "Generic AI Generation", prompts: body.prompt });
 
     return runIdempotently(`${auth.user.tenantId}:ai:${idempotencyKey}`, async () => {
       try {

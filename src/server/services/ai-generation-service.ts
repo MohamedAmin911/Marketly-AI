@@ -6,9 +6,9 @@ import type { AIWorkflowName } from "@/server/ai/types";
 import { env } from "@/server/config/env";
 import { ApiError, apiErrors } from "@/server/errors/api-error";
 import { logger } from "@/server/logging/logger";
+import { moderateAIRequest } from "@/server/moderation/with-moderation";
 import type { AuthContext } from "@/server/security/auth-guard";
 import type { AiGenerationRequest, AssistantChatRequest } from "@/server/schemas/ai";
-import { checkPromptSafety } from "@/server/security/profanity-filter";
 
 type ChatRole = "assistant" | "system" | "user";
 
@@ -53,7 +53,7 @@ export type AIResponseResult = {
 };
 
 export async function generateAiAsset(input: AiGenerationRequest, auth: AuthContext) {
-  checkPromptSafety(input.prompt, auth);
+  await moderateAIRequest({ auth, feature: "Generic AI Generation", prompts: input.prompt });
 
   return runAIWorkflow(
     {
@@ -98,7 +98,7 @@ async function synthesizeAudio(text: string): Promise<string | null> {
 }
 
 export async function generateAIResponse(input: AssistantChatRequest, auth: AuthContext): Promise<AIResponseResult> {
-  checkPromptSafety(input.message, auth);
+  await moderateAIRequest({ auth, feature: "AI Assistant", prompts: input.message });
 
   const userId = auth.user.sub;
   const brandId = input.brandId;

@@ -194,7 +194,14 @@ function assertUserCanUseAI(user: ModerationMemoryUser) {
   }
 
   if (user.aiBlockedUntil && user.aiBlockedUntil.getTime() > Date.now()) {
-    throw apiErrors.rateLimited(Math.ceil((user.aiBlockedUntil.getTime() - Date.now()) / 1000));
+    const retryAfterSeconds = Math.ceil((user.aiBlockedUntil.getTime() - Date.now()) / 1000);
+    throw new ApiError("RATE_LIMITED", AI_TEMPORARY_BLOCK_MESSAGE, {
+      details: {
+        blockedUntil: user.aiBlockedUntil.toISOString(),
+        retryAfterSeconds,
+      },
+      status: 429,
+    });
   }
 }
 

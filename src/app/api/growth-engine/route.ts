@@ -1,6 +1,7 @@
 import { buildGrowthEngineProject, growthEngineRequestSchema } from "@/server/growth-engine";
 import { createApiHandler } from "@/server/http/route-handler";
 import { parseFormData } from "@/server/http/validation";
+import { moderateAIRequest } from "@/server/moderation/with-moderation";
 import { requireFeature } from "@/server/http/subscription-middleware";
 
 export const POST = createApiHandler(
@@ -9,7 +10,8 @@ export const POST = createApiHandler(
     const body = await parseFormData(request, growthEngineRequestSchema);
 
     // Mock an auth context since buildGrowthEngineProject expects it
-    const auth = { user: { sub: String(user._id), role: user.role } as any };
+    const auth = { user: { sub: String(user._id), role: user.role, tenantId: String(user._id) } as any };
+    await moderateAIRequest({ auth, feature: "Growth Engine", prompts: [body.brief, body.brandName, body.audience, body.goal, body.industry] });
 
     return buildGrowthEngineProject(body, auth);
   },

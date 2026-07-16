@@ -6,6 +6,7 @@ import { connectToDatabase } from "@/server/database/connection";
 import { ViralEngineModel } from "@/server/database/models/viral-engine.model";
 import { CreditsService } from "@/server/services/billing/credits.service";
 import { Types } from "mongoose";
+import { moderateAIRequest } from "@/server/moderation/with-moderation";
 
 export const maxDuration = 120; // Set max duration for Serverless function
 
@@ -22,6 +23,11 @@ export const POST = createApiHandler(async ({ request }) => {
   // Note: we pass NextRequest to requireFeature but we might need to wrap or just use the user directly if requireFeature needs a NextRequest.
   // Actually, wait, requireFeature takes request and feature name. 
   const user = await requireFeature(request, "viralEngine");
+  await moderateAIRequest({
+    auth,
+    feature: "Viral Engine",
+    prompts: [payload.brandBrief, payload.brandName, payload.industry, payload.targetAudience, payload.goal],
+  });
 
   // 2. Deduct credits for the generation
   await CreditsService.deductCredits(user._id.toString(), 50, "viral_engine", "Generated Viral Strategy");
