@@ -47,17 +47,11 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
         <p className="mt-2 text-sm text-muted">{isSignup ? t("auth.createWorkspaceDesc") : t("auth.signInDesc")}</p>
       </div>
 
-      <div className="mt-7 grid grid-cols-1 gap-3 sm:grid-cols-2">
+      <div className="mt-7 grid grid-cols-1 gap-3">
         <Button variant="secondary" type="button" asChild>
           <a href="/api/auth/oauth/google">
             <Mail className="size-4" />
             Google
-          </a>
-        </Button>
-        <Button variant="secondary" type="button" asChild>
-          <a href="/api/auth/oauth/github">
-            <GitBranch className="size-4" />
-            Github
           </a>
         </Button>
       </div>
