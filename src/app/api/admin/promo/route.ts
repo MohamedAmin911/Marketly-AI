@@ -62,3 +62,26 @@ export const POST = createApiHandler(
     }, meta);
   }
 );
+
+export const GET = createApiHandler(
+  async ({ meta, request }) => {
+    const auth = await requireAuth(request);
+    requireRole(auth, ["admin"]);
+
+    const allPromotionCodes = await getStripe().promotionCodes.list({
+      limit: 100,
+    });
+
+    const formattedCodes = allPromotionCodes.data.map(pc => ({
+      id: pc.id,
+      code: pc.code,
+      percentOff: pc.coupon.percent_off,
+      active: pc.active,
+      maxRedemptions: pc.max_redemptions,
+      timesRedeemed: pc.times_redeemed,
+      createdAt: new Date(pc.created * 1000).toISOString()
+    }));
+
+    return jsonSuccess({ promoCodes: formattedCodes }, meta);
+  }
+);
