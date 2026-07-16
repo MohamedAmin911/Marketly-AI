@@ -8,7 +8,7 @@ import { parseJsonBody } from "@/server/http/validation";
 import { z } from "zod";
 
 const actionSchema = z.object({
-  action: z.enum(["block", "unblock", "delete"]),
+  action: z.enum(["block", "unblock", "reset-strikes", "delete"]),
 });
 
 export const POST = createApiHandler<any, { id: string }>(
@@ -44,11 +44,36 @@ export const POST = createApiHandler<any, { id: string }>(
       await UserModel.findByIdAndDelete(userId);
       return jsonSuccess({ success: true, message: "User deleted successfully" }, meta);
     } else if (body.action === "block") {
-      await UserModel.findByIdAndUpdate(userId, { status: "suspended" });
+      await UserModel.findByIdAndUpdate(userId, {
+        $set: {
+          "moderation.suspendedAt": new Date(),
+          "moderation.suspensionReason": "Account suspended by an administrator.",
+          status: "suspended",
+        },
+      });
       return jsonSuccess({ success: true, message: "User blocked successfully" }, meta);
     } else if (body.action === "unblock") {
-      await UserModel.findByIdAndUpdate(userId, { status: "active" });
+      await UserModel.findByIdAndUpdate(userId, {
+        $set: {
+          "moderation.aiBlockedUntil": null,
+          "moderation.aiStrikes": 0,
+          "moderation.lastViolationAt": null,
+          "moderation.lastViolationFeature": null,
+          "moderation.lastViolationReason": null,
+          "moderation.suspendedAt": null,
+          "moderation.suspensionReason": null,
+          status: "active",
+        },
+      });
       return jsonSuccess({ success: true, message: "User unblocked successfully" }, meta);
+    } else if (body.action === "reset-strikes") {
+      await UserModel.findByIdAndUpdate(userId, {
+        $set: {
+          "moderation.aiBlockedUntil": null,
+          "moderation.aiStrikes": 0,
+        },
+      });
+      return jsonSuccess({ success: true, message: "User strikes reset successfully" }, meta);
     }
 
     throw apiErrors.badRequest("Invalid action");
