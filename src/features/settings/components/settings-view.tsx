@@ -46,9 +46,7 @@ const INDUSTRY_OPTIONS = ["Marketing & Advertising", "B2B SaaS", "E-Commerce", "
 const tabs = [
   { value: "brand", label: "Brand Identity", icon: Building2 },
   { value: "ai", label: "AI Preferences", icon: SlidersHorizontal },
-  { value: "team", label: "Team", icon: Users },
   { value: "billing", label: "Billing", icon: BadgeDollarSign },
-  { value: "integrations", label: "Integrations", icon: PlugZap },
 ] as const;
 
 export function SettingsView() {
@@ -259,29 +257,8 @@ export function SettingsView() {
             </aside>
           </div>
         </TabsContent>
-
-        <TabsContent value="team">
-          <PlaceholderGrid
-            cards={[
-              { icon: Users, title: t("settings.workspaceMembers"), description: t("settings.workspaceMembersDesc") },
-              { icon: Mail, title: t("settings.invitations"), description: t("settings.invitationsDesc") },
-              { icon: ShieldCheck, title: t("settings.accessControls"), description: t("settings.accessControlsDesc") },
-            ]}
-          />
-        </TabsContent>
-
         <TabsContent value="billing">
           <BillingTab />
-        </TabsContent>
-
-        <TabsContent value="integrations">
-          <PlaceholderGrid
-            cards={[
-              { icon: PlugZap, title: "Slack", description: "Send generation updates and campaign summaries to your workspace." },
-              { icon: KeyRound, title: "GitHub", description: "Connect creative workflows to repositories and deployment activity." },
-              { icon: PlugZap, title: "Marketing Stack", description: "Prepare connections for analytics, CRM, and ad platform integrations." },
-            ]}
-          />
         </TabsContent>
       </Tabs>
     </PageShell>
