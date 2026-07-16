@@ -209,9 +209,9 @@ function translatePlanName(plan: string, t: ReturnType<typeof useTranslation>["t
 }
 
 function translatePlanFeature(feature: string, t: ReturnType<typeof useTranslation>["t"]) {
-  if (feature === "Everything in Free") return t("billing.featureEverythingFree");
-  if (feature === "Everything in Starter") return t("billing.featureEverythingStarter");
-  if (feature === "Everything in Pro") return t("billing.featureEverythingPro");
+  if (feature === "Everything in Free") return t("billing.featureEverythingFree" as any);
+  if (feature === "Everything in Starter") return t("billing.featureEverythingStarter" as any);
+  if (feature === "Everything in Pro") return t("billing.featureEverythingPro" as any);
   if (feature === "AI Assistant") return t("nav.aiAssistant");
   if (feature === "Ad Studio") return t("nav.adStudio");
   if (feature === "Image Generation") return t("nav.imageGeneration");

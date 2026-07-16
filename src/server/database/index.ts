@@ -19,3 +19,4 @@ export { UploadModel, type IUpload } from "./models/upload.model";
 export { UserModel, type IUser, type RefreshTokenSession } from "./models/user.model";
 export { VideoModel, type IVideo } from "./models/video.model";
 export { ViralEngineModel, type IViralEngine } from "./models/viral-engine.model";
+export { AnalyticsEngineModel, type IAnalyticsEngine } from "./models/analytics-engine.model";

@@ -193,7 +193,7 @@ recognition.onresult = (event: any) => {
       title={
         <div className="flex items-center gap-3">
           {t("assistant.title")}
-          <Badge variant="secondary" className="font-normal border-primary/20 bg-primary/10 text-primary">
+          <Badge className="font-normal border-primary/20 bg-primary/10 text-primary">
             <Zap className="size-3.5 me-1 inline-block" /> 0.2 Credits/Request
           </Badge>
         </div>

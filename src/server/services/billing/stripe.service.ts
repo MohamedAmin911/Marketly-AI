@@ -54,6 +54,7 @@ export class StripeService {
           quantity: 1,
         },
       ],
+      allow_promotion_codes: true,
       success_url: `${domainUrl}/settings?tab=billing&success=true&session_id={CHECKOUT_SESSION_ID}#plans`,
       cancel_url: `${domainUrl}/settings?tab=billing#plans`,
     });
@@ -97,6 +98,7 @@ export class StripeService {
           quantity: 1,
         },
       ],
+      allow_promotion_codes: true,
       success_url: `${domainUrl}/settings?tab=billing&success=true&session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${domainUrl}/settings?tab=billing`,
     });

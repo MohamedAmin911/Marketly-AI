@@ -19,7 +19,7 @@ export function CompetitorTable({ competitors }: CompetitorTableProps) {
   if (isStringArray) {
     return (
       <div className="grid gap-5 sm:grid-cols-2">
-        {competitors.map((comp, idx) => (
+        {(competitors as unknown as string[]).map((comp, idx) => (
           <div key={idx} className="flex gap-4 rounded-2xl border border-white/5 bg-black/20 backdrop-blur-xl shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] p-5 hover:-translate-y-1 hover:shadow-2xl hover:shadow-primary/10 hover:border-primary/20 transition-all duration-300 relative group cursor-default">
             <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-primary/20 to-primary/5 text-primary ring-1 ring-primary/20">
               <span className="text-xs font-bold">{idx + 1}</span>
@@ -56,7 +56,7 @@ export function CompetitorTable({ competitors }: CompetitorTableProps) {
                 <TableCell className="font-semibold text-foreground">{comp.name || "-"}</TableCell>
                 <TableCell>
                   {comp.platform ? (
-                    <Badge variant="secondary" className="bg-primary/10 text-primary hover:bg-primary/20 border-0 font-mono text-[10px]">
+                    <Badge tone="success" className="bg-primary/10 text-primary hover:bg-primary/20 border-0 font-mono text-[10px]">
                       {comp.platform}
                     </Badge>
                   ) : "-"}

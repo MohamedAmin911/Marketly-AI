@@ -59,7 +59,6 @@ const videoSchema = new Schema<IVideo>(
 );
 
 videoSchema.index({ userId: 1, projectId: 1, createdAt: -1 });
-videoSchema.index({ campaignId: 1 });
 videoSchema.index({ renderStatus: 1, createdAt: 1 });
 addBasePlugins(videoSchema);
 

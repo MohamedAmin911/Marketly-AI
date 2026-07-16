@@ -1,61 +1,3 @@
-export type AnalyticsContract = {
-  clicks: number;
-  conversions: number;
-  anomaliesDetected: string[];
-  cpc: number;
-  ctr: number;
-  engagementRate: number;
-  impressions: number;
-  recommendations: string[];
-  roi: number;
-  trends: string[];
-};
-
-export type AnalyticsInsight = {
-  description: string;
-  evidence: string;
-  severity: "low" | "medium" | "high";
-  title: string;
-  type: "trend" | "anomaly" | "opportunity" | "risk";
-};
-
-export type AnalyticsRecommendation = {
-  action: string;
-  confidence: number;
-  evidence: string;
-  priority: "low" | "medium" | "high";
-  rationale: string;
-  title: string;
-};
-
-export type AnalyticsIntelligence = {
-  contract: AnalyticsContract;
-  context: {
-    conflicts: string[];
-    incompleteData: string[];
-    model: string;
-  };
-  insights: AnalyticsInsight[];
-  recommendations: AnalyticsRecommendation[];
-};
-
-export type AnalyticsFilterState = {
-  campaign: string;
-  channel: string;
-  range: "24h" | "7d" | "30d" | "90d" | "all";
-  status: string;
-};
-
-export type AnalyticsMetricCard = {
-  delta: number;
-  format: "currency" | "number" | "percent";
-  key: "impressions" | "clicks" | "conversions" | "ctr" | "roi" | "cpc" | "engagementRate";
-  label: string;
-  raw: number;
-  tone: "success" | "warning" | "danger" | "neutral";
-  value: string;
-};
-
 export type AnalyticsTrendPoint = {
   clicks: number;
   conversions: number;
@@ -72,38 +14,140 @@ export type AnalyticsTrendPoint = {
 export type AnalyticsCampaignRow = {
   campaignId: string;
   campaignName: string;
+  status: string;
   channel: string;
-  clicks: number;
-  conversions: number;
-  cpc: number;
-  ctr: number;
-  impressions: number;
-  roi: number;
   spend: number;
-  status: "active" | "draft" | "paused";
+  ctr: number;
+  cpc: number;
+  conversions: number;
 };
 
-export type AnalyticsReport = {
-  executiveSummary: string;
-  generatedAt: string;
-  sections: {
-    findings: string[];
-    title: string;
-  }[];
+export type AnalyticsFilterState = {
+  url: string;
+  brandName: string;
+  industry: string;
 };
 
-export type AnalyticsOverview = {
-  campaigns: AnalyticsCampaignRow[];
-  contract: AnalyticsContract;
-  filters: AnalyticsFilterState;
-  filterOptions: {
-    campaigns: string[];
-    channels: string[];
-    statuses: string[];
+export type EngineAnalytics = {
+  // Base fields
+  platform?: string;
+  brandName?: string;
+  industry?: string;
+  postUrl?: string;
+  url?: string;
+  author?: string;
+  publishDate?: string | number;
+  caption?: string;
+  language?: string;
+  targetAudience?: string;
+  sentiment?: string;
+  tone?: string[] | string;
+  callToActionImplied?: string;
+
+  // Media
+  mediaCount?: number;
+  mediaType?: string;
+  mediaTypes?: string[];
+
+  // Features & Highlights
+  productHighlight?: string;
+  keyFeatures?: string[];
+
+  // Analysis / Insights objects
+  contentAnalysis?: {
+    language?: string;
+    tone?: string;
+    keyThemes?: string[];
+    productHighlights?: string[];
+    emotionalTriggers?: string[];
+    callToActionImplied?: string;
+    productHighlight?: string;
+    keyFeatures?: string[];
   };
-  metrics: AnalyticsMetricCard[];
-  recommendations: AnalyticsRecommendation[];
-  report: AnalyticsReport;
-  sources: [string, number][];
-  trends: AnalyticsTrendPoint[];
+  
+  mediaAnalysis?: {
+    mediaType?: string;
+    mediaCount?: number;
+    imageTextExtracted?: string[];
+    visualFocus?: string;
+  };
+
+  engagementMetrics?: {
+    likes?: number;
+    reactions?: Record<string, number>;
+    comments?: number;
+    shares?: number;
+    saves?: number;
+    views?: number;
+    totalInteractions?: number;
+    engagementRate?: number;
+    viralityScore?: number;
+  };
+
+  engagement?: {
+    likes?: number;
+    comments?: number;
+    shares?: number;
+    saves?: number;
+    views?: number;
+    reactions?: Record<string, number>;
+    totalInteractions?: number;
+    engagementRate?: number;
+    viralityScore?: number;
+  };
+
+  analytics?: {
+    interactions?: number;
+    engagementRate?: number;
+    viewEngagementRate?: number;
+    viralityScore?: number;
+    estimatedReach?: number;
+    estimatedCTR?: number;
+  };
+
+  audienceInsights?: {
+    targetAudience?: string;
+    interests?: string[];
+    context?: string;
+  };
+
+  performanceAssessment?: {
+    strengths?: string[];
+    opportunities?: string[];
+    overallImpression?: string;
+  };
+
+  performanceInsights?: {
+    strengths?: string[];
+    opportunities?: string[];
+    recommendations?: string[];
+  };
+
+  performanceIndicators?: {
+    strengths?: string[];
+    opportunities?: string[];
+    weaknesses?: string[];
+  };
+
+  recommendations?: string[];
+
+  // Legacy flat fields just in case
+  likes?: number;
+  comments?: number;
+  shares?: number;
+  saves?: number;
+  views?: number;
+  hashtags?: string[];
+  mentions?: string[];
+};
+
+export type EngineAnalyticsResponse = EngineAnalytics[];
+
+export type AnalyticsRecommendation = {
+  action: string;
+  confidence: number;
+  evidence: string;
+  priority: "high" | "medium" | "low";
+  rationale: string;
+  title: string;
 };

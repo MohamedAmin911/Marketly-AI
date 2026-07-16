@@ -10,9 +10,11 @@ export type DashboardGeneration = {
   hook?: string;
   id: string;
   imageUrl?: string;
+  isAnalyticsEngine?: boolean;
   isCampaign?: boolean;
   isStoryboard?: boolean;
   isVideo?: boolean;
+  isViralEngine?: boolean;
   posts?: Array<{
     caption: string;
     id: string;
