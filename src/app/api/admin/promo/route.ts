@@ -75,7 +75,7 @@ export const GET = createApiHandler(
     const formattedCodes = allPromotionCodes.data.map(pc => ({
       id: pc.id,
       code: pc.code,
-      percentOff: pc.coupon.percent_off,
+      percentOff: (pc as any).coupon.percent_off,
       active: pc.active,
       maxRedemptions: pc.max_redemptions,
       timesRedeemed: pc.times_redeemed,

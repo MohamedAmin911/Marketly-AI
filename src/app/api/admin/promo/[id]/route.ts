@@ -25,7 +25,7 @@ export const PATCH = createApiHandler(
       promoCode: {
         id: promotionCode.id,
         code: promotionCode.code,
-        percentOff: promotionCode.coupon.percent_off,
+        percentOff: (promotionCode as any).coupon.percent_off,
         active: promotionCode.active,
         maxRedemptions: promotionCode.max_redemptions,
         timesRedeemed: promotionCode.times_redeemed,
