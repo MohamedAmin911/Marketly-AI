@@ -5,7 +5,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Mail, Ban, CheckCircle, Trash2, ChevronDown, ChevronUp, Search, Loader2 } from "lucide-react";
+import { Mail, Ban, CheckCircle, Trash2, ChevronDown, ChevronUp, Search, Loader2, RotateCcw } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
@@ -14,14 +14,48 @@ import { useUiStore } from "@/store/ui-store";
 
 import { useTranslation } from "@/lib/i18n/useTranslation";
 
-async function fetchUsers(search = "") {
+async function fetchUsers(search = ""): Promise<AdminUser[]> {
   const res = await fetch(`/api/admin/users?search=${encodeURIComponent(search)}`, { credentials: "include" });
   if (!res.ok) throw new Error("Failed to load");
   const data = await res.json();
   return data.data?.users ?? data.users ?? [];
 }
 
-async function userAction({ id, action }: { id: string; action: "block" | "unblock" | "delete" }) {
+type AdminUserAction = "block" | "unblock" | "reset-strikes" | "delete";
+
+type AdminUser = {
+  _id?: string;
+  createdAt?: string;
+  email: string;
+  emailVerified?: boolean;
+  fullName: string;
+  id?: string;
+  lastActiveAt?: string;
+  moderation?: {
+    aiBlockedUntil?: string | null;
+    aiStrikes?: number;
+    lastViolationAt?: string | null;
+    lastViolationFeature?: string | null;
+    lastViolationReason?: string | null;
+  };
+  role: string;
+  status: string;
+  subscription?: {
+    monthlyCredits?: number;
+    monthlyCreditsRemaining?: number;
+    plan?: string;
+    purchasedCredits?: number;
+    status?: string;
+  };
+  usage?: {
+    aiRequests?: number;
+    analyticsRuns?: number;
+    growthRuns?: number;
+    projectsCreated?: number;
+  };
+};
+
+async function userAction({ id, action }: { id: string; action: AdminUserAction }) {
   const res = await fetch(`/api/admin/users/${id}/action`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -46,7 +80,7 @@ export default function AdminUsersPage() {
   const [search, setSearch] = useState("");
   const [expandedUser, setExpandedUser] = useState<string | null>(null);
   const [contactModalOpen, setContactModalOpen] = useState(false);
-  const [selectedUser, setSelectedUser] = useState<any>(null);
+  const [selectedUser, setSelectedUser] = useState<AdminUser | null>(null);
   
   const [emailSubject, setEmailSubject] = useState("");
   const [emailMessage, setEmailMessage] = useState("");
@@ -98,12 +132,12 @@ export default function AdminUsersPage() {
     },
   });
 
-  const handleAction = (id: string, action: "block" | "unblock" | "delete") => {
+  const handleAction = (id: string, action: AdminUserAction) => {
     if (action === "delete" && !confirm("Are you sure you want to delete this user? This cannot be undone.")) return;
     actionMutation.mutate({ id, action });
   };
 
-  const openContact = (user: any) => {
+  const openContact = (user: AdminUser) => {
     setSelectedUser(user);
     setContactModalOpen(true);
     setEmailStatus("idle");
@@ -111,8 +145,10 @@ export default function AdminUsersPage() {
 
   const handleSendEmail = () => {
     if (!emailSubject || !emailMessage || !selectedUser) return;
+    const selectedUserId = selectedUser.id ?? selectedUser._id;
+    if (!selectedUserId) return;
     setEmailStatus("loading");
-    contactMutation.mutate({ id: selectedUser.id || selectedUser._id, subject: emailSubject, message: emailMessage });
+    contactMutation.mutate({ id: selectedUserId, subject: emailSubject, message: emailMessage });
   };
 
   return (
@@ -142,6 +178,8 @@ export default function AdminUsersPage() {
               <TableHead>User</TableHead>
               <TableHead>Email</TableHead>
               <TableHead>Status</TableHead>
+              <TableHead>Strikes</TableHead>
+              <TableHead>AI Status</TableHead>
               <TableHead>Role</TableHead>
               <TableHead>Plan</TableHead>
               <TableHead className="text-right">Actions</TableHead>
@@ -149,11 +187,15 @@ export default function AdminUsersPage() {
           </TableHeader>
           <TableBody>
             {isLoading && (
-              <TableRow><TableCell colSpan={7} className="h-24 text-center text-muted">Loading...</TableCell></TableRow>
+              <TableRow><TableCell colSpan={9} className="h-24 text-center text-muted">Loading...</TableCell></TableRow>
             )}
-            {!isLoading && users?.map((user: any) => {
-              const id = user.id || user._id;
+            {!isLoading && users?.map((user: AdminUser) => {
+              const id = user.id ?? user._id;
+              if (!id) return null;
               const isExpanded = expandedUser === id;
+              const strikeCount = user.moderation?.aiStrikes ?? 0;
+              const blockedUntil = user.moderation?.aiBlockedUntil ? new Date(user.moderation.aiBlockedUntil) : null;
+              const isTemporarilyBlocked = Boolean(blockedUntil && blockedUntil.getTime() > Date.now());
               const isSuspended = user.status === "suspended";
 
               return (
@@ -170,6 +212,14 @@ export default function AdminUsersPage() {
                       <Badge tone={isSuspended ? "danger" : "default"}>{user.status}</Badge>
                     </TableCell>
                     <TableCell>
+                      <Badge tone={strikeCount > 0 ? "danger" : "default"}>{strikeCount}</Badge>
+                    </TableCell>
+                    <TableCell>
+                      <Badge tone={isSuspended ? "danger" : isTemporarilyBlocked ? "warning" : "success"}>
+                        {isSuspended ? "Suspended" : isTemporarilyBlocked ? "Blocked" : "Active"}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
                       <Badge tone={user.role === "admin" ? "success" : "default"}>{user.role}</Badge>
                     </TableCell>
                     <TableCell>
@@ -182,7 +232,7 @@ export default function AdminUsersPage() {
                             <Mail className="size-4 text-blue-500" />
                           </Button>
                           {isSuspended ? (
-                            <Button variant="ghost" size="icon" onClick={() => handleAction(id, "unblock")} title="Unblock User" disabled={actionMutation.isPending && actionMutation.variables?.id === id}>
+                            <Button variant="ghost" size="icon" onClick={() => handleAction(id, "unblock")} title="Restore account and reset strikes" disabled={actionMutation.isPending && actionMutation.variables?.id === id}>
                               {actionMutation.isPending && actionMutation.variables?.id === id && actionMutation.variables?.action === "unblock" ? <Loader2 className="size-4 animate-spin text-green-500" /> : <CheckCircle className="size-4 text-green-500 hover:scale-110 transition-transform" />}
                             </Button>
                           ) : (
@@ -190,6 +240,11 @@ export default function AdminUsersPage() {
                               {actionMutation.isPending && actionMutation.variables?.id === id && actionMutation.variables?.action === "block" ? <Loader2 className="size-4 animate-spin text-orange-500" /> : <Ban className="size-4 text-orange-500 hover:scale-110 transition-transform" />}
                             </Button>
                           )}
+                          {strikeCount > 0 ? (
+                            <Button variant="ghost" size="icon" onClick={() => handleAction(id, "reset-strikes")} title="Reset AI strikes" disabled={actionMutation.isPending && actionMutation.variables?.id === id}>
+                              {actionMutation.isPending && actionMutation.variables?.id === id && actionMutation.variables?.action === "reset-strikes" ? <Loader2 className="size-4 animate-spin text-cyan-500" /> : <RotateCcw className="size-4 text-cyan-500 hover:scale-110 transition-transform" />}
+                            </Button>
+                          ) : null}
                           <Button variant="ghost" size="icon" onClick={() => handleAction(id, "delete")} title="Delete User" disabled={actionMutation.isPending && actionMutation.variables?.id === id}>
                             {actionMutation.isPending && actionMutation.variables?.id === id && actionMutation.variables?.action === "delete" ? <Loader2 className="size-4 animate-spin text-red-500" /> : <Trash2 className="size-4 text-red-500 hover:scale-110 transition-transform" />}
                           </Button>
@@ -199,8 +254,8 @@ export default function AdminUsersPage() {
                   </TableRow>
                   {isExpanded && (
                     <TableRow className="bg-card/50">
-                      <TableCell colSpan={7} className="p-0 border-b">
-                        <div className="p-6 grid grid-cols-1 md:grid-cols-3 gap-6 animate-in slide-in-from-top-2">
+                      <TableCell colSpan={9} className="p-0 border-b">
+                        <div className="p-6 grid grid-cols-1 md:grid-cols-4 gap-6 animate-in slide-in-from-top-2">
                           
                           <div className="space-y-3">
                             <h4 className="font-semibold text-sm">Generation Insights</h4>
@@ -222,9 +277,20 @@ export default function AdminUsersPage() {
                           </div>
 
                           <div className="space-y-3">
+                            <h4 className="font-semibold text-sm">AI Moderation</h4>
+                            <div className="text-sm space-y-1">
+                              <div className="flex justify-between"><span className="text-muted">Strike Count:</span> <span className="font-medium">{strikeCount}</span></div>
+                              <div className="flex justify-between"><span className="text-muted">Suspension:</span> <span className="font-medium capitalize">{isSuspended ? "Suspended" : isTemporarilyBlocked ? "Temporary block" : "None"}</span></div>
+                              <div className="flex justify-between"><span className="text-muted">Last Violation:</span> <span className="font-medium">{user.moderation?.lastViolationAt ? new Date(user.moderation.lastViolationAt).toLocaleString() : "None"}</span></div>
+                              <div className="flex justify-between"><span className="text-muted">AI Feature:</span> <span className="font-medium">{user.moderation?.lastViolationFeature || "None"}</span></div>
+                              <div><span className="text-muted">Reason:</span> <p className="mt-1 text-foreground">{user.moderation?.lastViolationReason || "None"}</p></div>
+                            </div>
+                          </div>
+
+                          <div className="space-y-3">
                             <h4 className="font-semibold text-sm">User Details</h4>
                             <div className="text-sm space-y-1">
-                              <div className="flex justify-between"><span className="text-muted">Joined:</span> <span className="font-medium">{new Date(user.createdAt).toLocaleDateString()}</span></div>
+                              <div className="flex justify-between"><span className="text-muted">Joined:</span> <span className="font-medium">{user.createdAt ? new Date(user.createdAt).toLocaleDateString() : "Unknown"}</span></div>
                               <div className="flex justify-between"><span className="text-muted">Last Active:</span> <span className="font-medium">{user.lastActiveAt ? new Date(user.lastActiveAt).toLocaleString() : "Never"}</span></div>
                               <div className="flex justify-between"><span className="text-muted">Email Verified:</span> <span className="font-medium">{user.emailVerified ? "Yes" : "No"}</span></div>
                             </div>
@@ -239,7 +305,7 @@ export default function AdminUsersPage() {
             })}
             {!isLoading && !users?.length && (
               <TableRow>
-                <TableCell colSpan={7} className="h-24 text-center text-muted">
+                <TableCell colSpan={9} className="h-24 text-center text-muted">
                   No users found.
                 </TableCell>
               </TableRow>

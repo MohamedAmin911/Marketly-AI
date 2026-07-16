@@ -41,8 +41,8 @@ export const apiErrors = {
     new ApiError("BAD_REQUEST", message, { details, status: 400 }),
   unauthorized: (message = "Authentication is required.") =>
     new ApiError("UNAUTHORIZED", message, { status: 401 }),
-  forbidden: (message = "You do not have access to this resource.") =>
-    new ApiError("FORBIDDEN", message, { status: 403 }),
+  forbidden: (message = "You do not have access to this resource.", details?: unknown) =>
+    new ApiError("FORBIDDEN", message, { details, status: 403 }),
   notFound: (message = "Resource was not found.") =>
     new ApiError("NOT_FOUND", message, { status: 404 }),
   conflict: (message = "Request conflicts with the current resource state.") =>

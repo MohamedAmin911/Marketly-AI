@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowRight, GitBranch, Loader2, Mail } from "lucide-react";
+import { ArrowRight, Loader2, Mail } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
@@ -16,6 +16,7 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
   const { form, isSignup, isSuccess, onSubmit, serverError } = useAuthForm(mode);
   const [oauthError, setOauthError] = useState<string | null>(null);
   const errors = form.formState.errors;
+  const showSuspensionContact = !isSignup && Boolean(serverError.toLowerCase().includes("suspended") || oauthError?.toLowerCase().includes("suspended"));
 
   useEffect(() => {
     setOauthError(new URLSearchParams(window.location.search).get("oauthError"));
@@ -94,9 +95,14 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
         </div>
 
         {serverError || oauthError ? (
-          <p className="rounded-lg border border-red-300/20 bg-red-400/10 p-3 text-sm text-red-100" role="alert">
-            {serverError ?? oauthError}
-          </p>
+          <div className="space-y-3 rounded-lg border border-red-300/20 bg-red-400/10 p-3 text-sm text-red-100" role="alert">
+            <p>{serverError ?? oauthError}</p>
+            {showSuspensionContact ? (
+              <Button asChild size="sm" variant="secondary">
+                <Link href="/contact">Contact support</Link>
+              </Button>
+            ) : null}
+          </div>
         ) : null}
 
         <Button className="w-full" type="submit" disabled={form.formState.isSubmitting}>

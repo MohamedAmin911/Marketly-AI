@@ -4,6 +4,7 @@ export * from "./types";
 export * from "./utils";
 
 export { ActivityLogModel, type IActivityLog } from "./models/activity-log.model";
+export { AIViolationModel, type IAIViolation } from "./models/ai-violation.model";
 export { AIMemoryModel, type IAIMemory } from "./models/ai-memory.model";
 export { AnalyticsModel, type IAnalytics } from "./models/analytics.model";
 export { BrandModel, type IBrand } from "./models/brand.model";
@@ -16,7 +17,7 @@ export { SettingsModel, type ISettings } from "./models/settings.model";
 export { StoryboardModel, type IStoryboard, type StoryboardScene } from "./models/storyboard.model";
 export { SubscriptionModel, type ISubscription } from "./models/subscription.model";
 export { UploadModel, type IUpload } from "./models/upload.model";
-export { UserModel, type IUser, type RefreshTokenSession } from "./models/user.model";
+export { UserModel, type IUser, type IUserModeration, type RefreshTokenSession } from "./models/user.model";
 export { VideoModel, type IVideo } from "./models/video.model";
 export { ViralEngineModel, type IViralEngine } from "./models/viral-engine.model";
 export { AnalyticsEngineModel, type IAnalyticsEngine } from "./models/analytics-engine.model";

@@ -1,4 +1,5 @@
-import { NextResponse, type NextRequest } from "next/server";
+import type { NextRequest } from "next/server";
+import { AI_SUSPENSION_MESSAGE } from "@/server/config/moderation";
 import { UserModel, type IUser } from "@/server/database/models/user.model";
 import { connectToDatabase } from "@/server/database";
 import { apiErrors } from "@/server/errors/api-error";
@@ -18,6 +19,13 @@ export async function requireFeature(request: NextRequest, feature: keyof IUser[
   await connectToDatabase();
   const user = await UserModel.findById(decoded.sub).lean();
   if (!user) throw apiErrors.notFound("User not found");
+  if (user.status === "suspended" || user.status === "deleted") {
+    throw apiErrors.forbidden(AI_SUSPENSION_MESSAGE, {
+      contactPath: "/contact",
+      forceLogout: true,
+      redirectTo: "/login",
+    });
+  }
 
   if (user.role === "admin") return user; // Admin bypass
 
@@ -42,6 +50,13 @@ export async function requireUser(request: NextRequest) {
   await connectToDatabase();
   const user = await UserModel.findById(decoded.sub).lean();
   if (!user) throw apiErrors.notFound("User not found");
+  if (user.status === "suspended" || user.status === "deleted") {
+    throw apiErrors.forbidden(AI_SUSPENSION_MESSAGE, {
+      contactPath: "/contact",
+      forceLogout: true,
+      redirectTo: "/login",
+    });
+  }
 
   return user;
 }

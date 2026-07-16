@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 
 import type { ApiError } from "@/server/errors/api-error";
+import { clearAuthCookies } from "@/server/security/cookies";
+import { isForceLogoutDetails } from "@/server/moderation/with-moderation";
 
 export type ApiMeta = {
   requestId: string;
@@ -28,8 +30,7 @@ export function jsonSuccess<TData>(data: TData, meta: ApiMeta, init?: ResponseIn
 }
 
 export function jsonError(error: ApiError, meta: ApiMeta): NextResponse<ApiFailure> {
-  return NextResponse.json(
-    {
+  const payload: ApiFailure = {
       error: {
         code: error.code,
         details: error.expose ? error.details : undefined,
@@ -37,7 +38,12 @@ export function jsonError(error: ApiError, meta: ApiMeta): NextResponse<ApiFailu
       },
       meta,
       ok: false,
-    },
-    { status: error.status },
-  );
+    };
+  const response = NextResponse.json(payload, { status: error.status });
+
+  if (isForceLogoutDetails(error.details)) {
+    clearAuthCookies(response);
+  }
+
+  return response;
 }

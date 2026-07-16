@@ -1,9 +1,10 @@
-import type { NextRequest } from "next/server";
+import { NextResponse, type NextRequest } from "next/server";
 
 import { ApiError } from "@/server/errors/api-error";
 import { logger } from "@/server/logging/logger";
 import { requireAuth } from "@/server/security/auth-guard";
-import { checkPromptSafety } from "@/server/security/profanity-filter";
+import { isForceLogoutError, moderateAIRequest } from "@/server/moderation/with-moderation";
+import { clearAuthCookies } from "@/server/security/cookies";
 import { generateProductAdvertisement } from "@/services/advertisement-generation-service";
 
 export async function POST(req: NextRequest) {
@@ -17,7 +18,7 @@ export async function POST(req: NextRequest) {
     const aspectRatio = String(formData.get("aspectRatio") ?? "16:9");
 
     if (!productImage || !referenceImage || !prompt) {
-      return Response.json(
+      return NextResponse.json(
         {
           success: false,
           error: "Product image, reference image, and prompt are required",
@@ -26,11 +27,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    try {
-      checkPromptSafety(prompt, auth);
-    } catch (err: any) {
-      return Response.json({ success: false, error: err.message }, { status: 400 });
-    }
+    await moderateAIRequest({ auth, feature: "Image Generation", prompts: prompt });
 
     const generation = await generateProductAdvertisement({
       aspectRatio,
@@ -40,7 +37,7 @@ export async function POST(req: NextRequest) {
       userId: auth.user.sub,
     });
 
-    return Response.json({
+    return NextResponse.json({
       ...generation,
       success: true,
     });
@@ -51,12 +48,14 @@ export async function POST(req: NextRequest) {
     const isTimeout = error instanceof Error && error.message === "Generation timed out";
     const status = error instanceof ApiError ? error.status : isTimeout ? 504 : 500;
 
-    return Response.json(
+    const response = NextResponse.json(
       {
         success: false,
         error: error instanceof ApiError ? error.message : isTimeout ? "Generation timed out. The AI service may be busy." : "Generation failed",
       },
       { status },
     );
+    if (isForceLogoutError(error)) clearAuthCookies(response);
+    return response;
   }
 }
