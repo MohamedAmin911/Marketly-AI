@@ -21,7 +21,21 @@ async function apiGetMessages(id: string): Promise<ChatMessage[]> {
   try { const r = await fetch(`/api/ai-assistant/sessions/${id}`, { credentials: "include" }); if (!r.ok) return []; const d = await r.json() as { data: { messages: ChatMessage[] } }; return d.data?.messages ?? []; } catch { return []; }
 }
 async function apiSaveMsg(id: string, msg: ChatMessage): Promise<void> {
-  try { await fetch(`/api/ai-assistant/sessions/${id}`, { method: "PATCH", credentials: "include", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ message: { id: msg.id, role: msg.role, content: msg.content } }) }); } catch { }
+  try {
+    await fetch(`/api/ai-assistant/sessions/${id}`, {
+      method: "PATCH",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        message: {
+          attachment: msg.attachment,
+          content: msg.content,
+          id: msg.id,
+          role: msg.role,
+        },
+      }),
+    });
+  } catch { }
 }
 async function apiUpdateTitle(id: string, title: string): Promise<void> {
   try { await fetch(`/api/ai-assistant/sessions/${id}`, { method: "PATCH", credentials: "include", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ title }) }); } catch { }

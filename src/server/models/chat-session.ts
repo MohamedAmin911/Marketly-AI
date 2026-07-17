@@ -9,6 +9,13 @@ const chatSessionSchema = new mongoose.Schema(
         id: String,
         role: { type: String, enum: ["user", "assistant"] },
         content: { type: String, maxlength: 10000 },
+        attachment: {
+          dataUrl: String,
+          mimeType: String,
+          name: String,
+          size: Number,
+          textContent: { type: String, maxlength: 10000 },
+        },
       },
     ],
   },

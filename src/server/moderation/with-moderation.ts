@@ -64,7 +64,7 @@ type ModerationMemoryViolation = {
 };
 
 const filter = new Filter();
-filter.addWords("nsfw", "gore");
+filter.addWords("nsfw", "gore", "kill", "blood");
 
 const globalForModeration = globalThis as typeof globalThis & {
   marketlyModerationUsers?: Map<string, ModerationMemoryUser>;
