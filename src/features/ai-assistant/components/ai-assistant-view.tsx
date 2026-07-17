@@ -3,7 +3,7 @@
 /* eslint-disable @next/next/no-img-element */
 
 import { Image as ImageIcon, Loader2, MessageSquarePlus, Mic, Paperclip, PauseCircle, Send, Share2, Sparkles, Square, Trash2, Volume2, X, Zap } from "lucide-react";
-import { useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
  
 import { PageShell } from "@/components/layout/page-shell";
 import { Badge } from "@/components/ui/badge";
@@ -63,7 +63,7 @@ async function readPdfAsText(file: File): Promise<string> {
   const data = await res.json() as { text?: string };
   return data.text ?? `[Empty PDF: ${file.name}]`;
 }
- 
+
 export function AiAssistantView() {
   const { t } = useTranslation();
   const {
@@ -75,6 +75,7 @@ export function AiAssistantView() {
   const imageInputRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isListening, setIsListening] = useState(false);
+  const [preparingAudioMessageId, setPreparingAudioMessageId] = useState<string | null>(null);
  
   const recognitionRef = useRef<unknown>(null);
   function toggleVoice() {
@@ -98,29 +99,29 @@ export function AiAssistantView() {
   }
 
   const recognition = new SR();
-recognition.lang = "en-US";
-recognition.continuous = true;
-recognition.interimResults = true;
+  recognition.lang = "en-US";
+  recognition.continuous = true;
+  recognition.interimResults = true;
 
-recognition.onstart = () => console.log("Voice started");
-recognition.onaudiostart = () => console.log("Audio start");
-recognition.onspeechstart = () => console.log("Speech start");
-recognition.onspeechend = () => console.log("Speech end");
-recognition.onnomatch = () => console.log("No match");
+  recognition.onstart = () => console.log("Voice started");
+  recognition.onaudiostart = () => console.log("Audio start");
+  recognition.onspeechstart = () => console.log("Speech start");
+  recognition.onspeechend = () => console.log("Speech end");
+  recognition.onnomatch = () => console.log("No match");
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-recognition.onresult = (event: any) => {
-  console.log("RESULT", event);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  recognition.onresult = (event: any) => {
+    console.log("RESULT", event);
 
-  let text = "";
+    let text = "";
 
-  for (let i = 0; i < event.results.length; i++) {
-    text += event.results[i][0].transcript + " ";
-  }
+    for (let i = 0; i < event.results.length; i++) {
+      text += event.results[i][0].transcript + " ";
+    }
 
-  console.log("TEXT", text);
-  setDraft(text.trim());
-};
+    console.log("TEXT", text);
+    setDraft(text.trim());
+  };
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   recognition.onerror = (event: any) => {
     console.error("SpeechRecognition error:", event);
@@ -164,7 +165,11 @@ recognition.onresult = (event: any) => {
     if (event.key === "Enter" && (event.metaKey || event.ctrlKey)) void sendMessage();
   }
  
-  async function handleSpeak(text: string, messageId: string) {
+  const handleSpeak = useCallback(async (text: string, messageId: string) => {
+    const targetMessage = messages.find((message) => message.id === messageId);
+    if (targetMessage?.audio || preparingAudioMessageId === messageId) return;
+
+    setPreparingAudioMessageId(messageId);
     try {
       const r = await fetch("/api/tts", {
         method: "POST",
@@ -172,16 +177,26 @@ recognition.onresult = (event: any) => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ text }),
       });
-      const d = await r.json() as { audio?: string };
-      if (d.audio) {
+      const d = await r.json() as {
+        audio?: string | null;
+        data?: { audio?: string | null; error?: string | null };
+        error?: { message?: string };
+      };
+      const audio = d.audio ?? d.data?.audio ?? null;
+      if (audio) {
         // حط الـ audio في الـ message عشان يظهر كـ player
-        setMessages(prev => prev.map(m => m.id === messageId ? { ...m, audio: d.audio } : m));
+        setMessages(prev => prev.map(m => m.id === messageId ? { ...m, audio } : m));
+        return;
       }
+
+      console.warn(d.data?.error ?? d.error?.message ?? "No generated audio was returned for this message.");
     } catch (e) {
       console.error("TTS error:", e);
+    } finally {
+      setPreparingAudioMessageId(null);
     }
-  }
- 
+  }, [messages, preparingAudioMessageId, setMessages]);
+
   async function handleSend(override?: string) {
     await sendMessage(override);
   }
@@ -249,7 +264,8 @@ recognition.onresult = (event: any) => {
                 <StaggeredItem key={message.id}>
                   <ChatMessage
                     message={message}
-                    onSpeak={voiceEnabled && message.role === "assistant" ? (text) => handleSpeak(text, message.id) : undefined}
+                    isPreparingAudio={preparingAudioMessageId === message.id}
+                    onSpeak={message.role === "assistant" ? (text) => handleSpeak(text, message.id) : undefined}
                   />
                 </StaggeredItem>
               ))}

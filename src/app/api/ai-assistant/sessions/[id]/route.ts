@@ -9,7 +9,18 @@ export const GET = createApiHandler(async ({ request, params }) => {
   const { id } = await params as { id: string };
 
   const session = await ChatSession.findOne({ _id: id, userId: auth.user.sub }).lean() as {
-    messages: { id: string; role: string; content: string }[];
+    messages: {
+      attachment?: {
+        dataUrl: string;
+        mimeType: string;
+        name: string;
+        size: number;
+        textContent?: string;
+      };
+      content: string;
+      id: string;
+      role: string;
+    }[];
     title: string;
   } | null;
 
@@ -23,7 +34,18 @@ export const PATCH = createApiHandler(async ({ request, params }) => {
   const { id } = await params as { id: string };
 
   const body = await request.json() as {
-    message?: { id: string; role: string; content: string };
+    message?: {
+      attachment?: {
+        dataUrl: string;
+        mimeType: string;
+        name: string;
+        size: number;
+        textContent?: string;
+      };
+      content: string;
+      id: string;
+      role: string;
+    };
     title?: string;
   };
 

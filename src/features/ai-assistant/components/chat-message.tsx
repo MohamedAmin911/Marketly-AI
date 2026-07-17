@@ -2,8 +2,7 @@
 
 /* eslint-disable @next/next/no-img-element */
 
-import { Bot, FileText, Volume2 } from "lucide-react";
-import { useState } from "react";
+import { Bot, FileText, Loader2, Volume2 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
@@ -13,7 +12,15 @@ import type { ChatMessage as ChatMessageType } from "@/features/ai-assistant/typ
 import { useTranslation } from "@/lib/i18n/useTranslation";
 import { cn } from "@/lib/utils";
 
-export function ChatMessage({ message, onSpeak }: { message: ChatMessageType, onSpeak?: (text: string) => Promise<void> }) {
+export function ChatMessage({
+  isPreparingAudio = false,
+  message,
+  onSpeak,
+}: {
+  isPreparingAudio?: boolean;
+  message: ChatMessageType;
+  onSpeak?: (text: string) => Promise<void>;
+}) {
   const { t } = useTranslation();
   const isUser = message.role === "user";
   const isImage = message.attachment?.mimeType.startsWith("image/");
@@ -49,9 +56,16 @@ export function ChatMessage({ message, onSpeak }: { message: ChatMessageType, on
             <audio controls src={message.audio} className="mt-2 w-full rounded-lg" />
           ) : null}
 
-          {}
-          {!isUser && onSpeak ? (
-            <SpeakButton text={message.content} onSpeak={onSpeak} />
+          {!isUser && onSpeak && !message.audio ? (
+            <button
+              type="button"
+              onClick={() => void onSpeak(message.content)}
+              disabled={isPreparingAudio}
+              aria-label={t("assistant.speak")}
+              className="mt-3 inline-flex items-center gap-2 rounded-lg border border-border bg-surface px-3 py-2 text-xs font-semibold text-muted transition hover:border-primary/45 hover:text-primary disabled:cursor-wait disabled:opacity-70"
+            >
+              {isPreparingAudio ? <Loader2 className="size-3.5 animate-spin" /> : <Volume2 className="size-3.5" />}
+            </button>
           ) : null}
 
           {message.card ? (
@@ -70,31 +84,5 @@ export function ChatMessage({ message, onSpeak }: { message: ChatMessageType, on
         </Card>
       </div>
     </article>
-  );
-}
-
-function SpeakButton({ onSpeak, text }: { onSpeak: (text: string) => Promise<void>; text: string }) {
-  const { t } = useTranslation();
-  const [isSpeaking, setSpeaking] = useState(false);
-
-  async function handleClick() {
-    try {
-      setSpeaking(true);
-      await onSpeak(text);
-    } finally {
-      setSpeaking(false);
-    }
-  }
-
-  return (
-    <button
-      type="button"
-      onClick={() => void handleClick()}
-      disabled={isSpeaking}
-      className="mt-3 inline-flex items-center gap-2 rounded-lg border border-border bg-surface px-3 py-2 text-xs font-semibold text-muted transition hover:border-primary/45 hover:text-primary disabled:cursor-wait disabled:opacity-70"
-    >
-      <Volume2 className="size-3.5" />
-      {isSpeaking ? t("assistant.preparingAudio") : t("assistant.speak")}
-    </button>
   );
 }
