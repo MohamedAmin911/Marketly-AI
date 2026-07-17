@@ -1,5 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 
+export const dynamic = "force-dynamic";
+
 import { ApiError } from "@/server/errors/api-error";
 import { logger } from "@/server/logging/logger";
 import { requireAuth } from "@/server/security/auth-guard";
@@ -48,6 +50,7 @@ export async function POST(req: NextRequest) {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({ url, brandName, industry }),
+      cache: "no-store",
     });
 
     if (!response.ok) {
