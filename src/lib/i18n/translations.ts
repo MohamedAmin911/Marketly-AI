@@ -48,6 +48,11 @@ export const translations = {
     "common.search": "Search",
     "common.filter": "Filter",
     "common.edit": "Edit",
+    "common.lockedFeature": "Feature Locked",
+    "common.upgradeToAccess": "Upgrade to a Pro plan to access this feature.",
+    "common.proFeature": "Pro Feature",
+    "common.proFeatureDesc": "This feature is available exclusively on our Pro and Enterprise plans.",
+    "common.backToDashboard": "Back to Dashboard",
     
     "stage.strategy": "Strategy Generated",
     "stage.campaigns": "Campaigns Generated",
@@ -674,6 +679,11 @@ export const translations = {
     "common.search": "بحث",
     "common.filter": "تصفية",
     "common.edit": "تعديل",
+    "common.lockedFeature": "ميزة مقفلة",
+    "common.upgradeToAccess": "قم بالترقية إلى باقة Pro للوصول إلى هذه الميزة.",
+    "common.proFeature": "ميزة Pro",
+    "common.proFeatureDesc": "هذه الميزة متاحة حصرياً في باقات Pro و Enterprise.",
+    "common.backToDashboard": "العودة للوحة التحكم",
     
     "stage.strategy": "الاستراتيجية منشأة",
     "stage.campaigns": "الحملات منشأة",
