@@ -1,5 +1,6 @@
 import { Metadata } from "next";
 import { ViralEngineView } from "@/features/viral-engine/components/viral-engine-view";
+import { FeatureGuard } from "@/components/layout/feature-guard";
 
 export const metadata: Metadata = {
   title: "Viral Engine",
@@ -7,5 +8,9 @@ export const metadata: Metadata = {
 };
 
 export default function ViralEnginePage() {
-  return <ViralEngineView />;
+  return (
+    <FeatureGuard featureName="viralEngine">
+      <ViralEngineView />
+    </FeatureGuard>
+  );
 }
