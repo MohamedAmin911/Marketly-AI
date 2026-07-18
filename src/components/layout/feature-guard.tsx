@@ -20,7 +20,7 @@ export function FeatureGuard({ featureName, children }: FeatureGuardProps) {
 
   if (isLoading) {
     return (
-      <PageShell title={<Skeleton className="h-8 w-48" />} description={<Skeleton className="h-4 w-96 mt-2" />}>
+      <PageShell title={<Skeleton className="h-8 w-48" />}>
         <div className="flex flex-col space-y-4 p-8">
           <Skeleton className="h-[200px] w-full rounded-xl" />
           <div className="space-y-2">
