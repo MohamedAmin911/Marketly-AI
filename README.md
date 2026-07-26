@@ -17,6 +17,7 @@
 ---
 
 ## 🚀 Project Overview
+Demo: https://marketly-ai-pro.vercel.app/
 
 **Marketly AI** is an all-in-one, intelligent Marketing Operating System designed to automate and scale digital marketing efforts. It bridges the gap between creative ideation and data-driven execution. 
 
